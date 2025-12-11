@@ -1,4 +1,5 @@
 import Dashboard from "../pages/dashboard/Dashboard";
+import Floor from "../pages/floor/Floor";
 
 
 export const routes = [
@@ -6,8 +7,8 @@ export const routes = [
     path: "/",
     element: <Dashboard />,
   },
-  //  {
-  //   path: "/library/*",
-  //   element: <Floor />,
-  // },
+  {
+    path: "/floor/:id",
+    element: <Floor />,
+  },
 ];

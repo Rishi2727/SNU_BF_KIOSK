@@ -1,6 +1,7 @@
-const LibraryCard = ({ title, subtitle, availableCount = 0, totalCount = 217 }) => {
+const LibraryCard = ({ title, subtitle, availableCount = 0, totalCount = 217, onClick }) => {
   return (
     <button
+      onClick={onClick}
       className="
         flex flex-col justify-between
         bg-[#FFCA08] hover:bg-[#D7D8D2]
