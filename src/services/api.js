@@ -1,7 +1,7 @@
 import axios from "axios";
 
+export const MAP_BASE_URL = "http://k-rsv.snu.ac.kr:8012";
 const BASE_PATH = "/NEW_SNU_BOOKING"; 
-
 const baseClient = axios.create({
   baseURL: BASE_PATH,
   withCredentials: true, 
@@ -9,7 +9,8 @@ const baseClient = axios.create({
   headers: {
     Accept: "application/json",
     "X-Requested-With": "XMLHttpRequest",
-    "os_kind" : "KIOSK"
+    "os_kind": "KIOSK",
+    "Content-Type": "application/x-www-form-urlencoded",
   },
 });
 
@@ -98,6 +99,23 @@ export const getKioskUserInfo = async () => {
     return response;
   } catch (error) {
     console.error("Failed to fetch kiosk user info", error);
+    throw error;
+  }
+};
+
+/* =====================================================
+   GET SECTOR LIST
+===================================================== */
+export const getSectorList = async ({ floor, floorno }) => {
+  try {
+    // GET /NEW_SNU_BOOKING/json/getSectorList
+    const response = await publicApi.post("/json/getSectorList", {
+    floor,
+    floorno,
+  });
+    return response;
+  } catch (error) {
+    console.error("Failed to fetch sector list", error);
     throw error;
   }
 };

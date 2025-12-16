@@ -22,7 +22,7 @@ const Header = ({ userInfo, openKeyboard, logout }) => {
   return (
     <div
       className="
-        absolute top-6 right-6 z-20 flex items-center gap-4
+        absolute top-1 right-6 z-20 flex items-center gap-4
         bg-[#C4B483] px-6 py-3 rounded-2xl
         border border-white/30 backdrop-blur-lg shadow
       "
