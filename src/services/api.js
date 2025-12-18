@@ -1,122 +1,81 @@
 import axios from "axios";
 
 export const MAP_BASE_URL = "http://k-rsv.snu.ac.kr:8012";
- export const miniMapBaseUrl = 'http://k-rsv.snu.ac.kr:8011//NEW_SNU_BOOKING';
-const BASE_PATH = "/NEW_SNU_BOOKING"; 
+export const miniMapBaseUrl =
+  "http://k-rsv.snu.ac.kr:8011/NEW_SNU_BOOKING/commons/images/kiosk";
+
+const BASE_PATH = "/NEW_SNU_BOOKING";
+
 const baseClient = axios.create({
   baseURL: BASE_PATH,
-  withCredentials: true, 
+  withCredentials: true,
   timeout: 60000,
   headers: {
     Accept: "application/json",
     "X-Requested-With": "XMLHttpRequest",
-    "os_kind": "KIOSK",
+    os_kind: "KIOSK",
     "Content-Type": "application/x-www-form-urlencoded",
   },
 });
 
-/* =====================================================
+/* ===============================
    PUBLIC API
-   (No auth required)
-===================================================== */
+================================ */
 export const publicApi = {
   get: async (url, params = {}) => {
-    try {
-      const response = await baseClient.get(url, { params });
-      return response.data;
-    } catch (error) {
-      console.error(`Public GET failed: ${url}`, error);
-      throw error;
-    }
+    const res = await baseClient.get(url, { params });
+    return res.data;
   },
-
   post: async (url, data = {}) => {
-    try {
-      const response = await baseClient.post(url, data);
-      return response.data;
-    } catch (error) {
-      console.error(`Public POST failed: ${url}`, error);
-      throw error;
-    }
+    const res = await baseClient.post(url, data);
+    return res.data;
   },
 };
 
-/* =====================================================
+/* ===============================
    PROTECTED API
-   (Requires valid JSESSIONID)
-===================================================== */
+================================ */
 export const protectedApi = {
-  get: async (url, params = {}) => {
-    try {
-      const response = await baseClient.get(url, { params });
-      return response.data;
-    } catch (error) {
-      console.error(`Protected GET failed: ${url}`, error);
-
-      if (error.response?.status === 401) {
-        console.warn("Session expired");
-      }
-
-      throw error;
-    }
-  },
-
   post: async (url, data = {}) => {
-    try {
-      // ✅ Convert data to URLSearchParams for form-urlencoded
-      const formData = new URLSearchParams(data);
-      
-      const response = await baseClient.post(url, formData, {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8'
-        }
-      });
-      return response.data;
-    } catch (error) {
-      console.error(`Protected POST failed: ${url}`, error);
-      throw error;
-    }
+    const formData = new URLSearchParams(data);
+    const res = await baseClient.post(url, formData, {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
+      },
+    });
+    return res.data;
   },
 };
-/* =====================================================
-   AUTH APIS
-===================================================== */
 
-export const loginBySchoolNo = async (schoolNo) => {
-  if (!schoolNo) throw new Error("School number is required");
+/* ===============================
+   AUTH
+================================ */
+export const loginBySchoolNo = (schoolno) =>
+  publicApi.get("/kiosk/login/login", { schoolno });
 
-  return publicApi.get("/kiosk/login/login", {
-    schoolno: schoolNo,
-  });
-};
+export const getKioskUserInfo = () =>
+  protectedApi.post("/json/getKioskUserInfo", {});
 
-/* =====================================================
-   GET KIOSK USER INFO
-===================================================== */
-export const getKioskUserInfo = async () => {
-  try {
-    // ✅ Changed from GET to POST with empty body
-    const response = await protectedApi.post("/json/getKioskUserInfo", {});
-    return response;
-  } catch (error) {
-    console.error("Failed to fetch kiosk user info", error);
-    throw error;
-  }
-};
+/* ===============================
+   SECTOR LIST
+================================ */
+export const getSectorList = ({ floor, floorno }) =>
+  publicApi.post("/json/getSectorList", { floor, floorno });
 
-/* =====================================================
-   GET SECTOR LIST
-===================================================== */
-export const getSectorList = async ({ floor, floorno }) => {
-  try {
-    // GET /NEW_SNU_BOOKING/json/getSectorList
-    const response = await publicApi.post("/json/getSectorList", {
+/* ===============================
+   ✅ SEAT LIST (NEW)
+================================ */
+export const getSeatList = ({
+  sectorno,
+  floor,
+  floorno,
+  roomno,
+  type = "S",
+}) =>
+  protectedApi.post("/json/getSeatList", {
+    sectorno,
     floor,
     floorno,
+    roomno,
+    type,
   });
-    return response;
-  } catch (error) {
-    console.error("Failed to fetch sector list", error);
-    throw error;
-  }
-};

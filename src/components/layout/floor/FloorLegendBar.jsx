@@ -43,7 +43,7 @@ const FloorLegendBar = ({
 
         <div className="flex items-center gap-2">
           <Users className="w-8 h-8 text-blue-400" />
-          <span className="text-[30px]">Seats in use</span>
+          <span className="text-[30px]">Booked</span>
         </div>
 
         <div className="flex items-center gap-2">

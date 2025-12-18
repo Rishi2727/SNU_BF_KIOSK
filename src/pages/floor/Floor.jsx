@@ -80,6 +80,14 @@ const Floor = () => {
     setShowRoomView(false);
     setSelectedSector(null);
   };
+ const getSectorLabel = (sector, index = 0) => {
+  if (!sector?.MAPLABEL) return "";
+
+  const labels = sector.MAPLABEL.split("$").map(l => l.trim());
+
+  // If multiple labels exist, match index
+  return labels[index] || labels[0];
+};
 
   const displayableSectors = filterDisplayableSectors(sectorList);
 
@@ -125,12 +133,11 @@ const Floor = () => {
                   imageError={imageError}
                 />
                 {!imageError && displayableSectors.map((sector) => {
-                  const mapStyles = parseMapPoint(sector.MAPPOINT);
-                  if (!mapStyles) return null;
+                  const mapStylesList = parseMapPoint(sector.MAPPOINT);
 
-                  return (
+                  return mapStylesList.map((mapStyles, idx) => (
                     <button
-                      key={sector.SECTORNO}
+                      key={`${sector.SECTORNO}-${idx}`}
                       onClick={() => handleSectorClick(sector)}
                       className="absolute group cursor-pointer hover:z-20 transition-all"
                       style={{
@@ -140,15 +147,17 @@ const Floor = () => {
                         width: mapStyles.width,
                         height: mapStyles.height,
                       }}
-                      title={sector.MAPLABEL}>
+                       title={getSectorLabel(sector, idx)}
+                    >
                       <div className="absolute inset-0 bg-[#FFCA08]/20 border-2 border-[#FFCA08] rounded opacity-0 group-hover:opacity-100 transition-opacity" />
                       <div className="absolute -top-10 left-1/2 -translate-x-1/2 pointer-events-none">
                         <span className="bg-[#9A7D4C] text-white px-4 py-1.5 rounded-md text-[30px] font-bold shadow-lg whitespace-nowrap">
-                          {sector.MAPLABEL}
+                           {getSectorLabel(sector, idx)}
                         </span>
                       </div>
                     </button>
-                  );
+                  ));
+
                 })}
               </div>
             )}
@@ -164,7 +173,7 @@ const Floor = () => {
         showBack={showRoomView}
         onBack={backToFloorMap}
       />
-     <FooterControls
+      <FooterControls
         userInfo={userInfo}
         openKeyboard={() => openKeyboard(null)}
         logout={handleLogout}
