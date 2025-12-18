@@ -1,6 +1,7 @@
 import axios from "axios";
 
 export const MAP_BASE_URL = "http://k-rsv.snu.ac.kr:8012";
+ export const miniMapBaseUrl = 'http://k-rsv.snu.ac.kr:8011//NEW_SNU_BOOKING';
 const BASE_PATH = "/NEW_SNU_BOOKING"; 
 const baseClient = axios.create({
   baseURL: BASE_PATH,

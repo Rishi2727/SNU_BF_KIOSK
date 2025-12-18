@@ -1,52 +1,78 @@
-import React from 'react';
-
 const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading }) => {
   const calculatePercentage = (occupied, total) => {
     return (occupied / total) * 100;
   };
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 z-20 flex items-center justify-center gap-2 p-2 bg-black/30 backdrop-blur-sm">
+    <div
+      className="
+        w-[80%]
+        absolute bottom-0 right-0 z-30
+        flex items-center justify-between gap-4
+        px-6 py-5
+        bg-white/90 backdrop-blur-md
+        rounded-tl-2xl shadow-xl
+      "
+    >
       {floors.map((item) => (
         <button
           key={item.id}
           onClick={() => onFloorClick(item)}
           disabled={loading}
-          className={`w-full flex items-center rounded-lg overflow-hidden transition-all cursor-pointer hover:scale-102 disabled:opacity-50 disabled:cursor-not-allowed ${
-            currentFloor?.id === item.id
-              ? "bg-[#FFCA08] shadow-lg"
-              : "bg-[#C4B483] hover:bg-[#D4C493]"
-          }`}>
+          className={`w-[35%] flex items-center rounded-xl overflow-hidden
+            transition-all duration-200 cursor-pointer
+            hover:scale-[1.02] hover:shadow-lg
+            disabled:opacity-50 disabled:cursor-not-allowed
+            ${
+              currentFloor?.id === item.id
+                ? "bg-[#FFCA08] shadow-md"
+                : "bg-[#C4B483] hover:bg-[#D4C493]"
+            }`}
+        >
+          {/* Floor Label */}
           <div
-            className={`px-8 py-6 flex items-center justify-center ${
-              currentFloor?.id === item.id ? "bg-[#9A7D4C]" : "bg-[#FFCA08]"
-            }`}>
+            className={`px-6 py-4 flex items-center justify-center shrink-0 ${
+              currentFloor?.id === item.id
+                ? "bg-[#9A7D4C]"
+                : "bg-[#FFCA08]"
+            }`}
+          >
             <span
-              className={`text-4xl font-bold ${
-                currentFloor?.id === item.id ? "text-white" : "text-[#9A7D4C]"
-              }`}>
+              className={`text-[36px] font-bold tracking-wide ${
+                currentFloor?.id === item.id
+                  ? "text-white"
+                  : "text-[#9A7D4C]"
+              }`}
+            >
               {item.title}
             </span>
           </div>
 
-          <div className="flex-1 px-4 py-2 relative mt-4">
-            <div className="absolute -top-2 left-4 bg-[#9A7D4C] text-white text-xs font-bold px-3 py-1 rounded-full">
-              {item.occupied}
+          {/* Stats */}
+          <div className="flex-1 px-4 py-2 relative">
+            {/* Percentage badge */}
+            <div className="absolute top-7 left-4 bg-[#9A7D4C] text-white font-bold px-3 py-0 rounded-md text-[30px] shadow-md">
+              {item.occupied}%
             </div>
 
-            <div className="mt-4 mb-2">
-              <div className="h-3 bg-[#D7D8D2] rounded-full overflow-hidden">
+            {/* Progress bar */}
+            <div className="mt-2 mb-3">
+              <div className="h-2 bg-[#D7D8D2] rounded-full overflow-hidden">
                 <div
                   className="h-full bg-[#9A7D4C] rounded-full transition-all duration-300"
                   style={{
-                    width: `${calculatePercentage(item.occupied, item.total)}%`,
+                    width: `${calculatePercentage(
+                      item.occupied,
+                      item.total
+                    )}%`,
                   }}
                 />
               </div>
             </div>
 
-            <div className="text-right text-sm text-gray-400 mt-1">
-              {item.total}
+            {/* Total */}
+            <div className="text-right text-gray-500 leading-none">
+              <span className="text-[30px]">{item.total}</span>
             </div>
           </div>
         </button>

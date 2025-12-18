@@ -13,6 +13,7 @@ import FloorMapImage from "../../components/layout/floor/FloorMapImage";
 import FloorStatsBar from "../../components/layout/floor/FloorStatsBar";
 import { MAP_BASE_URL } from "../../services/api";
 import FloorLegendBar from "../../components/layout/floor/FloorLegendBar";
+import FooterControls from "../../components/common/Footer";
 
 const Floor = () => {
   const navigate = useNavigate();
@@ -95,8 +96,15 @@ const Floor = () => {
         alt="logo"
         className="absolute top-0 left-0 w-[20%] ml-6 z-10"
       />
-
-      <div className="absolute inset-0 flex items-center justify-center z-0 mb-[-70px] mx-2">
+      <div className="absolute top-[110px] left-0 right-0 z-20 px-4">
+        <FloorStatsBar
+          floors={floors}
+          currentFloor={currentFloor}
+          onFloorClick={handleFloorClick}
+          loading={loading}
+        />
+      </div>
+      <div className="absolute inset-0 flex items-center justify-center z-0 mb-[-78px] mx-2">
         {currentFloor && (
           <div className="relative w-full h-[70%] bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden shadow-2xl">
             {loading ? (
@@ -148,7 +156,7 @@ const Floor = () => {
         )}
       </div>
 
-      <Header userInfo={userInfo} logout={handleLogout} />
+      {/* <Header userInfo={userInfo} logout={handleLogout} /> */}
       <FloorLegendBar
         buildingName="Central Library, Gwanjeong Building"
         floorName={currentFloor?.title}
@@ -156,12 +164,16 @@ const Floor = () => {
         showBack={showRoomView}
         onBack={backToFloorMap}
       />
-      <FloorStatsBar
-        floors={floors}
-        currentFloor={currentFloor}
-        onFloorClick={handleFloorClick}
-        loading={loading}
+     <FooterControls
+        userInfo={userInfo}
+        openKeyboard={() => openKeyboard(null)}
+        logout={handleLogout}
+        onVolumeUp={() => console.log("Volume Up")}
+        onVolumeDown={() => console.log("Volume Down")}
+        onZoom={() => console.log("Zoom")}
+        onContrast={() => console.log("Contrast")}
       />
+
     </div>
   );
 };
