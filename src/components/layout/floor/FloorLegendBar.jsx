@@ -50,7 +50,7 @@ const FloorLegendBar = ({
           <div className="w-8 h-8 border-2 border-gray-300 rounded flex items-center justify-center">
             <Armchair className="w-8 h-8 text-gray-300" />
           </div>
-          <span className="text-[30px]">Disabled seating</span>
+          <span className="text-[30px]">Disabled</span>
         </div>
       </div>
     </div>

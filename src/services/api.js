@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const MAP_BASE_URL = "http://k-rsv.snu.ac.kr:8012";
-export const miniMapBaseUrl =
+export const ImageBaseUrl =
   "http://k-rsv.snu.ac.kr:8011/NEW_SNU_BOOKING/commons/images/kiosk";
 
 const BASE_PATH = "/NEW_SNU_BOOKING";
@@ -78,4 +78,11 @@ export const getSeatList = ({
     floorno,
     roomno,
     type,
+  });
+/* ===============================
+   ✅ BOOKING TIME BY SEAT
+================================ */
+export const getBookingTimeSeat = (seatno) =>
+  protectedApi.post("/json/getBookingTimeSeat", {
+    seatno,
   });
