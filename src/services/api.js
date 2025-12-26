@@ -86,3 +86,14 @@ export const getBookingTimeSeat = (seatno) =>
   protectedApi.post("/json/getBookingTimeSeat", {
     seatno,
   });
+/* ===============================
+   ✅ SET SEAT ASSIGN (BOOK SEAT)
+================================ */
+export const setSeatAssign = ({ seatno, date, useTime, schoolno, members }) =>
+  protectedApi.post("/json/setSeatAssign", {
+    seatno,
+    date,
+    useTime,
+    schoolno,
+    members,
+  });
