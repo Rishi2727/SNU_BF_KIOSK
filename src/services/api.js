@@ -82,9 +82,10 @@ export const getSeatList = ({
 /* ===============================
    ✅ BOOKING TIME BY SEAT
 ================================ */
-export const getBookingTimeSeat = (seatno) =>
+export const getBookingTimeSeat = ({ seatno, assignno }) =>
   protectedApi.post("/json/getBookingTimeSeat", {
-    seatno,
+    ...(seatno && { seatno }),
+    ...(assignno && { assignno }),
   });
 /* ===============================
    ✅ SET SEAT ASSIGN (BOOK SEAT)
@@ -97,3 +98,21 @@ export const setSeatAssign = ({ seatno, date, useTime, schoolno, members }) =>
     schoolno,
     members,
   });
+
+export const setExtend = ({ b_SeqNo, extendM, useExpire }) =>
+  protectedApi.post("/json/setExtend", {
+    b_SeqNo,
+    extendM,
+    useExpire,
+  });
+
+  export const setReturnSeat = ({ b_SeqNo }) =>
+  protectedApi.post("/json/setReturnSeat", {
+    b_SeqNo,
+  });
+
+  /* ===============================
+   LOGOUT
+================================ */
+export const logout = () =>
+  publicApi.get("/kiosk/login/logout");

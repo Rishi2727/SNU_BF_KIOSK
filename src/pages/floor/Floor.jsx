@@ -6,7 +6,7 @@ import Header from "../../components/layout/header/Header";
 import BgMainImage from "../../assets/images/BgMain.jpg";
 import logo from "../../assets/images/logo.png";
 
-import { clearUserInfo } from "../../redux/userInfo";
+import { clearUserInfo } from "../../redux/slice/userInfo";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 
 import { filterDisplayableSectors, parseMapPoint } from "../../utils/mapPointParser";
@@ -17,10 +17,10 @@ import FloorMapImage from "../../components/layout/floor/FloorMapImage";
 import FloorStatsBar from "../../components/layout/floor/FloorStatsBar";
 import FloorLegendBar from "../../components/layout/floor/FloorLegendBar";
 import FooterControls from "../../components/common/Footer";
-import SeatBookingModal from "../../components/layout/floor/SeatBookingModal";
 
 import { MAP_BASE_URL, getSeatList, ImageBaseUrl } from "../../services/api";
 import { MINI_MAP_LAYOUT, MINIMAP_CONFIG } from "../../utils/constant";
+import SeatActionModal from "../../components/common/SeatActionModal";
 
 const Floor = () => {
   const navigate = useNavigate();
@@ -445,12 +445,12 @@ const Floor = () => {
       />
 
       {/* ================= SEAT BOOKING MODAL ================= */}
-      <SeatBookingModal
-        seat={selectedSeat}
-        isOpen={showSeatModal}
-        onClose={handleCloseModal}
-        onConfirm={handleConfirmBooking}
-      />
+     <SeatActionModal
+  mode="booking"
+  seat={selectedSeat}
+  isOpen={showSeatModal}
+  onClose={handleCloseModal}
+/>
     </div>
   );
 };
