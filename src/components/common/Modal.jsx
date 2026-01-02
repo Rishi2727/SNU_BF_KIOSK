@@ -14,7 +14,7 @@ const Modal = ({
   const sizeClasses = {
     small: 'w-[400px]',
     medium: 'w-[800px]',
-    large: 'w-[1200px] h-[70vh]',
+    large: 'w-[1200px] h-[72vh]',
   };
 
   return (

@@ -3,9 +3,9 @@ import { getSectorList, MAP_BASE_URL } from '../services/api';
 
 export const useFloorData = (floorId, initialFloorInfo, initialSectorList) => {
   const floors = [
-    { id: 1, title: "6F", floor: "6", floorno: "16", total: 230, occupied: 5 },
-    { id: 2, title: "7F", floor: "7", floorno: "17", total: 230, occupied: 10 },
-    { id: 3, title: "8F", floor: "8", floorno: "18", total: 230, occupied: 15 },
+    { id: 16, title: "6F", floor: "6", floorno: "16", total: 230, occupied: 5 },
+    { id: 17, title: "7F", floor: "7", floorno: "17", total: 230, occupied: 10 },
+    { id: 18, title: "8F", floor: "8", floorno: "18", total: 230, occupied: 15 },
   ];
 
   const [currentFloor, setCurrentFloor] = useState(null);

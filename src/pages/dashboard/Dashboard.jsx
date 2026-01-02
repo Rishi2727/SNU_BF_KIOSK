@@ -7,6 +7,8 @@ import { getKioskUserInfo, getSectorList, loginBySchoolNo } from "../../services
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { clearUserInfo, setUserInfo } from "../../redux/slice/userInfo";
+import { setSectorList, setCurrentFloor, setSectorLoading, setSectorError } from "../../redux/slice/sectorSlice";
+import { fetchBookingTime } from "../../redux/slice/bookingTimeSlice";
 import FooterControls from "../../components/common/Footer";
 import UserInfoModal from "../../components/layout/dashboard/useInfoModal";
 import SeatActionModal from "../../components/common/SeatActionModal";
@@ -25,6 +27,9 @@ const Dashboard = () => {
   const { userInfo, isAuthenticated } = useSelector(
     (state) => state.userInfo
   );
+  const { bookingSeatInfo } = useSelector((state) => state.bookingTime);
+  const { sectorList, currentFloor } = useSelector((state) => state.sectorInfo);
+
 
   useEffect(() => {
     const isAuth = localStorage.getItem("authenticated");
@@ -109,32 +114,40 @@ const Dashboard = () => {
 
   /**
    * Navigate to floor page with sector data
+   * Now stores sector data in Redux
    */
   const navigateToFloor = async (floorTitle) => {
     try {
+      dispatch(setSectorLoading(true));
+
       const floors = [
-        { id: 1, title: "6F", floor: "6", floorno: "16", total: 230, occupied: 5 },
-        { id: 2, title: "7F", floor: "7", floorno: "17", total: 230, occupied: 10 },
-        { id: 3, title: "8F", floor: "8", floorno: "18", total: 230, occupied: 15 },
+        { id: 16, title: "6F", floor: "6", floorno: "16", total: 230, occupied: 5 },
+        { id: 17, title: "7F", floor: "7", floorno: "17", total: 230, occupied: 10 },
+        { id: 18, title: "8F", floor: "8", floorno: "18", total: 230, occupied: 15 },
       ];
 
       const floorObj = floors.find(f => f.title === floorTitle);
 
       if (floorObj) {
-        const sectorList = await getSectorList({
+        const sectorListData = await getSectorList({
           floor: floorObj.floor,
           floorno: floorObj.floorno,
         });
 
+        // ✅ Store sector data in Redux
+        dispatch(setSectorList(sectorListData));
+        dispatch(setCurrentFloor(floorObj));
+
         navigate(`/floor/${floorTitle}`, {
           state: {
-            sectorList,
+            sectorList: sectorListData,
             floorInfo: floorObj,
           },
         });
       }
     } catch (error) {
       console.error("Sector API failed", error);
+      dispatch(setSectorError(error.message));
     }
   };
 
@@ -149,11 +162,62 @@ const Dashboard = () => {
     switch (actionType) {
       case 'extend':
         setSelectedAssignNo(assignNo);
-        setIsExtensionModalOpen(true);  
+        setIsExtensionModalOpen(true);
         break;
+
       case 'move':
-        // Navigate to seat move page
-        navigate('/seat/move', { state: { assignNo } });
+        setSelectedAssignNo(assignNo);
+        if (userInfo?.MOVE_YN === 'Y') {
+          try {
+            let bookingData = bookingSeatInfo;
+
+            if (!bookingData) {
+              const result = await dispatch(fetchBookingTime({
+                assignno: assignNo,
+                seatno: userInfo.SEATNO
+              })).unwrap();
+              bookingData = result.bookingSeatInfo;
+            }
+
+            if (bookingData) {
+              const { FLOOR, SECTORNO, FLOORNO } = bookingData;
+              const sectorListData = await getSectorList({
+                floor: FLOOR,
+                floorno: FLOORNO,
+              });
+
+              dispatch(setSectorList(sectorListData));
+
+              const matchedSector = sectorListData?.SectorList?.find(
+                (item) => item.SECTORNO === SECTORNO
+              );
+
+              let floorInfo = null;
+              if (matchedSector) {
+                floorInfo = {
+                  id: matchedSector.FLOORNO,
+                  title: `${matchedSector.FLOOR}F`,
+                  floor: matchedSector.FLOOR,
+                  floorno: matchedSector.FLOORNO,
+                  total: matchedSector.SEAT_QTY ?? 0,
+                  occupied: matchedSector.USE_QTY ?? 0
+                };
+              }
+
+              // ✅ Navigate with /move in URL
+              navigate(`/floor/${FLOOR}/${SECTORNO}/move`, {
+                state: {
+                  mode: "move",
+                  sectorList: sectorListData || [],
+                  selectedSector: matchedSector,
+                  floorInfo: floorInfo
+                }
+              });
+            }
+          } catch (error) {
+            console.error('Error fetching booking info:', error);
+          }
+        }
         break;
 
       case 'return':
@@ -183,8 +247,7 @@ const Dashboard = () => {
         break;
 
       case 'assignCheck':
-        // Navigate to assignment check page
-        navigate('/seat/assignCheck', { state: { assignNo } });
+        setSelectedAssignNo(assignNo);
         break;
 
       default:

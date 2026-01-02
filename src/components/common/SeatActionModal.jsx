@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { setSeatAssign, setExtend, setReturnSeat } from "../../services/api";
+import { setSeatAssign, setExtend, setReturnSeat, setMove } from "../../services/api";
 import { useDispatch, useSelector } from "react-redux";
 import { clearUserInfo } from "../../redux/slice/userInfo";
 import { useNavigate } from "react-router-dom";
@@ -8,11 +8,11 @@ import Modal from "./Modal";
 import LoadingSpinner from "./LoadingSpinner";
 
 /**
- * Common component for seat booking, extension, and return
+ * Common component for seat booking, extension, return, and move
  * @param {Object} props
- * @param {'booking' | 'extension' | 'return'} props.mode - Action mode
- * @param {Object} props.seat - Seat object (for booking mode)
- * @param {string} props.assignNo - Assignment number (for extension/return mode)
+ * @param {'booking' | 'extension' | 'return' | 'move'} props.mode - Action mode
+ * @param {Object} props.seat - Seat object (for booking/move mode)
+ * @param {string} props.assignNo - Assignment number (for extension/return/move mode)
  * @param {boolean} props.isOpen - Modal open state
  * @param {Function} props.onClose - Close handler
  */
@@ -20,8 +20,9 @@ const SeatActionModal = ({ mode = "booking", seat, assignNo, isOpen, onClose }) 
     const isBookingMode = mode === "booking";
     const isExtensionMode = mode === "extension";
     const isReturnMode = mode === "return";
+    const isMoveMode = mode === "move";
 
-    const isAvailable = isBookingMode
+    const isAvailable = (isBookingMode || isMoveMode)
         ? seat ? seat.USECNT === 0 && (seat.STATUS === 1 || seat.STATUS === 2) : false
         : true;
 
@@ -52,7 +53,7 @@ const SeatActionModal = ({ mode = "booking", seat, assignNo, isOpen, onClose }) 
     // Reset and fetch time options when modal opens
     useEffect(() => {
         if (!isOpen) return;
-        if (isBookingMode && (!seat?.SEATNO || !isAvailable)) return;
+        if ((isBookingMode || isMoveMode) && (!seat?.SEATNO || !isAvailable)) return;
         if ((isExtensionMode || isReturnMode) && !assignNo) return;
 
         dispatch(clearBookingTime());
@@ -63,29 +64,30 @@ const SeatActionModal = ({ mode = "booking", seat, assignNo, isOpen, onClose }) 
         setActionResult(null);
         setSelectedIndex(null);
 
-        // Only fetch booking time for booking and extension modes
-        if (!isReturnMode) {
+        // Only fetch booking time for booking and extension modes (NOT for return or move)
+        if (!isReturnMode && !isMoveMode) {
             if (isBookingMode) {
                 dispatch(fetchBookingTime({ seatno: seat.SEATNO }));
             } else if (isExtensionMode) {
                 dispatch(fetchBookingTime({ assignno: assignNo }));
             }
         }
-    }, [isOpen, seat, assignNo, isAvailable, isBookingMode, isExtensionMode, isReturnMode]);
+    }, [isOpen, seat, assignNo, isAvailable, isBookingMode, isExtensionMode, isReturnMode, isMoveMode]);
 
-    // Set default time option (not needed for return mode)
+    // Set default time option (not needed for return or move mode)
     useEffect(() => {
-        if (isReturnMode) return;
+        if (isReturnMode || isMoveMode) return;
         if (defaultIndex !== null && timeOptions[defaultIndex]?.enabled) {
             setSelectedIndex(defaultIndex);
             setEndTime(new Date(Date.now() + timeOptions[defaultIndex].value * 60000));
         }
-    }, [timeOptions, defaultIndex, isReturnMode]);
+    }, [timeOptions, defaultIndex, isReturnMode, isMoveMode]);
 
     /* ========================= FINAL CONFIRM + API CALL ========================= */
     const handleFinalConfirm = async () => {
-        if (!isReturnMode && selectedIndex === null) return;
-        if (isBookingMode && !isAvailable) return;
+        // For return and move mode, no time selection needed
+        if (!isReturnMode && !isMoveMode && selectedIndex === null) return;
+        if ((isBookingMode || isMoveMode) && !isAvailable) return;
 
         try {
             setLoading(true);
@@ -116,6 +118,13 @@ const SeatActionModal = ({ mode = "booking", seat, assignNo, isOpen, onClose }) 
                     b_SeqNo: assignNo,
                 };
                 res = await setReturnSeat(payload);
+            } else if (isMoveMode) {
+                // Move API call
+                const payload = {
+                    seatNo: seat.SEATNO,
+                    bSeqNo: userInfo?.ASSIGN_NO || assignNo,
+                };
+                res = await setMove(payload);
             }
 
             if (res?.successYN === "Y") {
@@ -128,7 +137,7 @@ const SeatActionModal = ({ mode = "booking", seat, assignNo, isOpen, onClose }) 
             onClose();
             setActionResult({
                 success: false,
-                message: res?.msg || `좌석 ${isBookingMode ? "배정" : isExtensionMode ? "연장" : "반납"}에 실패했습니다.`
+                message: res?.msg || `좌석 ${isBookingMode ? "배정" : isExtensionMode ? "연장" : isReturnMode ? "반납" : "이동"}에 실패했습니다.`
             });
             setShowResultModal(true);
 
@@ -167,6 +176,7 @@ const SeatActionModal = ({ mode = "booking", seat, assignNo, isOpen, onClose }) 
         if (isBookingMode) return "배정";
         if (isExtensionMode) return "연장";
         if (isReturnMode) return "반납";
+        if (isMoveMode) return "이동";
         return "";
     };
 
@@ -181,17 +191,17 @@ const SeatActionModal = ({ mode = "booking", seat, assignNo, isOpen, onClose }) 
             </button>
 
             <button
-                /* 🔥 return skips confirmStep */
-                onClick={isReturnMode ? handleFinalConfirm : confirmStep ? handleFinalConfirm : () => setConfirmStep(true)}
+                /* 🔥 return and move skip confirmStep, go straight to API */
+                onClick={(isReturnMode || isMoveMode) ? handleFinalConfirm : confirmStep ? handleFinalConfirm : () => setConfirmStep(true)}
 
-                /* 🔥 return button never disabled */
+                /* 🔥 return and move buttons never disabled */
                 disabled={
                     (isBookingMode && (!isAvailable || selectedIndex === null || !endTime)) ||
                     (isExtensionMode && (selectedIndex === null || !endTime))
                 }
                 className={`flex-1 px-6 py-4 rounded-lg font-bold text-lg
-          ${(isReturnMode || selectedIndex !== null) &&
-                        (!isBookingMode || isAvailable)
+          ${(isReturnMode || isMoveMode || selectedIndex !== null) &&
+                        (!(isBookingMode || isMoveMode) || isAvailable)
                         ? "bg-gradient-to-r from-teal-500 to-cyan-500 text-white"
                         : "bg-gray-300 text-gray-500 cursor-not-allowed"
                     }`}
@@ -215,11 +225,11 @@ const SeatActionModal = ({ mode = "booking", seat, assignNo, isOpen, onClose }) 
 
     /* ========================= RENDER HEADER ========================= */
     const renderHeader = () => {
-        if (isBookingMode && seat || bookingSeatInfo) {
+        if ((isBookingMode || isMoveMode) && seat || bookingSeatInfo) {
             return (
                 <div className="mb-10 p-2 bg-gradient-to-r from-cyan-100 to-teal-100 border-4 border-teal-400 rounded-2xl shadow-md">
                     <p className="text-center text-[30px] text-teal-700 font-bold">
-                        중앙도서관 → {seat?.FLOOR_NAME || bookingSeatInfo?.FLOOR_NAME} → {seat?.NAME || bookingSeatInfo?.SECTOR_NAME} →
+                        중앙도서관 → {seat?.ROOM_NAME || bookingSeatInfo?.FLOOR_NAME} → {seat?.NAME || bookingSeatInfo?.SECTOR_NAME} →
                         <span className="text-red-600 font-extrabold ml-3">
                             {(seat?.VNAME || bookingSeatInfo?.SEAT_VNAME) ?? "-"}
                         </span>
@@ -260,32 +270,40 @@ const SeatActionModal = ({ mode = "booking", seat, assignNo, isOpen, onClose }) 
                         <span className="font-extrabold text-teal-700">{userInfo?.SCHOOLNO}</span>
                     </div>
 
-                    {!isReturnMode ? (
+                    {!isReturnMode && !isMoveMode ? (
                         <div className="flex gap-6">
                             <span className="text-gray-700 font-bold">날짜 & 시간 :</span>
                             <span className="font-extrabold text-teal-700">
                                 {formatDate(startTime)} ~ {endTime ? formatDate(endTime) : ""}
                             </span>
                         </div>
-                    ) : (
+                    ) : isReturnMode ? (
                         <div className="flex gap-6">
-                            <span className="text-gray-700 font-bold">날짜 & 시간 :</span>
+                            <span className="text-gray-700 font-bold">Start hours :</span>
                             <span className="font-extrabold text-teal-700">
                                 {formatDate(startTime)} ~ {bookingSeatInfo?.USEEXPIRE ? formatDate(new Date(bookingSeatInfo.USEEXPIRE)) : "종료정보 없음"}
                             </span>
                         </div>
-                    )}
+                    ) : null}
 
                     <div className="flex gap-6">
                         <span className="text-gray-700 font-bold min-w-[200px]">
-                            {/* 🔥 return ignores confirmStep */}
-                            {isReturnMode ? "반납 확인 :" : confirmStep ? "확인 :" : isBookingMode ? "시간 선택 :" : "연장 시간 :"}
+                            {/* 🔥 return and move ignore confirmStep */}
+                            {isReturnMode ? "반납 확인 :" : 
+                             isMoveMode ? "이동 확인 :" :
+                             confirmStep ? "확인 :" : 
+                             isBookingMode ? "시간 선택 :" : "연장 시간 :"}
                         </span>
 
                         <div className="flex-1">
 
-                            {/* RETURN MODE — No confirmStep screen */}
-                            {isReturnMode ? (
+                            {/* MOVE MODE — Direct confirmation */}
+                            {isMoveMode ? (
+                                <p className="text-red-600 font-extrabold text-[34px]">
+                                    이 좌석으로 이동하시겠습니까?
+                                </p>
+                            ) : /* RETURN MODE — No confirmStep screen */
+                            isReturnMode ? (
                                 <p className="text-red-600 font-extrabold text-[34px]">
                                     좌석을 반납 하시겠습니까?
                                 </p>
@@ -388,7 +406,7 @@ const SeatActionModal = ({ mode = "booking", seat, assignNo, isOpen, onClose }) 
                     </p>
 
                     {/* Additional Info for Success */}
-                    {actionResult?.success && !isReturnMode && (
+                    {actionResult?.success && !isReturnMode && !isMoveMode && (
                         <div className="mt-6 p-6 bg-gradient-to-r from-cyan-100 to-teal-100 border-4 border-teal-400 rounded-2xl">
                             {isBookingMode && seat ? (
                                 <>
@@ -409,6 +427,18 @@ const SeatActionModal = ({ mode = "booking", seat, assignNo, isOpen, onClose }) 
                                     </p>
                                 </>
                             )}
+                        </div>
+                    )}
+
+                    {/* Additional Info for Move Success */}
+                    {actionResult?.success && isMoveMode && (
+                        <div className="mt-6 p-6 bg-gradient-to-r from-cyan-100 to-teal-100 border-4 border-teal-400 rounded-2xl">
+                            <p className="text-[24px] text-teal-700 font-bold">
+                                좌석 이동이 완료되었습니다
+                            </p>
+                            <p className="text-[20px] text-gray-600 mt-2">
+                                새 좌석: {seat?.ROOM_NAME} - {seat?.VNAME}
+                            </p>
                         </div>
                     )}
 

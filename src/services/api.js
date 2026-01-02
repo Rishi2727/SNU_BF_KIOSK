@@ -65,13 +65,7 @@ export const getSectorList = ({ floor, floorno }) =>
 /* ===============================
    ✅ SEAT LIST (NEW)
 ================================ */
-export const getSeatList = ({
-  sectorno,
-  floor,
-  floorno,
-  roomno,
-  type = "S",
-}) =>
+export const getSeatList = ({ sectorno, floor, floorno, roomno, type = "S" }) =>
   protectedApi.post("/json/getSeatList", {
     sectorno,
     floor,
@@ -105,14 +99,22 @@ export const setExtend = ({ b_SeqNo, extendM, useExpire }) =>
     extendM,
     useExpire,
   });
+export const setMove = async ({ seatNo, bSeqNo }) =>
+  protectedApi.post("/json/setMove", {
+    seatNo,
+    bSeqNo,
+  });
 
-  export const setReturnSeat = ({ b_SeqNo }) =>
+export const setReturnSeat = ({ b_SeqNo }) =>
   protectedApi.post("/json/setReturnSeat", {
     b_SeqNo,
   });
-
-  /* ===============================
+  
+export const setAssignSeatInfo = ({ bseqno }) =>
+  protectedApi.post("/json/getAssignSeatInfo", {
+    bseqno,
+  });
+/* ===============================
    LOGOUT
 ================================ */
-export const logout = () =>
-  publicApi.get("/kiosk/login/logout");
+export const logout = () => publicApi.get("/kiosk/login/logout");

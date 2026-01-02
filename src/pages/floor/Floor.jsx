@@ -26,10 +26,18 @@ const Floor = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
-  const { floorId } = useParams();
+  const { floorId, sectorNo, move } = useParams();
 
   const { userInfo } = useSelector((state) => state.userInfo);
-  const { sectorList: initialSectorList, floorInfo: initialFloorInfo } = location.state || {};
+  
+  // ✅ Check if we're in move mode from URL param or state
+  const isMoveMode = move === 'move' || location.state?.mode === 'move';
+  
+  const { 
+    sectorList: initialSectorList, 
+    floorInfo: initialFloorInfo, 
+    selectedSector: stateSector 
+  } = location.state || {};
 
   /* =====================================================
      FLOOR / SECTOR STATE
@@ -45,10 +53,10 @@ const Floor = () => {
   const [imageTransform, setImageTransform] = useState({ x: 0, y: 0, scale: 1 });
   const [seats, setSeats] = useState([]);
   const [loadingSeats, setLoadingSeats] = useState(false);
-  const [imageDimensions, setImageDimensions] = useState({ 
-    width: 0, 
-    height: 0, 
-    naturalWidth: 0, 
+  const [imageDimensions, setImageDimensions] = useState({
+    width: 0,
+    height: 0,
+    naturalWidth: 0,
     naturalHeight: 0,
     offsetX: 0,
     offsetY: 0
@@ -82,6 +90,22 @@ const Floor = () => {
   const miniMapFile = selectedSector ? MINIMAP_CONFIG[selectedSector.SECTORNO] : null;
   const miniMapUrl = miniMapFile ? `${ImageBaseUrl}/${miniMapFile}` : null;
   const seatFontScale = layout?.seatFontScale ?? 1;
+  const sectorListData = sectorList?.SectorList;
+
+  /* =====================================================
+     BUILD URL PATH WITH MOVE MODE
+  ===================================================== */
+  const buildFloorPath = (floorTitle, sectorNo = null) => {
+    let path = `/floor/${floorTitle}`;
+    if (sectorNo) {
+      path += `/${sectorNo}`;
+    }
+    // ✅ Only add /move if we're in move mode
+    if (isMoveMode) {
+      path += '/move';
+    }
+    return path;
+  };
 
   /* =====================================================
      LOGOUT
@@ -101,7 +125,7 @@ const Floor = () => {
   };
 
   /* =====================================================
-     FLOOR CHANGE
+     FLOOR CHANGE - PRESERVE MOVE MODE
   ===================================================== */
   const handleFloorClick = async (floor) => {
     if (currentFloor?.id === floor.id) return;
@@ -113,11 +137,13 @@ const Floor = () => {
     const newSectorList = await fetchSectorList(floor);
 
     if (newSectorList) {
-      navigate(`/floor/${floor.title}`, {
+      // ✅ Use buildFloorPath to preserve move mode in URL
+      navigate(buildFloorPath(floor.title), {
         replace: true,
         state: {
           sectorList: newSectorList,
           floorInfo: floor,
+          mode: isMoveMode ? 'move' : undefined // ✅ Preserve mode in state
         },
       });
     }
@@ -148,17 +174,57 @@ const Floor = () => {
   };
 
   /* =====================================================
-     SECTOR CLICK
+     LOAD SECTOR FROM ROUTE OR AUTO OPEN
+  ===================================================== */
+  useEffect(() => {
+    // When manually opened via URL OR refresh
+    if (sectorNo && sectorListData?.length) {
+      const sector = sectorListData.find(
+        s => String(s.SECTORNO) === String(sectorNo)
+      );
+
+      if (sector) {
+        setSelectedSector(sector);
+        setShowRoomView(true);
+        fetchSeats(sector);
+      }
+    }
+  }, [sectorListData, sectorNo]);
+
+  /* =====================================================
+     SECTOR CLICK - PRESERVE MOVE MODE
   ===================================================== */
   const handleSectorClick = async (sector) => {
     setSelectedSector(sector);
     setShowRoomView(true);
-
-    // Fetch seats immediately
+    
+    // ✅ Navigate with move mode preserved in URL
+    navigate(buildFloorPath(sector.FLOOR, sector.SECTORNO), {
+      replace: false,
+      state: {
+        selectedSector: sector,
+        sectorList: sectorList,
+        floorInfo: currentFloor,
+        mode: isMoveMode ? 'move' : undefined // ✅ Preserve mode
+      }
+    });
+    
+    // Fetch seats
     await fetchSeats(sector);
   };
 
+  /* =====================================================
+     BACK TO FLOOR MAP - PRESERVE MOVE MODE
+  ===================================================== */
   const backToFloorMap = () => {
+    navigate(buildFloorPath(currentFloor?.title), {
+      replace: true,
+      state: {
+        sectorList: sectorList,
+        floorInfo: currentFloor,
+        mode: isMoveMode ? 'move' : undefined // ✅ Preserve mode
+      },
+    });
     setShowRoomView(false);
     setSelectedSector(null);
     setMiniMapError(false);
@@ -169,10 +235,10 @@ const Floor = () => {
   ===================================================== */
   useEffect(() => {
     if (!selectedSector) return;
-    
+
     if (prevSectorNoRef.current === selectedSector.SECTORNO) return;
     prevSectorNoRef.current = selectedSector.SECTORNO;
-    
+
     setSelectedMiniSector(null);
     setImageTransform({ x: 0, y: 0, scale: 1 });
     setMiniMapError(false);
@@ -185,10 +251,10 @@ const Floor = () => {
   ===================================================== */
   useEffect(() => {
     if (!layout || !showRoomView) return;
-    
+
     const defaultSector = layout.sectors.find((s) => s.alreadyEnabledImage);
     if (!defaultSector) return;
-    
+
     setSelectedMiniSector(defaultSector);
     setImageTransform(defaultSector.transform);
   }, [layout, showRoomView]);
@@ -307,7 +373,7 @@ const Floor = () => {
   const handleSeatClick = (seat) => {
     const isAvailable = seat.USECNT === 0 && (seat.STATUS === 1 || seat.STATUS === 2);
     if (!isAvailable) return;
-    
+
     setSelectedSeat(seat);
     setShowSeatModal(true);
   };
@@ -318,12 +384,6 @@ const Floor = () => {
   const handleCloseModal = () => {
     setShowSeatModal(false);
     setSelectedSeat(null);
-  };
-
-  const handleConfirmBooking = (seat) => {
-    // TODO: Implement booking logic
-    console.log('Booking seat:', seat);
-    handleCloseModal();
   };
 
   /* =====================================================
@@ -436,21 +496,21 @@ const Floor = () => {
 
       <FooterControls
         userInfo={userInfo}
-        openKeyboard={() => {}}
+        openKeyboard={() => { }}
         logout={handleLogout}
-        onVolumeUp={() => {}}
-        onVolumeDown={() => {}}
-        onZoom={() => {}}
-        onContrast={() => {}}
+        onVolumeUp={() => { }}
+        onVolumeDown={() => { }}
+        onZoom={() => { }}
+        onContrast={() => { }}
       />
 
       {/* ================= SEAT BOOKING MODAL ================= */}
-     <SeatActionModal
-  mode="booking"
-  seat={selectedSeat}
-  isOpen={showSeatModal}
-  onClose={handleCloseModal}
-/>
+      <SeatActionModal
+        mode={isMoveMode ? "move" : "booking"}
+        seat={selectedSeat}
+        isOpen={showSeatModal}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 };
