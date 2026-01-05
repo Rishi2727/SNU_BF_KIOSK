@@ -125,3 +125,32 @@ export const MINIMAP_CONFIG = {
   18101: "Mapmini_8F_Notebook.png",
   18301: "Mapmini_8F_B.png",
 };
+
+// Constants
+export const FLOORS_CONFIG = [
+  { id: 16, title: "6F", floor: "6", floorno: "16", total: 230, occupied: 5 },
+  { id: 17, title: "7F", floor: "7", floorno: "17", total: 230, occupied: 10 },
+  { id: 18, title: "8F", floor: "8", floorno: "18", total: 230, occupied: 15 },
+];
+
+export const MODAL_TYPES = {
+  EXTENSION: 'extension',
+  RETURN: 'return',
+  ASSIGN_CHECK: 'assignCheck'
+};
+
+export const MODES = {
+  BOOKING: 'booking',
+  EXTENSION: 'extension',
+  RETURN: 'return',
+  MOVE: 'move',
+  ASSIGN_CHECK: 'assignCheck'
+};
+
+export const MODE_LABELS = {
+  [MODES.BOOKING]: 'Booking',
+  [MODES.EXTENSION]: 'Extension',
+  [MODES.RETURN]: 'Return',
+  [MODES.MOVE]: 'Move',
+  [MODES.ASSIGN_CHECK]: 'Seat Check'
+};

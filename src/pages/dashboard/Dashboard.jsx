@@ -1,61 +1,48 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { AlertCircle } from "lucide-react";
+
 import BgMainImage from "../../assets/images/BgMain.jpg";
 import MainSection from "../../components/layout/dashboard/MainSection";
 import KeyboardModal from "../../components/layout/keyBoardModal/KeyboardModal";
-import { AlertCircle } from "lucide-react";
-import { getKioskUserInfo, getSectorList, loginBySchoolNo } from "../../services/api";
-import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { clearUserInfo, setUserInfo } from "../../redux/slice/userInfo";
-import { setSectorList, setCurrentFloor, setSectorLoading, setSectorError } from "../../redux/slice/sectorSlice";
-import { fetchBookingTime } from "../../redux/slice/bookingTimeSlice";
 import FooterControls from "../../components/common/Footer";
 import UserInfoModal from "../../components/layout/dashboard/useInfoModal";
 import SeatActionModal from "../../components/common/SeatActionModal";
 
+import { getKioskUserInfo, getSectorList, loginBySchoolNo } from "../../services/api";
+import { clearUserInfo, setUserInfo } from "../../redux/slice/userInfo";
+import { setSectorList, setCurrentFloor, setSectorLoading, setSectorError } from "../../redux/slice/sectorSlice";
+import { fetchBookingTime } from "../../redux/slice/bookingTimeSlice";
+import { FLOORS_CONFIG, MODAL_TYPES } from "../../utils/constant";
+
+
 const Dashboard = () => {
+  // State management
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const [isUserInfoModalOpen, setIsUserInfoModalOpen] = useState(false);
   const [selectedFloor, setSelectedFloor] = useState(null);
-  const [isExtensionModalOpen, setIsExtensionModalOpen] = useState(false);
-  const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
+  const [modalStates, setModalStates] = useState({
+    [MODAL_TYPES.EXTENSION]: false,
+    [MODAL_TYPES.RETURN]: false,
+    [MODAL_TYPES.ASSIGN_CHECK]: false
+  });
   const [selectedAssignNo, setSelectedAssignNo] = useState(null);
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // ✅ GET DATA FROM REDUX
-  const { userInfo, isAuthenticated } = useSelector(
-    (state) => state.userInfo
-  );
+  // Redux selectors
+  const { userInfo, isAuthenticated } = useSelector((state) => state.userInfo);
   const { bookingSeatInfo } = useSelector((state) => state.bookingTime);
-  const { sectorList, currentFloor } = useSelector((state) => state.sectorInfo);
-
-
-  useEffect(() => {
-    const isAuth = localStorage.getItem("authenticated");
-
-    if (isAuth === "true") {
-      getKioskUserInfo().then((info) => {
-        if (info?.successYN === "Y") {
-          dispatch(setUserInfo(info.bookingInfo));
-        }
-      });
-    }
-  }, [dispatch]);
 
   /**
-   * Helper function to check if modal should be shown
-   * Based on original Korean kiosk logic:
+   * Check if modal should be shown based on booking info
    * Show modal UNLESS only ASSIGN_YN is 'Y' and all others are 'N'
    */
-  const shouldShowModal = (bookingInfo) => {
-    if (!bookingInfo) return false;
+  const shouldShowModal = useCallback((bookingInfo) => {
+    if (!bookingInfo || bookingInfo.ASSIGN_NO === "0") return false;
 
-    // ✅ Check if ASSIGN_NO is not "0" (no active assignment)
-    if (bookingInfo.ASSIGN_NO === "0") return false;
-
-    // ✅ Original logic: Don't show modal if ONLY ASSIGN_YN is 'Y' and all others are 'N'
-    // This means user only needs to do seat assignment, so go directly to floor
     const onlyAssignAvailable =
       bookingInfo.ASSIGN_YN === 'Y' &&
       bookingInfo.EXTEND_YN === 'N' &&
@@ -65,18 +52,82 @@ const Dashboard = () => {
       bookingInfo.CANCEL_YN === 'N' &&
       bookingInfo.ASSIGN_CHECK_YN === 'N';
 
-    // Show modal if it's NOT the "only assign" case
     return !onlyAssignAvailable;
-  };
+  }, []);
 
-  const openKeyboard = (floor = null) => {
+  /**
+   * Initialize authenticated user on mount
+   */
+  useEffect(() => {
+    const initializeUser = async () => {
+      const isAuth = localStorage.getItem("authenticated");
+      if (isAuth !== "true") return;
+
+      try {
+        const info = await getKioskUserInfo();
+        if (info?.successYN === "Y") {
+          dispatch(setUserInfo(info.bookingInfo));
+        }
+      } catch (error) {
+        console.error("Failed to fetch kiosk user info:", error);
+      }
+    };
+
+    initializeUser();
+  }, [dispatch]);
+
+  /**
+   * Navigate to floor page with sector data
+   */
+  const navigateToFloor = useCallback(async (floorTitle) => {
+    try {
+      dispatch(setSectorLoading(true));
+
+      const floorObj = FLOORS_CONFIG.find(f => f.title === floorTitle);
+      if (!floorObj) {
+        console.error("Floor not found:", floorTitle);
+        return;
+      }
+
+      const sectorListData = await getSectorList({
+        floor: floorObj.floor,
+        floorno: floorObj.floorno,
+      });
+
+      dispatch(setSectorList(sectorListData));
+      dispatch(setCurrentFloor(floorObj));
+
+      navigate(`/floor/${floorTitle}`, {
+        state: {
+          sectorList: sectorListData,
+          floorInfo: floorObj,
+        },
+      });
+    } catch (error) {
+      console.error("Sector API failed:", error);
+      dispatch(setSectorError(error.message));
+    }
+  }, [dispatch, navigate]);
+
+  /**
+   * Open keyboard modal
+   */
+  const openKeyboard = useCallback((floor = null) => {
     setSelectedFloor(floor);
     setIsKeyboardOpen(true);
-  };
+  }, []);
 
-  const closeKeyboard = () => setIsKeyboardOpen(false);
+  /**
+   * Close keyboard modal
+   */
+  const closeKeyboard = useCallback(() => {
+    setIsKeyboardOpen(false);
+  }, []);
 
-  const handleKeyboardSubmit = async (value) => {
+  /**
+   * Handle keyboard submission (login)
+   */
+  const handleKeyboardSubmit = useCallback(async (value) => {
     try {
       const response = await loginBySchoolNo(value);
       const params = new URLSearchParams(response.split("?")[1]);
@@ -89,196 +140,163 @@ const Dashboard = () => {
         dispatch(setUserInfo(info.bookingInfo));
         localStorage.setItem("authenticated", "true");
 
-        // ✅ Check if modal should be shown
         const showModal = shouldShowModal(info.bookingInfo);
 
-        // 🔹 If there's a selected floor
         if (selectedFloor) {
-          // Show modal first if conditions met, otherwise go directly to floor
           if (showModal) {
             setIsUserInfoModalOpen(true);
           } else {
             await navigateToFloor(selectedFloor);
           }
-        } else {
-          // No floor selected, show modal if conditions met
-          if (showModal) {
-            setIsUserInfoModalOpen(true);
-          }
+        } else if (showModal) {
+          setIsUserInfoModalOpen(true);
         }
       }
+    } catch (error) {
+      console.error("Login failed:", error);
     } finally {
       setIsKeyboardOpen(false);
     }
-  };
+  }, [dispatch, selectedFloor, shouldShowModal, navigateToFloor]);
 
   /**
-   * Navigate to floor page with sector data
-   * Now stores sector data in Redux
+   * Toggle modal state
    */
-  const navigateToFloor = async (floorTitle) => {
+  const toggleModal = useCallback((modalType, isOpen) => {
+    setModalStates(prev => ({ ...prev, [modalType]: isOpen }));
+  }, []);
+
+  /**
+   * Handle move action
+   */
+  const handleMoveAction = useCallback(async (assignNo) => {
+    if (userInfo?.MOVE_YN !== 'Y') return;
+
     try {
-      dispatch(setSectorLoading(true));
+      let bookingData = bookingSeatInfo;
 
-      const floors = [
-        { id: 16, title: "6F", floor: "6", floorno: "16", total: 230, occupied: 5 },
-        { id: 17, title: "7F", floor: "7", floorno: "17", total: 230, occupied: 10 },
-        { id: 18, title: "8F", floor: "8", floorno: "18", total: 230, occupied: 15 },
-      ];
-
-      const floorObj = floors.find(f => f.title === floorTitle);
-
-      if (floorObj) {
-        const sectorListData = await getSectorList({
-          floor: floorObj.floor,
-          floorno: floorObj.floorno,
-        });
-
-        // ✅ Store sector data in Redux
-        dispatch(setSectorList(sectorListData));
-        dispatch(setCurrentFloor(floorObj));
-
-        navigate(`/floor/${floorTitle}`, {
-          state: {
-            sectorList: sectorListData,
-            floorInfo: floorObj,
-          },
-        });
+      if (!bookingData) {
+        const result = await dispatch(fetchBookingTime({
+          assignno: assignNo,
+          seatno: userInfo.SEATNO
+        })).unwrap();
+        bookingData = result.bookingSeatInfo;
       }
+
+      if (!bookingData) return;
+
+      const { FLOOR, SECTORNO, FLOORNO } = bookingData;
+      const sectorListData = await getSectorList({
+        floor: FLOOR,
+        floorno: FLOORNO,
+      });
+
+      dispatch(setSectorList(sectorListData));
+
+      const matchedSector = sectorListData?.SectorList?.find(
+        (item) => item.SECTORNO === SECTORNO
+      );
+
+      let floorInfo = null;
+      if (matchedSector) {
+        floorInfo = {
+          id: matchedSector.FLOORNO,
+          title: `${matchedSector.FLOOR}F`,
+          floor: matchedSector.FLOOR,
+          floorno: matchedSector.FLOORNO,
+          total: matchedSector.SEAT_QTY ?? 0,
+          occupied: matchedSector.USE_QTY ?? 0
+        };
+      }
+
+      navigate(`/floor/${FLOOR}/${SECTORNO}/move`, {
+        state: {
+          mode: "move",
+          sectorList: sectorListData || [],
+          selectedSector: matchedSector,
+          floorInfo: floorInfo
+        }
+      });
     } catch (error) {
-      console.error("Sector API failed", error);
-      dispatch(setSectorError(error.message));
+      console.error('Error fetching booking info:', error);
     }
-  };
+  }, [userInfo, bookingSeatInfo, dispatch, navigate]);
 
   /**
    * Handle actions from UserInfoModal
    */
-  const handleUserAction = async (actionType, assignNo) => {
+  const handleUserAction = useCallback(async (actionType, assignNo) => {
     console.log(`Action selected: ${actionType}`, assignNo);
-
     setIsUserInfoModalOpen(false);
+    setSelectedAssignNo(assignNo);
 
-    switch (actionType) {
-      case 'extend':
-        setSelectedAssignNo(assignNo);
-        setIsExtensionModalOpen(true);
-        break;
+    const actionHandlers = {
+      extend: () => toggleModal(MODAL_TYPES.EXTENSION, true),
+      move: () => handleMoveAction(assignNo),
+      return: () => toggleModal(MODAL_TYPES.RETURN, true),
+      check: () => navigate('/booking/check'),
+      cancel: () => navigate('/booking/cancel'),
+      assign: () => selectedFloor ? navigateToFloor(selectedFloor) : navigate('/floor/select'),
+      assignCheck: () => toggleModal(MODAL_TYPES.ASSIGN_CHECK, true)
+    };
 
-      case 'move':
-        setSelectedAssignNo(assignNo);
-        if (userInfo?.MOVE_YN === 'Y') {
-          try {
-            let bookingData = bookingSeatInfo;
-
-            if (!bookingData) {
-              const result = await dispatch(fetchBookingTime({
-                assignno: assignNo,
-                seatno: userInfo.SEATNO
-              })).unwrap();
-              bookingData = result.bookingSeatInfo;
-            }
-
-            if (bookingData) {
-              const { FLOOR, SECTORNO, FLOORNO } = bookingData;
-              const sectorListData = await getSectorList({
-                floor: FLOOR,
-                floorno: FLOORNO,
-              });
-
-              dispatch(setSectorList(sectorListData));
-
-              const matchedSector = sectorListData?.SectorList?.find(
-                (item) => item.SECTORNO === SECTORNO
-              );
-
-              let floorInfo = null;
-              if (matchedSector) {
-                floorInfo = {
-                  id: matchedSector.FLOORNO,
-                  title: `${matchedSector.FLOOR}F`,
-                  floor: matchedSector.FLOOR,
-                  floorno: matchedSector.FLOORNO,
-                  total: matchedSector.SEAT_QTY ?? 0,
-                  occupied: matchedSector.USE_QTY ?? 0
-                };
-              }
-
-              // ✅ Navigate with /move in URL
-              navigate(`/floor/${FLOOR}/${SECTORNO}/move`, {
-                state: {
-                  mode: "move",
-                  sectorList: sectorListData || [],
-                  selectedSector: matchedSector,
-                  floorInfo: floorInfo
-                }
-              });
-            }
-          } catch (error) {
-            console.error('Error fetching booking info:', error);
-          }
-        }
-        break;
-
-      case 'return':
-        // Open return modal
-        setSelectedAssignNo(assignNo);
-        setIsReturnModalOpen(true);
-        break;
-
-      case 'check':
-        // Navigate to booking check page
-        navigate('/booking/check');
-        break;
-
-      case 'cancel':
-        // Navigate to booking cancel page
-        navigate('/booking/cancel');
-        break;
-
-      case 'assign':
-        // If there was a selected floor, go to that floor for assignment
-        if (selectedFloor) {
-          await navigateToFloor(selectedFloor);
-        } else {
-          // Otherwise show floor selection
-          navigate('/floor/select');
-        }
-        break;
-
-      case 'assignCheck':
-        setSelectedAssignNo(assignNo);
-        break;
-
-      default:
-        console.warn('Unknown action:', actionType);
+    const handler = actionHandlers[actionType];
+    if (handler) {
+      await handler();
+    } else {
+      console.warn('Unknown action:', actionType);
     }
 
-    // Reset selected floor after action
     setSelectedFloor(null);
-  };
+  }, [selectedFloor, toggleModal, handleMoveAction, navigate, navigateToFloor]);
 
   /**
-   * Handle modal close
+   * Handle UserInfoModal close
    */
-  const handleUserInfoModalClose = async () => {
+  const handleUserInfoModalClose = useCallback(() => {
     setIsUserInfoModalOpen(false);
-
-    // Logout only when no action/floor selected
     localStorage.removeItem("authenticated");
     dispatch(clearUserInfo());
-    navigate("/"); // optional
-  };
+    navigate("/");
+  }, [dispatch, navigate]);
 
+  /**
+   * Handle assign check modal close
+   */
+  const handleAssignCheckClose = useCallback(() => {
+    toggleModal(MODAL_TYPES.ASSIGN_CHECK, false);
+  }, [toggleModal]);
 
-  const handleLogout = () => {
+  /**
+   * Navigate back to UserInfoModal
+   */
+  const handleBackToUserInfo = useCallback(() => {
+    setIsUserInfoModalOpen(true);
+  }, []);
+
+  /**
+   * Handle logout
+   */
+  const handleLogout = useCallback(() => {
     localStorage.removeItem("authenticated");
     dispatch(clearUserInfo());
-  };
+  }, [dispatch]);
+
+  /**
+   * Volume control handlers (placeholders)
+   */
+  const handleVolumeUp = useCallback(() => console.log("Volume Up"), []);
+  const handleVolumeDown = useCallback(() => console.log("Volume Down"), []);
+  const handleZoom = useCallback(() => console.log("Zoom"), []);
+  const handleContrast = useCallback(() => console.log("Contrast"), []);
 
   return (
     <div className="relative h-screen w-screen overflow-hidden font-bold text-white">
-      <img src={BgMainImage} className="absolute inset-0 h-full w-full object-cover" />
+      <img
+        src={BgMainImage}
+        alt="Background"
+        className="absolute inset-0 h-full w-full object-cover"
+      />
 
       <MainSection
         openKeyboard={openKeyboard}
@@ -286,9 +304,10 @@ const Dashboard = () => {
         isAuthenticated={isAuthenticated}
       />
 
+      {/* Notice Banner */}
       <div className="absolute bottom-[150px] right-0 w-[70%] px-6">
         <div className="bg-yellow-500/90 backdrop-blur-sm rounded-lg p-5 shadow-lg flex gap-4">
-          <AlertCircle className="w-10 h-10 mt-2" />
+          <AlertCircle className="w-10 h-10 mt-2 flex-shrink-0" />
           <div>
             <h3 className="text-[32px]">Important Notice</h3>
             <div className="text-[30px] leading-9 font-medium">
@@ -299,16 +318,18 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* Footer Controls */}
       <FooterControls
         userInfo={userInfo}
         openKeyboard={() => openKeyboard(null)}
         logout={handleLogout}
-        onVolumeUp={() => console.log("Volume Up")}
-        onVolumeDown={() => console.log("Volume Down")}
-        onZoom={() => console.log("Zoom")}
-        onContrast={() => console.log("Contrast")}
+        onVolumeUp={handleVolumeUp}
+        onVolumeDown={handleVolumeDown}
+        onZoom={handleZoom}
+        onContrast={handleContrast}
       />
 
+      {/* Keyboard Modal */}
       <KeyboardModal
         isOpen={isKeyboardOpen}
         onClose={closeKeyboard}
@@ -316,7 +337,7 @@ const Dashboard = () => {
         autoCloseTime={30000}
       />
 
-      {/* ✅ User Info Modal - Shows when user logs in and has available actions */}
+      {/* User Info Modal */}
       <UserInfoModal
         isOpen={isUserInfoModalOpen}
         onClose={handleUserInfoModalClose}
@@ -328,18 +349,29 @@ const Dashboard = () => {
       <SeatActionModal
         mode="extension"
         assignNo={selectedAssignNo}
-        isOpen={isExtensionModalOpen}
-        onClose={() => setIsExtensionModalOpen(false)}
+        isOpen={modalStates[MODAL_TYPES.EXTENSION]}
+        onClose={() => toggleModal(MODAL_TYPES.EXTENSION, false)}
+        onBackToUserInfo={handleBackToUserInfo}
       />
+
 
       {/* Return Modal */}
       <SeatActionModal
         mode="return"
         assignNo={selectedAssignNo}
-        isOpen={isReturnModalOpen}
-        onClose={() => setIsReturnModalOpen(false)}
+        isOpen={modalStates[MODAL_TYPES.RETURN]}
+        onClose={() => toggleModal(MODAL_TYPES.RETURN, false)}
+        onBackToUserInfo={handleBackToUserInfo}
       />
 
+      {/* Assign Check Modal */}
+      <SeatActionModal
+        mode="assignCheck"
+        assignNo={selectedAssignNo}
+        isOpen={modalStates[MODAL_TYPES.ASSIGN_CHECK]}
+        onClose={handleAssignCheckClose}
+        onBackToUserInfo={handleBackToUserInfo}
+      />
     </div>
   );
 };
