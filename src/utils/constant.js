@@ -2,6 +2,8 @@ export const MINI_MAP_LAYOUT = {
   16101: {
     rows: 2,
     cols: 3,
+    seatFontScale: 1,
+    defaultScale: 4.5,
     sectors: [
       { id: "A", row: 0, col: 0, transform: { scale: 2, x: 50, y: 50 } },
       { id: "B", row: 0, col: 1, transform: { scale: 2, x: 0, y: 50 } },
@@ -14,24 +16,50 @@ export const MINI_MAP_LAYOUT = {
   16301: {
     rows: 2,
     cols: 2,
-    seatFontScale: 1.6,
+    seatFontScale: 1.7,
+    defaultScale: 2,
     sectors: [
-      { id: "TOP_RIGHT", row: 0, col: 1, alreadyEnabledImage: true, transform: { scale: 1, x: 0, y: 25 } },
-      { id: "BOTTOM_RIGHT", row: 1, col: 1, transform: { scale: 1, x: 0, y: -25 } },
+      {
+        id: "TOP_RIGHT",
+        row: 0,
+        col: 1,
+        alreadyEnabledImage: true,
+        transform: { scale: 1, x: 0, y: 25 },
+      },
+      {
+        id: "BOTTOM_RIGHT",
+        row: 1,
+        col: 1,
+        transform: { scale: 1, x: 0, y: -25 },
+      },
     ],
   },
   17201: {
     rows: 2,
     cols: 2,
-    seatFontScale: 1.6,
+    seatFontScale: 1.7,
+    defaultScale: 2,
+
     sectors: [
-      { id: "TOP_LEFT", row: 0, col: 0, alreadyEnabledImage: true, transform: { scale: 1, x: 0, y: 25 } },
-      { id: "BOTTOM_LEFT", row: 1, col: 0, transform: { scale: 1, x: 0, y: -25 } },
+      {
+        id: "TOP_LEFT",
+        row: 0,
+        col: 0,
+        alreadyEnabledImage: true,
+        transform: { scale: 1, x: 0, y: 25 },
+      },
+      {
+        id: "BOTTOM_LEFT",
+        row: 1,
+        col: 0,
+        transform: { scale: 1, x: 0, y: -25 },
+      },
     ],
   },
   17202: {
     rows: 3,
     cols: 3,
+    defaultScale: 4.5,
 
     sectors: [
       { id: "A", row: 0, col: 0, transform: { scale: 2, x: 50, y: 50 } },
@@ -48,6 +76,8 @@ export const MINI_MAP_LAYOUT = {
   17101: {
     rows: 2,
     cols: 3,
+    defaultScale: 4.5,
+
     sectors: [
       { id: "A", row: 0, col: 0, transform: { scale: 2, x: 50, y: 50 } },
       { id: "B", row: 0, col: 1, transform: { scale: 2, x: 0, y: 50 } },
@@ -60,24 +90,52 @@ export const MINI_MAP_LAYOUT = {
   17301: {
     rows: 2,
     cols: 2,
-    seatFontScale: 1.6,
+    seatFontScale: 1.7,
+    defaultScale: 2,
+
     sectors: [
-      { id: "TOP_RIGHT", row: 0, col: 1, alreadyEnabledImage: true, transform: { scale: 1, x: 0, y: 25 } },
-      { id: "BOTTOM_RIGHT", row: 1, col: 1, transform: { scale: 1, x: 0, y: -25 } },
+      {
+        id: "TOP_RIGHT",
+        row: 0,
+        col: 1,
+        alreadyEnabledImage: true,
+        transform: { scale: 1, x: 0, y: 25 },
+      },
+      {
+        id: "BOTTOM_RIGHT",
+        row: 1,
+        col: 1,
+        transform: { scale: 1, x: 0, y: -25 },
+      },
     ],
   },
   18201: {
     rows: 2,
     cols: 2,
-    seatFontScale: 1.6,
+  seatFontScale: 1.7,
+    defaultScale: 2,
+
     sectors: [
-      { id: "TOP_LEFT", row: 0, col: 0, alreadyEnabledImage: true, transform: { scale: 1, x: 0, y: 25 } },
-      { id: "BOTTOM_LEFT", row: 1, col: 0, transform: { scale: 1, x: 0, y: -25 } },
+      {
+        id: "TOP_LEFT",
+        row: 0,
+        col: 0,
+        alreadyEnabledImage: true,
+        transform: { scale: 1, x: 0, y: 25 },
+      },
+      {
+        id: "BOTTOM_LEFT",
+        row: 1,
+        col: 0,
+        transform: { scale: 1, x: 0, y: -25 },
+      },
     ],
   },
   18202: {
     rows: 3,
     cols: 3,
+    defaultScale: 4.5,
+
     sectors: [
       { id: "A", row: 0, col: 0, transform: { scale: 2, x: 50, y: 50 } },
       { id: "B", row: 0, col: 1, transform: { scale: 2, x: 0, y: 50 } },
@@ -93,6 +151,8 @@ export const MINI_MAP_LAYOUT = {
   18101: {
     rows: 2,
     cols: 3,
+    defaultScale: 4.5,
+
     sectors: [
       { id: "A", row: 0, col: 0, transform: { scale: 2, x: 50, y: 50 } },
       { id: "B", row: 0, col: 1, transform: { scale: 2, x: 0, y: 50 } },
@@ -105,10 +165,23 @@ export const MINI_MAP_LAYOUT = {
   18301: {
     rows: 2,
     cols: 2,
-    seatFontScale: 1.6,
+   seatFontScale: 1.7,
+    defaultScale: 2,
+
     sectors: [
-      { id: "TOP_RIGHT", row: 0, col: 1, alreadyEnabledImage: true, transform: { scale: 1, x: 0, y: 25 } },
-      { id: "BOTTOM_RIGHT", row: 1, col: 1, transform: { scale: 1, x: 0, y: -25 } },
+      {
+        id: "TOP_RIGHT",
+        row: 0,
+        col: 1,
+        alreadyEnabledImage: true,
+        transform: { scale: 1, x: 0, y: 25 },
+      },
+      {
+        id: "BOTTOM_RIGHT",
+        row: 1,
+        col: 1,
+        transform: { scale: 1, x: 0, y: -25 },
+      },
     ],
   },
 };
@@ -134,23 +207,23 @@ export const FLOORS_CONFIG = [
 ];
 
 export const MODAL_TYPES = {
-  EXTENSION: 'extension',
-  RETURN: 'return',
-  ASSIGN_CHECK: 'assignCheck'
+  EXTENSION: "extension",
+  RETURN: "return",
+  ASSIGN_CHECK: "assignCheck",
 };
 
 export const MODES = {
-  BOOKING: 'booking',
-  EXTENSION: 'extension',
-  RETURN: 'return',
-  MOVE: 'move',
-  ASSIGN_CHECK: 'assignCheck'
+  BOOKING: "booking",
+  EXTENSION: "extension",
+  RETURN: "return",
+  MOVE: "move",
+  ASSIGN_CHECK: "assignCheck",
 };
 
 export const MODE_LABELS = {
-  [MODES.BOOKING]: 'Booking',
-  [MODES.EXTENSION]: 'Extension',
-  [MODES.RETURN]: 'Return',
-  [MODES.MOVE]: 'Move',
-  [MODES.ASSIGN_CHECK]: 'Seat Check'
+  [MODES.BOOKING]: "Booking",
+  [MODES.EXTENSION]: "Extension",
+  [MODES.RETURN]: "Return",
+  [MODES.MOVE]: "Move",
+  [MODES.ASSIGN_CHECK]: "Seat Check",
 };
