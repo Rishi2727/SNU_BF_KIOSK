@@ -3,7 +3,7 @@ const LibraryCard = ({ title, subtitle, availableCount = 0, totalCount = 217, on
     <button
       onClick={onClick}
       className="
-        flex flex-col justify-between
+        flex flex-col
         bg-[#FFCA08] hover:bg-[#D7D8D2]
         transition rounded-2xl
         flex-1 h-[220px] min-w-[180px] mx-2 p-6
@@ -16,8 +16,8 @@ const LibraryCard = ({ title, subtitle, availableCount = 0, totalCount = 217, on
         </div>
       </div>
 
-      {/* Bottom Progress Bar Section */}
-      <div className="mt-4 relative">
+      {/* Progress Bar (moved up naturally) */}
+      <div className="mt-20 relative">
         <div className="w-full h-4 bg-gray-300 rounded-full overflow-hidden">
           <div
             className="h-full bg-[#9A7D4C] transition-all duration-300"
@@ -27,8 +27,8 @@ const LibraryCard = ({ title, subtitle, availableCount = 0, totalCount = 217, on
 
         {/* Moving Count Badge */}
         <div
-          className="absolute -top-3 transform -translate-x-1/2 bg-[#9A7D4C] text-white 
-               px-2 rounded-md text-sm font-bold shadow-md transition-all duration-300"
+          className="absolute -top-11 -translate-x-1/2 bg-[#9A7D4C] text-white
+                     px-2 rounded-md text-[30px] font-bold shadow-md"
           style={{
             left: `${(availableCount / totalCount) * 100}%`,
           }}
@@ -37,11 +37,10 @@ const LibraryCard = ({ title, subtitle, availableCount = 0, totalCount = 217, on
         </div>
 
         {/* Total count */}
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 text-sm font-medium">
+        <div className="absolute right-2 top-7 -translate-y-1/2 text-gray-600 text-[30px] font-medium">
           {totalCount}
         </div>
       </div>
-
     </button>
   );
 };
