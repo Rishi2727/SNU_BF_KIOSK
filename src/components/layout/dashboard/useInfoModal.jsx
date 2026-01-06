@@ -87,7 +87,7 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
               className={`
                 relative overflow-hidden rounded-xl p-2 transition-all duration-300
                 ${action.enabled 
-                  ? `bg-gradient-to-br ${action.color} text-white hover:scale-105 hover:shadow-xl cursor-pointer` 
+                  ? `bg-gradient-to-br ${action.color} text-white hover:shadow-xl cursor-pointer` 
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed opacity-60'
                 }
               `}

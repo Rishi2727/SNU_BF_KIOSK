@@ -8,7 +8,17 @@ import {
   InfoIcon,
   User,
   LogOut,
+  Volume1,
 } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { toggleMagnifier } from "../../redux/slice/accessibilitySlice";
+
+
+const applyContrastMode = (mode) => {
+  document.documentElement.setAttribute("data-contrast", mode);
+  localStorage.setItem("contrastMode", mode);
+};
+
 
 const FooterControls = ({
   userInfo,
@@ -18,9 +28,19 @@ const FooterControls = ({
   onVolumeDown,
   onZoom,
   onContrast,
+
 }) => {
   const [time, setTime] = useState("");
   const [language, setLanguage] = useState("KR");
+  const [contrastEnabled, setContrastEnabled] = useState(
+    localStorage.getItem("contrastMode") === "high"
+  );
+
+  const dispatch = useDispatch();
+  const magnifierEnabled = useSelector(
+    (state) => state.accessibility.magnifierEnabled
+  );
+
 
   useEffect(() => {
     const updateTime = () => {
@@ -36,6 +56,35 @@ const FooterControls = ({
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+  const saved = localStorage.getItem("contrastMode") || "normal";
+  document.documentElement.setAttribute("data-contrast", saved);
+  setContrastEnabled(saved === "high");
+}, []);
+
+
+  const toggleContrast = () => {
+    const nextMode = contrastEnabled ? "normal" : "high";
+    setContrastEnabled(!contrastEnabled);
+    applyContrastMode(nextMode);
+  };
+
+
+  const handleLanguageChange = (uiLang) => {
+    // Update UI button highlight
+    setLanguage(uiLang);
+
+    // Map UI → backend
+    const backendLang = uiLang === "KR" ? "ko" : "en";
+
+    // 🔑 Same behavior as LanguageDropdown
+    localStorage.setItem("lang", backendLang);
+
+    // 🔥 FORCE backend to respond with new language
+    // because axios headers apply only on new requests
+    window.location.reload();
+  };
 
   return (
     <div
@@ -71,18 +120,18 @@ const FooterControls = ({
           </button>
         )}
       </div>
-     
+
       {/* 🎛 CENTER : Controls */}
       <div className="flex items-center gap-2">
         <FooterButton
-          icon={<Volume2 size={28} />}
-          label="Volume +"
+          icon={<Volume1 size={28} />}
+          label="Volume -"
           onClick={onVolumeUp}
         />
         <FooterButton label="100%" onClick={onVolumeDown} />
         <FooterButton
-          icon={<VolumeX size={28} />}
-          label="Mute"
+          icon={<Volume2 size={28} />}
+          label="Volume +"
           onClick={onVolumeDown}
         />
         <FooterButton
@@ -92,17 +141,22 @@ const FooterControls = ({
         />
         <FooterButton
           icon={<ZoomIn size={28} />}
-          label="Zoom"
-          onClick={onZoom}
+          label={magnifierEnabled ? "Zoom Off" : "Zoom On"}
+          active={magnifierEnabled}
+          onClick={() => dispatch(toggleMagnifier())}
         />
+
+
         <FooterButton
           icon={<Contrast size={28} />}
-          label="Contrast"
-          onClick={onContrast}
+          label={contrastEnabled ? "High Contrast" : "Normal Contrast"}
+          onClick={toggleContrast}
+          active={contrastEnabled}
         />
+
       </div>
 
-       {/* ⏰ LEFT : Time + Language */}
+      {/* ⏰ LEFT : Time + Language */}
       <div className="flex items-center gap-6">
         <div className="flex items-center gap-3 text-white">
           <Clock className="w-8 h-8" />
@@ -114,13 +168,13 @@ const FooterControls = ({
           {["KR", "EN"].map((lang) => (
             <button
               key={lang}
-              onClick={() => setLanguage(lang)}
+              onClick={() => handleLanguageChange(lang)}
+
               className={`
-                min-w-[80px] h-[56px] text-[28px] font-bold
-                ${
-                  language === lang
-                    ? "bg-[#FFCA08] text-white"
-                    : "bg-white text-black"
+                min-w-20 h-14 text-[28px] font-bold
+                ${language === lang
+                  ? "bg-[#FFCA08] text-white"
+                  : "bg-white text-black"
                 }
               `}
             >
@@ -134,15 +188,16 @@ const FooterControls = ({
   );
 };
 
-const FooterButton = ({ icon, label, onClick }) => (
+const FooterButton = ({ icon, label, onClick, active }) => (
   <button
     onClick={onClick}
-    className="
+    className={`
       h-16 px-4 flex items-center gap-3
-      rounded-xl bg-[#FFCA08] text-[#9A7D4C]
+      rounded-xl
+      ${active ? "bg-[#e2ac37] text-white" : "bg-[#FFCA08] text-[#9A7D4C]"}
       shadow-lg hover:bg-[#FFD640]
       active:scale-95 transition-all
-    "
+    `}
   >
     {icon}
     <span className="text-[30px] font-semibold whitespace-nowrap">
@@ -150,5 +205,6 @@ const FooterButton = ({ icon, label, onClick }) => (
     </span>
   </button>
 );
+
 
 export default FooterControls;

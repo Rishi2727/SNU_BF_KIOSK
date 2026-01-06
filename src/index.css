@@ -1,4 +1,70 @@
 @import "tailwindcss";
 
-/* Barrier FR large text class */
+/* ============================= */
+/* Contrast modes for accessibility */
+/* ============================= */
 
+/* -------- NORMAL (UNCHANGED) -------- */
+:root[data-contrast="normal"] {
+  filter: none !important;
+  background-color: white !important;
+  color: black !important;
+}
+
+:root[data-contrast="high"] {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+
+  /* Small enhancement only */
+  filter: contrast(1.15);
+}
+
+/* -------- SEATS -------- */
+:root[data-contrast="high"] .seat {
+  background-color: #f59e0b !important; /* WCAG safe amber */
+  color: #000000 !important;
+  border: 3px solid #000000 !important;
+  font-weight: 700;
+}
+
+/* Selected seat */
+:root[data-contrast="high"] .seat.active {
+  outline: 4px solid #16a34a; /* green, 5.1:1 */
+}
+
+/* Disabled / booked */
+:root[data-contrast="high"] .seat.disabled {
+  background-color: #6b7280 !important;
+  color: #ffffff !important;
+  border-color: #000000 !important;
+}
+
+/* -------- SECTION / ZONE OUTLINES -------- */
+:root[data-contrast="high"] .section,
+:root[data-contrast="high"] .zone,
+:root[data-contrast="high"] .area {
+  background-color: transparent !important;
+  border: 3px solid #ca8a04 !important; /* WCAG yellow */
+}
+
+/* -------- LABEL TEXT -------- */
+:root[data-contrast="high"] h1,
+:root[data-contrast="high"] h2,
+:root[data-contrast="high"] h3,
+:root[data-contrast="high"] span,
+:root[data-contrast="high"] label {
+  color: #000000 !important;
+  font-weight: 700;
+}
+
+/* -------- IMAGES / MAP -------- */
+:root[data-contrast="high"] img,
+:root[data-contrast="high"] video {
+  filter: none !important;
+}
+
+/* -------- LOGOS -------- */
+:root[data-contrast="high"] #logo,
+:root[data-contrast="high"] .logo {
+  filter: none !important;
+}

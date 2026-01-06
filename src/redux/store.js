@@ -2,11 +2,13 @@ import { configureStore } from "@reduxjs/toolkit";
 import userInfoReducer from "../redux/slice/userInfo";
 import bookingTimeReducer from "../redux/slice/bookingTimeSlice";
 import sectorInfoReducer from "../redux/slice/sectorSlice";
+import accessibilityReducer from "../redux/slice/accessibilitySlice";
 
 export const store = configureStore({
   reducer: {
     userInfo: userInfoReducer,
     bookingTime: bookingTimeReducer,
     sectorInfo: sectorInfoReducer,
+        accessibility: accessibilityReducer,
   },
 });
