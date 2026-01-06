@@ -4,7 +4,8 @@ import LoadingSpinner from "../../common/LoadingSpinner";
 const getRSeatImage = (seat) => {
   if (seat.ICONTYPE < 2 || seat.ICONTYPE > 7) return null;
   const rNo = seat.ICONTYPE - 1;
-  const isDisabled = seat.USECNT !== 0 || (seat.STATUS !== 1 && seat.STATUS !== 2);
+  const isDisabled =
+    seat.USECNT !== 0 || (seat.STATUS !== 1 && seat.STATUS !== 2);
   return `${ImageBaseUrl}/SeatBtnR${rNo}${isDisabled ? "_Dis" : ""}.png`;
 };
 
@@ -99,7 +100,10 @@ const RoomView = ({
               {layout.sectors.map((sector) => (
                 <button
                   key={sector.id}
-                  style={{ gridRow: sector.row + 1, gridColumn: sector.col + 1 }}
+                  style={{
+                    gridRow: sector.row + 1,
+                    gridColumn: sector.col + 1,
+                  }}
                   onClick={() => onMiniSectorClick(sector)}
                   className={`border transition-all duration-200 ${selectedMiniSector?.id === sector.id
                     ? "border-blue-400 bg-blue-500/40"
