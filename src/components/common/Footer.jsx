@@ -8,9 +8,18 @@ import {
   InfoIcon,
   User,
   LogOut,
+  Volume1,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { toggleMagnifier } from "../../redux/slice/accessibilitySlice";
+
+
+const applyContrastMode = (mode) => {
+  document.documentElement.setAttribute("data-contrast", mode);
+  localStorage.setItem("contrastMode", mode);
+};
+
+
 const FooterControls = ({
   userInfo,
   openKeyboard,
@@ -23,6 +32,10 @@ const FooterControls = ({
 }) => {
   const [time, setTime] = useState("");
   const [language, setLanguage] = useState("KR");
+  const [contrastEnabled, setContrastEnabled] = useState(
+    localStorage.getItem("contrastMode") === "high"
+  );
+
   const dispatch = useDispatch();
   const magnifierEnabled = useSelector(
     (state) => state.accessibility.magnifierEnabled
@@ -43,6 +56,20 @@ const FooterControls = ({
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+  const saved = localStorage.getItem("contrastMode") || "normal";
+  document.documentElement.setAttribute("data-contrast", saved);
+  setContrastEnabled(saved === "high");
+}, []);
+
+
+  const toggleContrast = () => {
+    const nextMode = contrastEnabled ? "normal" : "high";
+    setContrastEnabled(!contrastEnabled);
+    applyContrastMode(nextMode);
+  };
+
 
   const handleLanguageChange = (uiLang) => {
     // Update UI button highlight
@@ -97,14 +124,14 @@ const FooterControls = ({
       {/* 🎛 CENTER : Controls */}
       <div className="flex items-center gap-2">
         <FooterButton
-          icon={<Volume2 size={28} />}
-          label="Volume +"
+          icon={<Volume1 size={28} />}
+          label="Volume -"
           onClick={onVolumeUp}
         />
         <FooterButton label="100%" onClick={onVolumeDown} />
         <FooterButton
-          icon={<VolumeX size={28} />}
-          label="Mute"
+          icon={<Volume2 size={28} />}
+          label="Volume +"
           onClick={onVolumeDown}
         />
         <FooterButton
@@ -122,9 +149,11 @@ const FooterControls = ({
 
         <FooterButton
           icon={<Contrast size={28} />}
-          label="Contrast"
-          onClick={onContrast}
+          label={contrastEnabled ? "High Contrast" : "Normal Contrast"}
+          onClick={toggleContrast}
+          active={contrastEnabled}
         />
+
       </div>
 
       {/* ⏰ LEFT : Time + Language */}
@@ -142,7 +171,7 @@ const FooterControls = ({
               onClick={() => handleLanguageChange(lang)}
 
               className={`
-                min-w-[80px] h-[56px] text-[28px] font-bold
+                min-w-20 h-14 text-[28px] font-bold
                 ${language === lang
                   ? "bg-[#FFCA08] text-white"
                   : "bg-white text-black"
