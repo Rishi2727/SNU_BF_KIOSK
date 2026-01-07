@@ -11,7 +11,10 @@ import {
   Volume1,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { toggleMagnifier } from "../../redux/slice/accessibilitySlice";
+import {
+  toggleMagnifier, increaseVolume,
+  decreaseVolume,
+} from "../../redux/slice/accessibilitySlice";
 
 
 const applyContrastMode = (mode) => {
@@ -24,11 +27,9 @@ const FooterControls = ({
   userInfo,
   openKeyboard,
   logout,
-  onVolumeUp,
-  onVolumeDown,
   onZoom,
   onContrast,
-  isFocused, // ✅ Receive focus state from parent
+
 }) => {
   const [time, setTime] = useState("");
   const [language, setLanguage] = useState("KR");
@@ -42,32 +43,6 @@ const FooterControls = ({
     (state) => state.accessibility.magnifierEnabled
   );
 
-  // ✅ Define toggleContrast BEFORE using it in footerButtons
-  const toggleContrast = () => {
-    const nextMode = contrastEnabled ? "normal" : "high";
-    setContrastEnabled(!contrastEnabled);
-    applyContrastMode(nextMode);
-  };
-
-  // ✅ Define all footer buttons AFTER toggleContrast
-  const footerButtons = [
-    { icon: <Volume1 size={28} />, label: "Volume -", onClick: onVolumeUp },
-    { label: "100%", onClick: onVolumeDown },
-    { icon: <Volume2 size={28} />, label: "Volume +", onClick: onVolumeDown },
-    { icon: <InfoIcon size={28} />, label: "Info", onClick: onZoom },
-    { 
-      icon: <ZoomIn size={28} />, 
-      label: magnifierEnabled ? "Zoom Off" : "Zoom On", 
-      active: magnifierEnabled,
-      onClick: () => dispatch(toggleMagnifier())
-    },
-    { 
-      icon: <Contrast size={28} />, 
-      label: contrastEnabled ? "High Contrast" : "Normal Contrast", 
-      onClick: toggleContrast,
-      active: contrastEnabled
-    },
-  ];
 
   useEffect(() => {
     const updateTime = () => {
@@ -159,16 +134,37 @@ const FooterControls = ({
 
       {/* 🎛 CENTER : Controls */}
       <div className="flex items-center gap-2">
-        {footerButtons.map((btn, index) => (
-          <FooterButton
-            key={index}
-            icon={btn.icon}
-            label={btn.label}
-            onClick={btn.onClick}
-            active={btn.active}
-            isSelected={isFocused && selectedButtonIndex === index} // ✅ Highlight selected button
-          />
-        ))}
+        <FooterButton
+          icon={<Volume1 size={28} />}
+          label="Volume -"
+          onClick={onVolumeUp}
+        />
+        <FooterButton label="100%" onClick={onVolumeDown} />
+        <FooterButton
+          icon={<Volume2 size={28} />}
+          label="Volume +"
+          onClick={onVolumeDown}
+        />
+        <FooterButton
+          icon={<InfoIcon size={28} />}
+          label="Info"
+          onClick={onZoom}
+        />
+        <FooterButton
+          icon={<ZoomIn size={28} />}
+          label={magnifierEnabled ? "Zoom Off" : "Zoom On"}
+          active={magnifierEnabled}
+          onClick={() => dispatch(toggleMagnifier())}
+        />
+
+
+        <FooterButton
+          icon={<Contrast size={28} />}
+          label={contrastEnabled ? "High Contrast" : "Normal Contrast"}
+          onClick={toggleContrast}
+          active={contrastEnabled}
+        />
+
       </div>
 
       {/* ⏰ RIGHT : Time + Language */}

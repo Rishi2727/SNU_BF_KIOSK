@@ -329,10 +329,9 @@ const Dashboard = () => {
   /**
    * Volume control handlers (placeholders)
    */
-  const handleVolumeUp = useCallback(() => console.log("Volume Up"), []);
-  const handleVolumeDown = useCallback(() => console.log("Volume Down"), []);
-  const handleZoom = useCallback(() => console.log("Zoom"), []);
-  const handleContrast = useCallback(() => console.log("Contrast"), []);
+
+
+
 
   return (
     <div className="relative h-screen w-screen overflow-hidden font-bold text-white">
@@ -371,6 +370,7 @@ const Dashboard = () => {
         </div>
       </div>
 
+<<<<<<< HEAD
       {/* ✅ Footer Controls with focus border */}
       <div
         className={
@@ -390,6 +390,16 @@ const Dashboard = () => {
           isFocused={focused === FocusRegion.FOOTER}
         />
       </div>
+=======
+      {/* Footer Controls */}
+      <FooterControls
+        userInfo={userInfo}
+        openKeyboard={() => openKeyboard(null)}
+        logout={handleLogout}
+    
+
+      />
+>>>>>>> kisok-enhancements
 
       {/* Keyboard Modal */}
       <KeyboardModal
