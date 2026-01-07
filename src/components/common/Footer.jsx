@@ -36,8 +36,8 @@ const FooterControls = ({
   const [contrastEnabled, setContrastEnabled] = useState(
     localStorage.getItem("contrastMode") === "high"
   );
-  const [cursor, setCursor] = useState(0); // Index of focused button
-  const FOOTER_BUTTON_COUNT = 9; // Total buttons in your footer (Login/Logout + Volume- + Volume% + Volume+ + Info + Zoom + Contrast + KR + EN)
+  const [cursor, setCursor] = useState(0);
+  const FOOTER_BUTTON_COUNT = userInfo ? 10 : 9
 
 
   const dispatch = useDispatch();
@@ -77,37 +77,77 @@ const FooterControls = ({
 
 
   const handleFooterEnter = (index) => {
-    switch (index) {
-      case 0: // Login / Logout
-        userInfo ? logout() : openKeyboard();
-        break;
-      case 1: // Volume -
-        dispatch(decreaseVolume());
-        break;
-      case 2: // Volume %
-        break; // Do nothing
-      case 3: // Volume +
-        dispatch(increaseVolume());
-        break;
-      case 4: // Info
-        onZoom();
-        break;
-      case 5: // Zoom / Magnifier
-        dispatch(toggleMagnifier());
-        break;
-      case 6: // Contrast
-        toggleContrast();
-        break;
-      case 7: // KR
-        handleLanguageChange("KR");
-        break;
-      case 8: // EN
-        handleLanguageChange("EN");
-        break;
-      default:
-        break;
+    if (userInfo) {
+      switch (index) {
+        case 0: // Logout
+          logout();
+          return;
+        case 1: // SCHOOLNO
+          // maybe open keyboard if needed, or do nothing
+          openKeyboard();
+          return;
+        // shift other cases by +1
+        case 2: // Volume -
+          dispatch(decreaseVolume());
+          return;
+        case 3: // Volume %
+          return;
+        case 4: // Volume +
+          dispatch(increaseVolume());
+          return;
+        case 5: // Info
+          onZoom();
+          return;
+        case 6: // Zoom / Magnifier
+          dispatch(toggleMagnifier());
+          return;
+        case 7: // Contrast
+          toggleContrast();
+          return;
+        case 8: // KR
+          handleLanguageChange("KR");
+          return;
+        case 9: // EN
+          handleLanguageChange("EN");
+          return;
+        default:
+          break;
+      }
+    } else {
+      switch (index) {
+        case 0: // Login
+          openKeyboard();
+          return;
+        // shift other cases accordingly
+        case 1: // Volume -
+          dispatch(decreaseVolume());
+          return;
+        case 2: // Volume %
+          return;
+        case 3: // Volume +
+          dispatch(increaseVolume());
+          return;
+        case 4: // Info
+          onZoom();
+          return;
+        case 5: // Zoom / Magnifier
+          dispatch(toggleMagnifier());
+          return;
+        case 6: // Contrast
+          toggleContrast();
+          return;
+        case 7: // KR
+          handleLanguageChange("KR");
+          return;
+        case 8: // EN
+          handleLanguageChange("EN");
+          return;
+        default:
+          break;
+      }
     }
   };
+
 
 
   useEffect(() => {
@@ -169,7 +209,8 @@ const FooterControls = ({
               <LogOut className="w-7 h-7" />
               로그아웃
             </button>
-            <div className="flex items-center gap-2 bg-white text-black px-5 py-2 rounded-lg text-[26px]">
+            <div className={`flex items-center gap-2 bg-white text-black px-5 py-2 rounded-lg text-[26px]
+    ${cursor === 1 && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}`}>
               <User className="w-7 h-7" />
               {userInfo.SCHOOLNO}
             </div>
@@ -194,27 +235,27 @@ const FooterControls = ({
           icon={<Volume1 size={28} />}
           label="Volume -"
           onClick={() => dispatch(decreaseVolume())}
-          isSelected={cursor === 1}
+          isSelected={cursor === (userInfo ? 2 : 1)}
         />
 
         <FooterButton
           label={`${Math.round(volume * 100)}%`}
           onClick={() => { }}
-          isSelected={cursor === 2}
+          isSelected={cursor === (userInfo ? 3 : 2)}
         />
 
         <FooterButton
           icon={<Volume2 size={28} />}
           label="Volume +"
           onClick={() => dispatch(increaseVolume())}
-          isSelected={cursor === 3}
+          isSelected={cursor === (userInfo ? 4 : 3)}
         />
 
         <FooterButton
           icon={<InfoIcon size={28} />}
           label="Info"
           onClick={onZoom}
-          isSelected={cursor === 4}
+          isSelected={cursor === (userInfo ? 5 : 4)}
 
         />
         <FooterButton
@@ -222,7 +263,7 @@ const FooterControls = ({
           label={magnifierEnabled ? "Zoom Off" : "Zoom On"}
           active={magnifierEnabled}
           onClick={() => dispatch(toggleMagnifier())}
-          isSelected={cursor === 5}
+          isSelected={cursor === (userInfo ? 6 : 5)}
         />
 
 
@@ -231,7 +272,7 @@ const FooterControls = ({
           label={contrastEnabled ? "Contrast" : "Contrast"}
           onClick={toggleContrast}
           active={contrastEnabled}
-          isSelected={cursor === 6}
+          isSelected={cursor === (userInfo ? 7 : 6)}
         />
 
       </div>
@@ -249,10 +290,10 @@ const FooterControls = ({
             <button
               key={lang}
               onClick={() => handleLanguageChange(lang)}
-              className={`
+      className={`
       min-w-20 h-14 text-[28px] font-bold
       ${language === lang ? "bg-[#FFCA08] rounded-lg text-white" : "bg-white text-black"}
-      ${cursor === 7 + i ? "outline-[6px] outline-[#dc2f02]" : ""}
+      ${cursor === (userInfo ? 8 + i : 7 + i) ? "outline-[6px] outline-[#dc2f02]" : ""}
     `}
             >
               {lang}
