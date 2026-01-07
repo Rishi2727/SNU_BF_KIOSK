@@ -36,7 +36,7 @@ const FooterControls = ({
   const [contrastEnabled, setContrastEnabled] = useState(
     localStorage.getItem("contrastMode") === "high"
   );
-  const [cursor, setCursor] = useState(0);
+  const [cursor, setCursor] = useState(null);
   const FOOTER_BUTTON_COUNT = userInfo ? 10 : 9
 
 
@@ -56,12 +56,20 @@ const FooterControls = ({
       switch (e.key) {
         case "ArrowRight":
           e.preventDefault();
-          setCursor((prev) => (prev + 1) % FOOTER_BUTTON_COUNT);
+          setCursor((prev) =>
+            prev === null ? 0 : (prev + 1) % FOOTER_BUTTON_COUNT
+          );
           break;
+
         case "ArrowLeft":
           e.preventDefault();
-          setCursor((prev) => (prev - 1 + FOOTER_BUTTON_COUNT) % FOOTER_BUTTON_COUNT);
+          setCursor((prev) =>
+            prev === null
+              ? FOOTER_BUTTON_COUNT - 1
+              : (prev - 1 + FOOTER_BUTTON_COUNT) % FOOTER_BUTTON_COUNT
+          );
           break;
+
         case "Enter":
           e.preventDefault();
           handleFooterEnter(cursor);
@@ -236,12 +244,15 @@ const FooterControls = ({
           label="Volume -"
           onClick={() => dispatch(decreaseVolume())}
           isSelected={cursor === (userInfo ? 2 : 1)}
+          isFocused={isFocused}
+
         />
 
         <FooterButton
           label={`${Math.round(volume * 100)}%`}
           onClick={() => { }}
           isSelected={cursor === (userInfo ? 3 : 2)}
+          isFocused={isFocused}
         />
 
         <FooterButton
@@ -249,6 +260,7 @@ const FooterControls = ({
           label="Volume +"
           onClick={() => dispatch(increaseVolume())}
           isSelected={cursor === (userInfo ? 4 : 3)}
+          isFocused={isFocused}
         />
 
         <FooterButton
@@ -256,6 +268,7 @@ const FooterControls = ({
           label="Info"
           onClick={onZoom}
           isSelected={cursor === (userInfo ? 5 : 4)}
+          isFocused={isFocused}
 
         />
         <FooterButton
@@ -264,6 +277,7 @@ const FooterControls = ({
           active={magnifierEnabled}
           onClick={() => dispatch(toggleMagnifier())}
           isSelected={cursor === (userInfo ? 6 : 5)}
+          isFocused={isFocused}
         />
 
 
@@ -273,6 +287,7 @@ const FooterControls = ({
           onClick={toggleContrast}
           active={contrastEnabled}
           isSelected={cursor === (userInfo ? 7 : 6)}
+          isFocused={isFocused}
         />
 
       </div>
@@ -290,10 +305,10 @@ const FooterControls = ({
             <button
               key={lang}
               onClick={() => handleLanguageChange(lang)}
-      className={`
+              className={`
       min-w-20 h-14 text-[28px] font-bold
       ${language === lang ? "bg-[#FFCA08] rounded-lg text-white" : "bg-white text-black"}
-      ${cursor === (userInfo ? 8 + i : 7 + i) ? "outline-[6px] outline-[#dc2f02]" : ""}
+      ${cursor === (userInfo ? 8 + i : 7 + i) && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}
     `}
             >
               {lang}
@@ -305,7 +320,7 @@ const FooterControls = ({
   );
 };
 
-const FooterButton = ({ icon, label, onClick, active, isSelected }) => (
+const FooterButton = ({ icon, label, onClick, active, isSelected, isFocused }) => (
   <button
     onClick={onClick}
     className={`
@@ -314,7 +329,7 @@ const FooterButton = ({ icon, label, onClick, active, isSelected }) => (
       ${active ? "bg-[#e2ac37] text-white" : "bg-[#FFCA08] text-[#9A7D4C]"}
       shadow-lg hover:bg-[#FFD640]
       active:scale-95 transition-all
-      ${isSelected ? "outline-[6px] outline-[#dc2f02]" : ""}
+      ${isFocused && isSelected ? "outline-[6px] outline-[#dc2f02]" : ""}
     `}
   >
     {icon}

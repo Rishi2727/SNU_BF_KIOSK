@@ -19,6 +19,7 @@ const MainSection = ({
 }) => {
   const navigate = useNavigate();
   const [cursor, setCursor] = useState(null);
+  const TOTAL_ITEMS = floors.length + 1;
 
 
   const handleCardClick = async (fl) => {
@@ -55,28 +56,37 @@ const MainSection = ({
     }
   }, [focusedRegion, FocusRegion.MAIN_SECTION]);
 
+
   useEffect(() => {
     if (focusedRegion !== FocusRegion.MAIN_SECTION) return;
 
     const onKeyDown = (e) => {
       if (e.key === "ArrowRight") {
-        setCursor((c) => (c === null ? 0 : (c + 1) % floors.length));
-      }
-
-      if (e.key === "ArrowLeft") {
+        e.preventDefault();
         setCursor((c) =>
-          c === null ? floors.length - 1 : (c - 1 + floors.length) % floors.length
+          c === null ? 0 : (c + 1) % TOTAL_ITEMS
         );
       }
 
-      if (e.key === "Enter" && cursor !== null) {
-        handleCardClick(floors[cursor]);
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        setCursor((c) =>
+          c === null ? TOTAL_ITEMS - 1 : (c - 1 + TOTAL_ITEMS) % TOTAL_ITEMS
+        );
+      }
+
+      if (e.key === "Enter") {
+        // Ignore Enter when heading is focused
+        if (cursor === 0) return;
+
+        // Cards start from cursor 1
+        handleCardClick(floors[cursor - 1]);
       }
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [focusedRegion, cursor, floors]);
+  }, [focusedRegion, cursor]);
 
 
   return (
@@ -86,8 +96,8 @@ const MainSection = ({
         {/* ✅ Logo with focus border */}
         <div
           className={`mb-12 ml-[15%] ${focusedRegion === FocusRegion?.LOGO
-              ? "outline outline-[6px] outline-[#dc2f02] rounded-2xl"
-              : ""
+            ? "outline-[6px] outline-[#dc2f02] rounded-2xl"
+            : ""
             }`}
         >
           <img src={logo} alt="logo" className="w-[500px]" />
@@ -96,16 +106,24 @@ const MainSection = ({
         {/* ✅ Main Section (cards container) with focus border */}
         <div
           className={`w-full p-12 rounded-3xl bg-[#9A7D4C] border border-white/30 backdrop-blur-xl ${focusedRegion === FocusRegion?.MAIN_SECTION
-              ? "outline outline-[6px] outline-[#dc2f02]"
-              : ""
+            ? "outline-[6px] outline-[#dc2f02]"
+            : ""
             }`}
         >
-          <h2 className="text-[32px] font-semibold mb-10">
+          <h2
+            className={`text-[32px] font-semibold mb-10
+    ${focusedRegion === FocusRegion.MAIN_SECTION &&
+                cursor === 0
+                ? "outline-[6px] outline-[#dc2f02] rounded-lg px-2 py-2"
+                : ""
+              }`}
+          >
             원하는 라이브러리를 선택하십시오
           </h2>
 
+
           <div className="flex justify-between">
-            {floors.map((fl,index) => (
+            {floors.map((fl, index) => (
               <LibraryCard
                 key={fl.id}
                 {...fl}
@@ -113,8 +131,8 @@ const MainSection = ({
                 totalCount={fl.total}
                 onClick={() => handleCardClick(fl)}
                 isFocused={
-      focusedRegion === FocusRegion.MAIN_SECTION && cursor === index
-    }
+                  focusedRegion === FocusRegion.MAIN_SECTION && cursor === index + 1
+                }
               />
             ))}
           </div>
