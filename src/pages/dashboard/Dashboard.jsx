@@ -370,7 +370,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-<<<<<<< HEAD
       {/* ✅ Footer Controls with focus border */}
       <div
         className={
@@ -379,27 +378,17 @@ const Dashboard = () => {
             : "border-[6px] border-transparent"
         }
       >
-        <FooterControls
-          userInfo={userInfo}
-          openKeyboard={() => openKeyboard(null)}
-          logout={handleLogout}
-          onVolumeUp={handleVolumeUp}
-          onVolumeDown={handleVolumeDown}
-          onZoom={handleZoom}
-          onContrast={handleContrast}
-          isFocused={focused === FocusRegion.FOOTER}
-        />
-      </div>
-=======
-      {/* Footer Controls */}
+         {/* Footer Controls */}
       <FooterControls
         userInfo={userInfo}
         openKeyboard={() => openKeyboard(null)}
         logout={handleLogout}
+          isFocused={focused === FocusRegion.FOOTER}
     
 
       />
->>>>>>> kisok-enhancements
+      </div>
+     
 
       {/* Keyboard Modal */}
       <KeyboardModal

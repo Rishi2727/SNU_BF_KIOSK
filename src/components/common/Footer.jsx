@@ -29,7 +29,7 @@ const FooterControls = ({
   logout,
   onZoom,
   onContrast,
-
+isFocused
 }) => {
   const [time, setTime] = useState("");
   const [language, setLanguage] = useState("KR");
@@ -42,6 +42,9 @@ const FooterControls = ({
   const magnifierEnabled = useSelector(
     (state) => state.accessibility.magnifierEnabled
   );
+const volume = useSelector(
+  (state) => state.accessibility.volume
+);
 
 
   useEffect(() => {
@@ -65,36 +68,41 @@ const FooterControls = ({
     setContrastEnabled(saved === "high");
   }, []);
 
-  // ✅ Arrow key navigation when footer is focused
-  useEffect(() => {
-    if (!isFocused) return;
+  // // ✅ Arrow key navigation when footer is focused
+  // useEffect(() => {
+  //   if (!isFocused) return;
 
-    const handleKeyDown = (e) => {
-      if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        setSelectedButtonIndex((prev) => 
-          prev > 0 ? prev - 1 : footerButtons.length - 1
-        );
-      } else if (e.key === "ArrowRight") {
-        e.preventDefault();
-        setSelectedButtonIndex((prev) => 
-          prev < footerButtons.length - 1 ? prev + 1 : 0
-        );
-      } else if (e.key === "Enter") {
-        e.preventDefault();
-        footerButtons[selectedButtonIndex]?.onClick?.();
-      }
-    };
+  //   const handleKeyDown = (e) => {
+  //     if (e.key === "ArrowLeft") {
+  //       e.preventDefault();
+  //       setSelectedButtonIndex((prev) => 
+  //         prev > 0 ? prev - 1 : footerButtons.length - 1
+  //       );
+  //     } else if (e.key === "ArrowRight") {
+  //       e.preventDefault();
+  //       setSelectedButtonIndex((prev) => 
+  //         prev < footerButtons.length - 1 ? prev + 1 : 0
+  //       );
+  //     } else if (e.key === "Enter") {
+  //       e.preventDefault();
+  //       footerButtons[selectedButtonIndex]?.onClick?.();
+  //     }
+  //   };
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isFocused, selectedButtonIndex, footerButtons]);
+  //   window.addEventListener("keydown", handleKeyDown);
+  //   return () => window.removeEventListener("keydown", handleKeyDown);
+  // }, [isFocused, selectedButtonIndex, footerButtons]);
 
   const handleLanguageChange = (uiLang) => {
     setLanguage(uiLang);
     const backendLang = uiLang === "KR" ? "ko" : "en";
     localStorage.setItem("lang", backendLang);
     window.location.reload();
+  };
+    const toggleContrast = () => {
+    const nextMode = contrastEnabled ? "normal" : "high";
+    setContrastEnabled(!contrastEnabled);
+    applyContrastMode(nextMode);
   };
 
   return (
@@ -134,17 +142,23 @@ const FooterControls = ({
 
       {/* 🎛 CENTER : Controls */}
       <div className="flex items-center gap-2">
-        <FooterButton
-          icon={<Volume1 size={28} />}
-          label="Volume -"
-          onClick={onVolumeUp}
-        />
-        <FooterButton label="100%" onClick={onVolumeDown} />
-        <FooterButton
-          icon={<Volume2 size={28} />}
-          label="Volume +"
-          onClick={onVolumeDown}
-        />
+     <FooterButton
+  icon={<Volume1 size={28} />}
+  label="Volume -"
+  onClick={() => dispatch(decreaseVolume())}
+/>
+
+<FooterButton
+  label={`${Math.round(volume * 100)}%`}
+  onClick={() => {}}
+/>
+
+<FooterButton
+  icon={<Volume2 size={28} />}
+  label="Volume +"
+  onClick={() => dispatch(increaseVolume())}
+/>
+
         <FooterButton
           icon={<InfoIcon size={28} />}
           label="Info"
