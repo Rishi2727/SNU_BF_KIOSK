@@ -11,7 +11,10 @@ import {
   Volume1,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { toggleMagnifier } from "../../redux/slice/accessibilitySlice";
+import {
+  toggleMagnifier, increaseVolume,
+  decreaseVolume,
+} from "../../redux/slice/accessibilitySlice";
 
 
 const applyContrastMode = (mode) => {
@@ -24,10 +27,7 @@ const FooterControls = ({
   userInfo,
   openKeyboard,
   logout,
-  onVolumeUp,
-  onVolumeDown,
   onZoom,
-  onContrast,
 
 }) => {
   const [time, setTime] = useState("");
@@ -41,6 +41,9 @@ const FooterControls = ({
     (state) => state.accessibility.magnifierEnabled
   );
 
+  const volume = useSelector(
+    (state) => state.accessibility.volume
+  );
 
   useEffect(() => {
     const updateTime = () => {
@@ -58,10 +61,10 @@ const FooterControls = ({
   }, []);
 
   useEffect(() => {
-  const saved = localStorage.getItem("contrastMode") || "normal";
-  document.documentElement.setAttribute("data-contrast", saved);
-  setContrastEnabled(saved === "high");
-}, []);
+    const saved = localStorage.getItem("contrastMode") || "normal";
+    document.documentElement.setAttribute("data-contrast", saved);
+    setContrastEnabled(saved === "high");
+  }, []);
 
 
   const toggleContrast = () => {
@@ -126,14 +129,20 @@ const FooterControls = ({
         <FooterButton
           icon={<Volume1 size={28} />}
           label="Volume -"
-          onClick={onVolumeUp}
+          onClick={() => dispatch(decreaseVolume())}
         />
-        <FooterButton label="100%" onClick={onVolumeDown} />
+
+        <FooterButton
+          label={`${Math.round(volume * 100)}%`}
+          onClick={() => { }}
+        />
+
         <FooterButton
           icon={<Volume2 size={28} />}
           label="Volume +"
-          onClick={onVolumeDown}
+          onClick={() => dispatch(increaseVolume())}
         />
+
         <FooterButton
           icon={<InfoIcon size={28} />}
           label="Info"
@@ -149,7 +158,7 @@ const FooterControls = ({
 
         <FooterButton
           icon={<Contrast size={28} />}
-          label={contrastEnabled ? "High Contrast" : "Normal Contrast"}
+          label="Contrast"
           onClick={toggleContrast}
           active={contrastEnabled}
         />

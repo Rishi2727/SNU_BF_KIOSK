@@ -285,10 +285,9 @@ const Dashboard = () => {
   /**
    * Volume control handlers (placeholders)
    */
-  const handleVolumeUp = useCallback(() => console.log("Volume Up"), []);
-  const handleVolumeDown = useCallback(() => console.log("Volume Down"), []);
-  const handleZoom = useCallback(() => console.log("Zoom"), []);
-  const handleContrast = useCallback(() => console.log("Contrast"), []);
+
+
+
 
   return (
     <div className="relative h-screen w-screen overflow-hidden font-bold text-white">
@@ -323,10 +322,8 @@ const Dashboard = () => {
         userInfo={userInfo}
         openKeyboard={() => openKeyboard(null)}
         logout={handleLogout}
-        onVolumeUp={handleVolumeUp}
-        onVolumeDown={handleVolumeDown}
-        onZoom={handleZoom}
-        onContrast={handleContrast}
+    
+
       />
 
       {/* Keyboard Modal */}
