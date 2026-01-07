@@ -174,7 +174,7 @@ const volume = useSelector(
 
         <FooterButton
           icon={<Contrast size={28} />}
-          label={contrastEnabled ? "High Contrast" : "Normal Contrast"}
+          label={contrastEnabled ? "Contrast" : "Contrast"}
           onClick={toggleContrast}
           active={contrastEnabled}
         />
