@@ -29,22 +29,85 @@ const FooterControls = ({
   logout,
   onZoom,
   onContrast,
-isFocused
+  isFocused
 }) => {
   const [time, setTime] = useState("");
   const [language, setLanguage] = useState("KR");
   const [contrastEnabled, setContrastEnabled] = useState(
     localStorage.getItem("contrastMode") === "high"
   );
-  const [selectedButtonIndex, setSelectedButtonIndex] = useState(0); // ✅ Track which button is selected
+  const [cursor, setCursor] = useState(0); // Index of focused button
+  const FOOTER_BUTTON_COUNT = 9; // Total buttons in your footer (Login/Logout + Volume- + Volume% + Volume+ + Info + Zoom + Contrast + KR + EN)
+
 
   const dispatch = useDispatch();
   const magnifierEnabled = useSelector(
     (state) => state.accessibility.magnifierEnabled
   );
-const volume = useSelector(
-  (state) => state.accessibility.volume
-);
+  const volume = useSelector(
+    (state) => state.accessibility.volume
+  );
+
+
+  useEffect(() => {
+    if (!isFocused) return; // Only listen when footer is focused
+
+    const handleKeyDown = (e) => {
+      switch (e.key) {
+        case "ArrowRight":
+          e.preventDefault();
+          setCursor((prev) => (prev + 1) % FOOTER_BUTTON_COUNT);
+          break;
+        case "ArrowLeft":
+          e.preventDefault();
+          setCursor((prev) => (prev - 1 + FOOTER_BUTTON_COUNT) % FOOTER_BUTTON_COUNT);
+          break;
+        case "Enter":
+          e.preventDefault();
+          handleFooterEnter(cursor);
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isFocused, cursor]);
+
+
+  const handleFooterEnter = (index) => {
+    switch (index) {
+      case 0: // Login / Logout
+        userInfo ? logout() : openKeyboard();
+        break;
+      case 1: // Volume -
+        dispatch(decreaseVolume());
+        break;
+      case 2: // Volume %
+        break; // Do nothing
+      case 3: // Volume +
+        dispatch(increaseVolume());
+        break;
+      case 4: // Info
+        onZoom();
+        break;
+      case 5: // Zoom / Magnifier
+        dispatch(toggleMagnifier());
+        break;
+      case 6: // Contrast
+        toggleContrast();
+        break;
+      case 7: // KR
+        handleLanguageChange("KR");
+        break;
+      case 8: // EN
+        handleLanguageChange("EN");
+        break;
+      default:
+        break;
+    }
+  };
 
 
   useEffect(() => {
@@ -68,30 +131,7 @@ const volume = useSelector(
     setContrastEnabled(saved === "high");
   }, []);
 
-  // // ✅ Arrow key navigation when footer is focused
-  // useEffect(() => {
-  //   if (!isFocused) return;
 
-  //   const handleKeyDown = (e) => {
-  //     if (e.key === "ArrowLeft") {
-  //       e.preventDefault();
-  //       setSelectedButtonIndex((prev) => 
-  //         prev > 0 ? prev - 1 : footerButtons.length - 1
-  //       );
-  //     } else if (e.key === "ArrowRight") {
-  //       e.preventDefault();
-  //       setSelectedButtonIndex((prev) => 
-  //         prev < footerButtons.length - 1 ? prev + 1 : 0
-  //       );
-  //     } else if (e.key === "Enter") {
-  //       e.preventDefault();
-  //       footerButtons[selectedButtonIndex]?.onClick?.();
-  //     }
-  //   };
-
-  //   window.addEventListener("keydown", handleKeyDown);
-  //   return () => window.removeEventListener("keydown", handleKeyDown);
-  // }, [isFocused, selectedButtonIndex, footerButtons]);
 
   const handleLanguageChange = (uiLang) => {
     setLanguage(uiLang);
@@ -99,7 +139,7 @@ const volume = useSelector(
     localStorage.setItem("lang", backendLang);
     window.location.reload();
   };
-    const toggleContrast = () => {
+  const toggleContrast = () => {
     const nextMode = contrastEnabled ? "normal" : "high";
     setContrastEnabled(!contrastEnabled);
     applyContrastMode(nextMode);
@@ -120,7 +160,11 @@ const volume = useSelector(
           <>
             <button
               onClick={logout}
-              className="flex items-center gap-2 bg-red-500 hover:bg-red-600 px-5 py-2 rounded-full text-white text-[26px]"
+              className={`
+  flex items-center gap-2 bg-red-500 hover:bg-red-600 px-5 py-2 rounded-full text-white text-[26px]
+  ${cursor === 0 && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}
+`}
+
             >
               <LogOut className="w-7 h-7" />
               로그아웃
@@ -133,7 +177,11 @@ const volume = useSelector(
         ) : (
           <button
             onClick={openKeyboard}
-            className="px-7 py-2.5 rounded-full bg-[#D7D8D2] hover:bg-[#FFCA08] text-white text-[28px]"
+            className={`
+  px-7 py-2.5 rounded-full bg-[#D7D8D2] hover:bg-[#FFCA08] text-white text-[28px]
+  ${cursor === 0 && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}
+`}
+
           >
             로그인
           </button>
@@ -142,33 +190,39 @@ const volume = useSelector(
 
       {/* 🎛 CENTER : Controls */}
       <div className="flex items-center gap-2">
-     <FooterButton
-  icon={<Volume1 size={28} />}
-  label="Volume -"
-  onClick={() => dispatch(decreaseVolume())}
-/>
+        <FooterButton
+          icon={<Volume1 size={28} />}
+          label="Volume -"
+          onClick={() => dispatch(decreaseVolume())}
+          isSelected={cursor === 1}
+        />
 
-<FooterButton
-  label={`${Math.round(volume * 100)}%`}
-  onClick={() => {}}
-/>
+        <FooterButton
+          label={`${Math.round(volume * 100)}%`}
+          onClick={() => { }}
+          isSelected={cursor === 2}
+        />
 
-<FooterButton
-  icon={<Volume2 size={28} />}
-  label="Volume +"
-  onClick={() => dispatch(increaseVolume())}
-/>
+        <FooterButton
+          icon={<Volume2 size={28} />}
+          label="Volume +"
+          onClick={() => dispatch(increaseVolume())}
+          isSelected={cursor === 3}
+        />
 
         <FooterButton
           icon={<InfoIcon size={28} />}
           label="Info"
           onClick={onZoom}
+          isSelected={cursor === 4}
+
         />
         <FooterButton
           icon={<ZoomIn size={28} />}
           label={magnifierEnabled ? "Zoom Off" : "Zoom On"}
           active={magnifierEnabled}
           onClick={() => dispatch(toggleMagnifier())}
+          isSelected={cursor === 5}
         />
 
 
@@ -177,6 +231,7 @@ const volume = useSelector(
           label={contrastEnabled ? "Contrast" : "Contrast"}
           onClick={toggleContrast}
           active={contrastEnabled}
+          isSelected={cursor === 6}
         />
 
       </div>
@@ -189,18 +244,16 @@ const volume = useSelector(
         </div>
 
         {/* 🌐 Language Switch */}
-        <div className="flex rounded-xl overflow-hidden border-2 border-white">
-          {["KR", "EN"].map((lang) => (
+        <div className="flex rounded-xl  border-2 border-white">
+          {["KR", "EN"].map((lang, i) => (
             <button
               key={lang}
               onClick={() => handleLanguageChange(lang)}
               className={`
-                min-w-20 h-14 text-[28px] font-bold
-                ${language === lang
-                  ? "bg-[#FFCA08] text-white"
-                  : "bg-white text-black"
-                }
-              `}
+      min-w-20 h-14 text-[28px] font-bold
+      ${language === lang ? "bg-[#FFCA08] rounded-lg text-white" : "bg-white text-black"}
+      ${cursor === 7 + i ? "outline-[6px] outline-[#dc2f02]" : ""}
+    `}
             >
               {lang}
             </button>
@@ -220,6 +273,7 @@ const FooterButton = ({ icon, label, onClick, active, isSelected }) => (
       ${active ? "bg-[#e2ac37] text-white" : "bg-[#FFCA08] text-[#9A7D4C]"}
       shadow-lg hover:bg-[#FFD640]
       active:scale-95 transition-all
+      ${isSelected ? "outline-[6px] outline-[#dc2f02]" : ""}
     `}
   >
     {icon}
@@ -228,5 +282,6 @@ const FooterButton = ({ icon, label, onClick, active, isSelected }) => (
     </span>
   </button>
 );
+
 
 export default FooterControls;

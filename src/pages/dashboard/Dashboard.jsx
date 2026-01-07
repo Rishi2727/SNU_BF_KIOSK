@@ -28,7 +28,7 @@ const Dashboard = () => {
     [MODAL_TYPES.ASSIGN_CHECK]: false
   });
   const [selectedAssignNo, setSelectedAssignNo] = useState(null);
-  
+
   // ✅ Focus state
   const [focused, setFocused] = useState(null);
 
@@ -45,23 +45,24 @@ const Dashboard = () => {
     MAIN_SECTION: "mainSection",
     NOTICE_BANNER: "noticeBanner",
     FOOTER: "footer",
+    HEADING: "heading",
   });
 
   // ✅ Focus cycling with '*' key
   useEffect(() => {
     const onKeyDown = (e) => {
       const isAsterisk =
-        e.key === "*" || 
-        e.code === "NumpadMultiply" || 
+        e.key === "*" ||
+        e.code === "NumpadMultiply" ||
         e.keyCode === 106;
-      
+
       if (!isAsterisk) return;
-      
+
       // Don't cycle focus if any modal is open
-      if (isKeyboardOpen || isUserInfoModalOpen || 
-          modalStates[MODAL_TYPES.EXTENSION] || 
-          modalStates[MODAL_TYPES.RETURN] || 
-          modalStates[MODAL_TYPES.ASSIGN_CHECK]) {
+      if (isKeyboardOpen || isUserInfoModalOpen ||
+        modalStates[MODAL_TYPES.EXTENSION] ||
+        modalStates[MODAL_TYPES.RETURN] ||
+        modalStates[MODAL_TYPES.ASSIGN_CHECK]) {
         return;
       }
 
@@ -72,6 +73,7 @@ const Dashboard = () => {
         if (prev === FocusRegion.MAIN_SECTION) return FocusRegion.NOTICE_BANNER;
         if (prev === FocusRegion.NOTICE_BANNER) return FocusRegion.FOOTER;
         if (prev === FocusRegion.FOOTER) return FocusRegion.LOGO;
+
         return FocusRegion.LOGO;
       });
     };
@@ -353,11 +355,10 @@ const Dashboard = () => {
       {/* ✅ Notice Banner with focus border */}
       <div className="absolute bottom-[150px] right-0 w-[70%] px-6">
         <div
-          className={`bg-yellow-500/90 backdrop-blur-sm rounded-lg p-5 shadow-lg flex gap-4 ${
-            focused === FocusRegion.NOTICE_BANNER
+          className={`bg-yellow-500/90 backdrop-blur-sm rounded-lg p-5 shadow-lg flex gap-4 ${focused === FocusRegion.NOTICE_BANNER
               ? "outline outline-[6px] outline-[#dc2f02]"
               : ""
-          }`}
+            }`}
         >
           <AlertCircle className="w-10 h-10 mt-2 flex-shrink-0" />
           <div>
@@ -378,17 +379,17 @@ const Dashboard = () => {
             : "border-[6px] border-transparent"
         }
       >
-         {/* Footer Controls */}
-      <FooterControls
-        userInfo={userInfo}
-        openKeyboard={() => openKeyboard(null)}
-        logout={handleLogout}
+        {/* Footer Controls */}
+        <FooterControls
+          userInfo={userInfo}
+          openKeyboard={() => openKeyboard(null)}
+          logout={handleLogout}
           isFocused={focused === FocusRegion.FOOTER}
-    
 
-      />
+
+        />
       </div>
-     
+
 
       {/* Keyboard Modal */}
       <KeyboardModal

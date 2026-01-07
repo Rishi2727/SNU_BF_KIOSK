@@ -1,13 +1,15 @@
-const LibraryCard = ({ title, subtitle, availableCount = 0, totalCount = 217, onClick }) => {
+const LibraryCard = ({ title, subtitle, availableCount = 0, totalCount = 217, onClick,  isFocused, }) => {
   return (
     <button
       onClick={onClick}
-      className="
+      className={`
         flex flex-col
         bg-[#FFCA08] hover:bg-[#D7D8D2]
         transition rounded-2xl
         flex-1 h-[220px] min-w-[180px] mx-2 p-6
-      "
+
+        ${isFocused ? "outline outline-[6px] outline-[#dc2f02]" : ""}
+      `}
     >
       {/* Top Text Section */}
       <div className="flex flex-col gap-2">
