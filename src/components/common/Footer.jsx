@@ -50,7 +50,7 @@ const FooterControls = ({
 
 
   useEffect(() => {
-    if (!isFocused) return; // Only listen when footer is focused
+   if (!isFocused) return; // Only listen when footer is focused
 
     const handleKeyDown = (e) => {
       switch (e.key) {

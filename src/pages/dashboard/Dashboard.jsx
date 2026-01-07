@@ -50,6 +50,13 @@ const Dashboard = () => {
     HEADING: "heading",
   });
 
+
+  // ✅For KeyBoard
+
+   const FocusRegionforKeyboardModal = Object.freeze({
+    KEYBOARD: "keyboard",
+  });
+
   // ✅ Focus cycling with '*' key
   useEffect(() => {
     const onKeyDown = (e) => {
@@ -61,12 +68,28 @@ const Dashboard = () => {
       if (!isAsterisk) return;
 
       // Don't cycle focus if any modal is open
-      if (isKeyboardOpen || isUserInfoModalOpen ||
-        modalStates[MODAL_TYPES.EXTENSION] ||
-        modalStates[MODAL_TYPES.RETURN] ||
-        modalStates[MODAL_TYPES.ASSIGN_CHECK]) {
-        return;
-      }
+// ⭐ CASE 1: Keyboard is open but NOT focused → Shift + * enters keyboard focus
+if (
+  isKeyboardOpen &&
+  focused !== FocusRegionforKeyboardModal.KEYBOARD
+) {
+  e.preventDefault();
+  e.stopPropagation();
+  setFocused(FocusRegionforKeyboardModal.KEYBOARD);
+  return;
+}
+
+// ⭐ CASE 2: Keyboard already focused → dashboard should NOT react
+if (
+  focused === FocusRegionforKeyboardModal.KEYBOARD ||
+  isUserInfoModalOpen ||
+  modalStates[MODAL_TYPES.EXTENSION] ||
+  modalStates[MODAL_TYPES.RETURN] ||
+  modalStates[MODAL_TYPES.ASSIGN_CHECK]
+) {
+  return;
+}
+
 
       // Cycle through focus regions: Logo → MainSection → Notice → Footer → Logo
       setFocused((prev) => {
@@ -157,12 +180,16 @@ const Dashboard = () => {
     }
   }, [dispatch, navigate]);
 
+
+
+
   /**
    * Open keyboard modal
    */
   const openKeyboard = useCallback((floor = null) => {
     setSelectedFloor(floor);
     setIsKeyboardOpen(true);
+
   }, []);
 
   /**
@@ -170,6 +197,7 @@ const Dashboard = () => {
    */
   const closeKeyboard = useCallback(() => {
     setIsKeyboardOpen(false);
+    setFocused(null);
   }, []);
 
   /**
@@ -399,6 +427,8 @@ const Dashboard = () => {
         onClose={closeKeyboard}
         onSubmit={handleKeyboardSubmit}
         autoCloseTime={30000}
+          isFocused={focused === FocusRegionforKeyboardModal.KEYBOARD}
+            setFocused={setFocused}
       />
 
       {/* User Info Modal */}
