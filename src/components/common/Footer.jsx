@@ -28,19 +28,46 @@ const FooterControls = ({
   onVolumeDown,
   onZoom,
   onContrast,
-
+  isFocused, // ✅ Receive focus state from parent
 }) => {
   const [time, setTime] = useState("");
   const [language, setLanguage] = useState("KR");
   const [contrastEnabled, setContrastEnabled] = useState(
     localStorage.getItem("contrastMode") === "high"
   );
+  const [selectedButtonIndex, setSelectedButtonIndex] = useState(0); // ✅ Track which button is selected
 
   const dispatch = useDispatch();
   const magnifierEnabled = useSelector(
     (state) => state.accessibility.magnifierEnabled
   );
 
+  // ✅ Define toggleContrast BEFORE using it in footerButtons
+  const toggleContrast = () => {
+    const nextMode = contrastEnabled ? "normal" : "high";
+    setContrastEnabled(!contrastEnabled);
+    applyContrastMode(nextMode);
+  };
+
+  // ✅ Define all footer buttons AFTER toggleContrast
+  const footerButtons = [
+    { icon: <Volume1 size={28} />, label: "Volume -", onClick: onVolumeUp },
+    { label: "100%", onClick: onVolumeDown },
+    { icon: <Volume2 size={28} />, label: "Volume +", onClick: onVolumeDown },
+    { icon: <InfoIcon size={28} />, label: "Info", onClick: onZoom },
+    { 
+      icon: <ZoomIn size={28} />, 
+      label: magnifierEnabled ? "Zoom Off" : "Zoom On", 
+      active: magnifierEnabled,
+      onClick: () => dispatch(toggleMagnifier())
+    },
+    { 
+      icon: <Contrast size={28} />, 
+      label: contrastEnabled ? "High Contrast" : "Normal Contrast", 
+      onClick: toggleContrast,
+      active: contrastEnabled
+    },
+  ];
 
   useEffect(() => {
     const updateTime = () => {
@@ -58,43 +85,53 @@ const FooterControls = ({
   }, []);
 
   useEffect(() => {
-  const saved = localStorage.getItem("contrastMode") || "normal";
-  document.documentElement.setAttribute("data-contrast", saved);
-  setContrastEnabled(saved === "high");
-}, []);
+    const saved = localStorage.getItem("contrastMode") || "normal";
+    document.documentElement.setAttribute("data-contrast", saved);
+    setContrastEnabled(saved === "high");
+  }, []);
 
+  // ✅ Arrow key navigation when footer is focused
+  useEffect(() => {
+    if (!isFocused) return;
 
-  const toggleContrast = () => {
-    const nextMode = contrastEnabled ? "normal" : "high";
-    setContrastEnabled(!contrastEnabled);
-    applyContrastMode(nextMode);
-  };
+    const handleKeyDown = (e) => {
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        setSelectedButtonIndex((prev) => 
+          prev > 0 ? prev - 1 : footerButtons.length - 1
+        );
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        setSelectedButtonIndex((prev) => 
+          prev < footerButtons.length - 1 ? prev + 1 : 0
+        );
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        footerButtons[selectedButtonIndex]?.onClick?.();
+      }
+    };
 
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isFocused, selectedButtonIndex, footerButtons]);
 
   const handleLanguageChange = (uiLang) => {
-    // Update UI button highlight
     setLanguage(uiLang);
-
-    // Map UI → backend
     const backendLang = uiLang === "KR" ? "ko" : "en";
-
-    // 🔑 Same behavior as LanguageDropdown
     localStorage.setItem("lang", backendLang);
-
-    // 🔥 FORCE backend to respond with new language
-    // because axios headers apply only on new requests
     window.location.reload();
   };
 
   return (
     <div
-      className="
+      className={`
         absolute bottom-0 left-0 right-0 z-30
         flex items-center justify-between
         px-6 py-3 bg-black/40 backdrop-blur-md
-      "
+        ${isFocused ? "border-t-[6px] border-[#dc2f02]" : "border-t-[6px] border-transparent"}
+      `}
     >
-      {/* 👤 RIGHT : Login / Logout */}
+      {/* 👤 LEFT : Login / Logout */}
       <div className="flex items-center gap-4">
         {userInfo ? (
           <>
@@ -109,7 +146,6 @@ const FooterControls = ({
               <User className="w-7 h-7" />
               {userInfo.SCHOOLNO}
             </div>
-
           </>
         ) : (
           <button
@@ -123,40 +159,19 @@ const FooterControls = ({
 
       {/* 🎛 CENTER : Controls */}
       <div className="flex items-center gap-2">
-        <FooterButton
-          icon={<Volume1 size={28} />}
-          label="Volume -"
-          onClick={onVolumeUp}
-        />
-        <FooterButton label="100%" onClick={onVolumeDown} />
-        <FooterButton
-          icon={<Volume2 size={28} />}
-          label="Volume +"
-          onClick={onVolumeDown}
-        />
-        <FooterButton
-          icon={<InfoIcon size={28} />}
-          label="Info"
-          onClick={onZoom}
-        />
-        <FooterButton
-          icon={<ZoomIn size={28} />}
-          label={magnifierEnabled ? "Zoom Off" : "Zoom On"}
-          active={magnifierEnabled}
-          onClick={() => dispatch(toggleMagnifier())}
-        />
-
-
-        <FooterButton
-          icon={<Contrast size={28} />}
-          label={contrastEnabled ? "High Contrast" : "Normal Contrast"}
-          onClick={toggleContrast}
-          active={contrastEnabled}
-        />
-
+        {footerButtons.map((btn, index) => (
+          <FooterButton
+            key={index}
+            icon={btn.icon}
+            label={btn.label}
+            onClick={btn.onClick}
+            active={btn.active}
+            isSelected={isFocused && selectedButtonIndex === index} // ✅ Highlight selected button
+          />
+        ))}
       </div>
 
-      {/* ⏰ LEFT : Time + Language */}
+      {/* ⏰ RIGHT : Time + Language */}
       <div className="flex items-center gap-6">
         <div className="flex items-center gap-3 text-white">
           <Clock className="w-8 h-8" />
@@ -169,7 +184,6 @@ const FooterControls = ({
             <button
               key={lang}
               onClick={() => handleLanguageChange(lang)}
-
               className={`
                 min-w-20 h-14 text-[28px] font-bold
                 ${language === lang
@@ -183,12 +197,11 @@ const FooterControls = ({
           ))}
         </div>
       </div>
-
     </div>
   );
 };
 
-const FooterButton = ({ icon, label, onClick, active }) => (
+const FooterButton = ({ icon, label, onClick, active, isSelected }) => (
   <button
     onClick={onClick}
     className={`
@@ -205,6 +218,5 @@ const FooterButton = ({ icon, label, onClick, active }) => (
     </span>
   </button>
 );
-
 
 export default FooterControls;

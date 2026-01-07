@@ -28,6 +28,9 @@ const Dashboard = () => {
     [MODAL_TYPES.ASSIGN_CHECK]: false
   });
   const [selectedAssignNo, setSelectedAssignNo] = useState(null);
+  
+  // ✅ Focus state
+  const [focused, setFocused] = useState(null);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -35,6 +38,47 @@ const Dashboard = () => {
   // Redux selectors
   const { userInfo, isAuthenticated } = useSelector((state) => state.userInfo);
   const { bookingSeatInfo } = useSelector((state) => state.bookingTime);
+
+  // ✅ Define focus regions (Logo → MainSection → Notice → Footer)
+  const FocusRegion = Object.freeze({
+    LOGO: "logo",
+    MAIN_SECTION: "mainSection",
+    NOTICE_BANNER: "noticeBanner",
+    FOOTER: "footer",
+  });
+
+  // ✅ Focus cycling with '*' key
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      const isAsterisk =
+        e.key === "*" || 
+        e.code === "NumpadMultiply" || 
+        e.keyCode === 106;
+      
+      if (!isAsterisk) return;
+      
+      // Don't cycle focus if any modal is open
+      if (isKeyboardOpen || isUserInfoModalOpen || 
+          modalStates[MODAL_TYPES.EXTENSION] || 
+          modalStates[MODAL_TYPES.RETURN] || 
+          modalStates[MODAL_TYPES.ASSIGN_CHECK]) {
+        return;
+      }
+
+      // Cycle through focus regions: Logo → MainSection → Notice → Footer → Logo
+      setFocused((prev) => {
+        if (prev === null) return FocusRegion.LOGO;
+        if (prev === FocusRegion.LOGO) return FocusRegion.MAIN_SECTION;
+        if (prev === FocusRegion.MAIN_SECTION) return FocusRegion.NOTICE_BANNER;
+        if (prev === FocusRegion.NOTICE_BANNER) return FocusRegion.FOOTER;
+        if (prev === FocusRegion.FOOTER) return FocusRegion.LOGO;
+        return FocusRegion.LOGO;
+      });
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isKeyboardOpen, isUserInfoModalOpen, modalStates, FocusRegion]);
 
   /**
    * Check if modal should be shown based on booking info
@@ -298,15 +342,24 @@ const Dashboard = () => {
         className="absolute inset-0 h-full w-full object-cover"
       />
 
+      {/* ✅ Pass focus states to MainSection */}
       <MainSection
         openKeyboard={openKeyboard}
         userInfo={userInfo}
         isAuthenticated={isAuthenticated}
+        focusedRegion={focused}
+        FocusRegion={FocusRegion}
       />
 
-      {/* Notice Banner */}
+      {/* ✅ Notice Banner with focus border */}
       <div className="absolute bottom-[150px] right-0 w-[70%] px-6">
-        <div className="bg-yellow-500/90 backdrop-blur-sm rounded-lg p-5 shadow-lg flex gap-4">
+        <div
+          className={`bg-yellow-500/90 backdrop-blur-sm rounded-lg p-5 shadow-lg flex gap-4 ${
+            focused === FocusRegion.NOTICE_BANNER
+              ? "outline outline-[6px] outline-[#dc2f02]"
+              : ""
+          }`}
+        >
           <AlertCircle className="w-10 h-10 mt-2 flex-shrink-0" />
           <div>
             <h3 className="text-[32px]">Important Notice</h3>
@@ -318,16 +371,25 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Footer Controls */}
-      <FooterControls
-        userInfo={userInfo}
-        openKeyboard={() => openKeyboard(null)}
-        logout={handleLogout}
-        onVolumeUp={handleVolumeUp}
-        onVolumeDown={handleVolumeDown}
-        onZoom={handleZoom}
-        onContrast={handleContrast}
-      />
+      {/* ✅ Footer Controls with focus border */}
+      <div
+        className={
+          focused === FocusRegion.FOOTER
+            ? "border-[6px] border-[#dc2f02]"
+            : "border-[6px] border-transparent"
+        }
+      >
+        <FooterControls
+          userInfo={userInfo}
+          openKeyboard={() => openKeyboard(null)}
+          logout={handleLogout}
+          onVolumeUp={handleVolumeUp}
+          onVolumeDown={handleVolumeDown}
+          onZoom={handleZoom}
+          onContrast={handleContrast}
+          isFocused={focused === FocusRegion.FOOTER}
+        />
+      </div>
 
       {/* Keyboard Modal */}
       <KeyboardModal
@@ -353,7 +415,6 @@ const Dashboard = () => {
         onClose={() => toggleModal(MODAL_TYPES.EXTENSION, false)}
         onBackToUserInfo={handleBackToUserInfo}
       />
-
 
       {/* Return Modal */}
       <SeatActionModal
