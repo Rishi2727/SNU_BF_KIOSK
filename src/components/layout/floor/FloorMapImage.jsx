@@ -1,6 +1,6 @@
 import React from 'react';
 
-const FloorMapImage = ({ floorImageUrl, currentFloor, onImageError, imageError ,isFocused }) => {
+const FloorMapImage = ({ floorImageUrl, currentFloor, onImageError, imageError }) => {
   
   if (imageError) {
     return (
@@ -18,7 +18,7 @@ const FloorMapImage = ({ floorImageUrl, currentFloor, onImageError, imageError ,
       <img
         src={floorImageUrl}
         alt={`Floor ${currentFloor.title} Map`}
-        className="w-full h-full object-contain"
+        className="w-full h-full object-contain "
         onError={onImageError}
       />
     </>

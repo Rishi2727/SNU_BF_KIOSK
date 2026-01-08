@@ -78,7 +78,7 @@ const FloorLegendBar = ({
 
   return (
     <div className={`
-        absolute top-[12.5%] left-0 right-0 w-full
+        absolute top-[11%] left-0 right-0 w-full
         bg-[#9A7D4C] py-2 px-4
         flex items-center justify-between
         text-white shadow-lg z-20

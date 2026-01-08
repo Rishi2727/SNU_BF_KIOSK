@@ -192,132 +192,142 @@ const FooterControls = ({
     setContrastEnabled(!contrastEnabled);
     applyContrastMode(nextMode);
   };
+return (
+  <div
+    className="
+      absolute bottom-0 left-0 right-0 z-30
+      flex items-center justify-between
+      px-6 py-3 bg-black/40 backdrop-blur-md
+    "
+  >
+    {/* ✅ FOOTER FOCUS OVERLAY (perfect border coverage) */}
+    {isFocused && (
+      <div className="pointer-events-none absolute inset-0 border-[6px] border-[#dc2f02]" />
+    )}
 
-  return (
-    <div
-      className={`
-        absolute bottom-0 left-0 right-0 z-30
-        flex items-center justify-between
-        px-6 py-3 bg-black/40 backdrop-blur-md
-        ${isFocused ? "border-t-[6px] border-[#dc2f02]" : "border-t-[6px] border-transparent"}
-      `}
-    >
-      {/* 👤 LEFT : Login / Logout */}
-      <div className="flex items-center gap-4">
-        {userInfo ? (
-          <>
-            <button
-              onClick={logout}
-              className={`
-  flex items-center gap-2 bg-red-500 hover:bg-red-600 px-5 py-2 rounded-full text-white text-[26px]
-  ${cursor === 0 && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}
-`}
-
-            >
-              <LogOut className="w-7 h-7" />
-              로그아웃
-            </button>
-            <div className={`flex items-center gap-2 bg-white text-black px-5 py-2 rounded-lg text-[26px]
-    ${cursor === 1 && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}`}>
-              <User className="w-7 h-7" />
-              {userInfo.SCHOOLNO}
-            </div>
-          </>
-        ) : (
+    {/* 👤 LEFT : Login / Logout */}
+    <div className="flex items-center gap-4">
+      {userInfo ? (
+        <>
           <button
-            onClick={openKeyboard}
+            onClick={logout}
             className={`
-  px-7 py-2.5 rounded-full bg-[#D7D8D2] hover:bg-[#FFCA08] text-white text-[28px]
-  ${cursor === 0 && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}
-`}
-
+              flex items-center gap-2 bg-red-500 hover:bg-red-600 px-5 py-2
+              rounded-full text-white text-[26px]
+              ${cursor === 0 && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}
+            `}
           >
-            로그인
+            <LogOut className="w-7 h-7" />
+            로그아웃
           </button>
-        )}
+
+          <div
+            className={`
+              flex items-center gap-2 bg-white text-black px-5 py-2
+              rounded-lg text-[26px]
+              ${cursor === 1 && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}
+            `}
+          >
+            <User className="w-7 h-7" />
+            {userInfo.SCHOOLNO}
+          </div>
+        </>
+      ) : (
+        <button
+          onClick={openKeyboard}
+          className={`
+            px-7 py-2.5 rounded-full bg-[#D7D8D2]
+            hover:bg-[#FFCA08] text-white text-[28px]
+            ${cursor === 0 && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}
+          `}
+        >
+          로그인
+        </button>
+      )}
+    </div>
+
+    {/* 🎛 CENTER : Controls */}
+    <div className="flex items-center gap-2">
+      <FooterButton
+        icon={<Volume1 size={28} />}
+        label="Volume -"
+        onClick={() => dispatch(decreaseVolume())}
+        isSelected={cursor === (userInfo ? 2 : 1)}
+        isFocused={isFocused}
+      />
+
+      <FooterButton
+        label={`${Math.round(volume * 100)}%`}
+        onClick={() => {}}
+        isSelected={cursor === (userInfo ? 3 : 2)}
+        isFocused={isFocused}
+      />
+
+      <FooterButton
+        icon={<Volume2 size={28} />}
+        label="Volume +"
+        onClick={() => dispatch(increaseVolume())}
+        isSelected={cursor === (userInfo ? 4 : 3)}
+        isFocused={isFocused}
+      />
+
+      <FooterButton
+        icon={<InfoIcon size={28} />}
+        label="Info"
+        onClick={onZoom}
+        isSelected={cursor === (userInfo ? 5 : 4)}
+        isFocused={isFocused}
+      />
+
+      <FooterButton
+        icon={<ZoomIn size={28} />}
+        label={magnifierEnabled ? "Zoom Off" : "Zoom On"}
+        active={magnifierEnabled}
+        onClick={() => dispatch(toggleMagnifier())}
+        isSelected={cursor === (userInfo ? 6 : 5)}
+        isFocused={isFocused}
+      />
+
+      <FooterButton
+        icon={<Contrast size={28} />}
+        label="Contrast"
+        onClick={toggleContrast}
+        active={contrastEnabled}
+        isSelected={cursor === (userInfo ? 7 : 6)}
+        isFocused={isFocused}
+      />
+    </div>
+
+    {/* ⏰ RIGHT : Time + Language */}
+    <div className="flex items-center gap-6">
+      <div className="flex items-center gap-3 text-white">
+        <Clock className="w-8 h-8" />
+        <span className="text-[32px] font-semibold">{time}</span>
       </div>
 
-      {/* 🎛 CENTER : Controls */}
-      <div className="flex items-center gap-2">
-        <FooterButton
-          icon={<Volume1 size={28} />}
-          label="Volume -"
-          onClick={() => dispatch(decreaseVolume())}
-          isSelected={cursor === (userInfo ? 2 : 1)}
-          isFocused={isFocused}
-
-        />
-
-        <FooterButton
-          label={`${Math.round(volume * 100)}%`}
-          onClick={() => { }}
-          isSelected={cursor === (userInfo ? 3 : 2)}
-          isFocused={isFocused}
-        />
-
-        <FooterButton
-          icon={<Volume2 size={28} />}
-          label="Volume +"
-          onClick={() => dispatch(increaseVolume())}
-          isSelected={cursor === (userInfo ? 4 : 3)}
-          isFocused={isFocused}
-        />
-
-        <FooterButton
-          icon={<InfoIcon size={28} />}
-          label="Info"
-          onClick={onZoom}
-          isSelected={cursor === (userInfo ? 5 : 4)}
-          isFocused={isFocused}
-
-        />
-        <FooterButton
-          icon={<ZoomIn size={28} />}
-          label={magnifierEnabled ? "Zoom Off" : "Zoom On"}
-          active={magnifierEnabled}
-          onClick={() => dispatch(toggleMagnifier())}
-          isSelected={cursor === (userInfo ? 6 : 5)}
-          isFocused={isFocused}
-        />
-
-
-        <FooterButton
-          icon={<Contrast size={28} />}
-          label={contrastEnabled ? "Contrast" : "Contrast"}
-          onClick={toggleContrast}
-          active={contrastEnabled}
-          isSelected={cursor === (userInfo ? 7 : 6)}
-          isFocused={isFocused}
-        />
-
-      </div>
-
-      {/* ⏰ RIGHT : Time + Language */}
-      <div className="flex items-center gap-6">
-        <div className="flex items-center gap-3 text-white">
-          <Clock className="w-8 h-8" />
-          <span className="text-[32px] font-semibold">{time}</span>
-        </div>
-
-        {/* 🌐 Language Switch */}
-        <div className="flex rounded-xl  border-2 border-white">
-          {["KR", "EN"].map((lang, i) => (
-            <button
-              key={lang}
-              onClick={() => handleLanguageChange(lang)}
-              className={`
-      min-w-20 h-14 text-[28px] font-bold
-      ${language === lang ? "bg-[#FFCA08] rounded-lg text-white" : "bg-white text-black"}
-      ${cursor === (userInfo ? 8 + i : 7 + i) && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}
-    `}
-            >
-              {lang}
-            </button>
-          ))}
-        </div>
+      <div className="flex rounded-xl border-2 border-white">
+        {["KR", "EN"].map((lang, i) => (
+          <button
+            key={lang}
+            onClick={() => handleLanguageChange(lang)}
+            className={`
+              min-w-20 h-14 text-[28px] font-bold
+              ${language === lang
+                ? "bg-[#FFCA08] rounded-lg text-white"
+                : "bg-white text-black"}
+              ${cursor === (userInfo ? 8 + i : 7 + i) && isFocused
+                ? "outline-[6px] outline-[#dc2f02]"
+                : ""}
+            `}
+          >
+            {lang}
+          </button>
+        ))}
       </div>
     </div>
-  );
+  </div>
+);
+
 };
 
 const FooterButton = ({ icon, label, onClick, active, isSelected, isFocused }) => (

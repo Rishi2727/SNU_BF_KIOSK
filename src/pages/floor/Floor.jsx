@@ -8,7 +8,10 @@ import logo from "../../assets/images/logo.png";
 import { clearUserInfo } from "../../redux/slice/userInfo";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 
-import { filterDisplayableSectors, parseMapPoint } from "../../utils/mapPointParser";
+import {
+  filterDisplayableSectors,
+  parseMapPoint,
+} from "../../utils/mapPointParser";
 import { useFloorData } from "../../hooks/useFloorData";
 
 import RoomView from "../../components/layout/floor/RoomView";
@@ -26,15 +29,16 @@ const Floor = () => {
   const dispatch = useDispatch();
   const location = useLocation();
   const { floorId, sectorNo, move } = useParams();
+  const [mapCursor, setMapCursor] = useState(null);
 
   const { userInfo } = useSelector((state) => state.userInfo);
 
-  const isMoveMode = move === 'move' || location.state?.mode === 'move';
+  const isMoveMode = move === "move" || location.state?.mode === "move";
 
   const {
     sectorList: initialSectorList,
     floorInfo: initialFloorInfo,
-    selectedSector: stateSector
+    selectedSector: stateSector,
   } = location.state || {};
 
   /* =====================================================
@@ -48,7 +52,11 @@ const Floor = () => {
   ===================================================== */
   const [miniMapError, setMiniMapError] = useState(false);
   const [selectedMiniSector, setSelectedMiniSector] = useState(null);
-  const [imageTransform, setImageTransform] = useState({ x: 0, y: 0, scale: 1 });
+  const [imageTransform, setImageTransform] = useState({
+    x: 0,
+    y: 0,
+    scale: 1,
+  });
   const [isZoomed, setIsZoomed] = useState(false); // Track zoom state
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
@@ -60,7 +68,7 @@ const Floor = () => {
     naturalWidth: 0,
     naturalHeight: 0,
     offsetX: 0,
-    offsetY: 0
+    offsetY: 0,
   });
   const [selectedSeat, setSelectedSeat] = useState(null);
   const [showSeatModal, setShowSeatModal] = useState(false);
@@ -70,9 +78,7 @@ const Floor = () => {
   const prevSectorNoRef = useRef(null);
   const [focusedRegion, setFocusedRegion] = useState(null);
 
-
-
-  //Focus Region 
+  //Focus Region
 
   const FocusRegion = Object.freeze({
     FLOOR_STATS: "floor_stats",
@@ -80,8 +86,6 @@ const Floor = () => {
     MAP: "map",
     FOOTER: "footer",
   });
-
-
 
   /* =====================================================
      FLOOR DATA HOOK
@@ -101,8 +105,12 @@ const Floor = () => {
   /* =====================================================
      COMPUTED VALUES FOR ROOM VIEW
   ===================================================== */
-  const layout = selectedSector ? MINI_MAP_LAYOUT[selectedSector.SECTORNO] : null;
-  const miniMapFile = selectedSector ? MINIMAP_CONFIG[selectedSector.SECTORNO] : null;
+  const layout = selectedSector
+    ? MINI_MAP_LAYOUT[selectedSector.SECTORNO]
+    : null;
+  const miniMapFile = selectedSector
+    ? MINIMAP_CONFIG[selectedSector.SECTORNO]
+    : null;
   const miniMapUrl = miniMapFile ? `${ImageBaseUrl}/${miniMapFile}` : null;
   const seatFontScale = layout?.seatFontScale ?? 1; // Keep font size constant
   const sectorListData = sectorList?.SectorList;
@@ -116,7 +124,7 @@ const Floor = () => {
       path += `/${sectorNo}`;
     }
     if (isMoveMode) {
-      path += '/move';
+      path += "/move";
     }
     return path;
   };
@@ -156,7 +164,7 @@ const Floor = () => {
         state: {
           sectorList: newSectorList,
           floorInfo: floor,
-          mode: isMoveMode ? 'move' : undefined
+          mode: isMoveMode ? "move" : undefined,
         },
       });
     }
@@ -192,7 +200,7 @@ const Floor = () => {
   useEffect(() => {
     if (sectorNo && sectorListData?.length) {
       const sector = sectorListData.find(
-        s => String(s.SECTORNO) === String(sectorNo)
+        (s) => String(s.SECTORNO) === String(sectorNo)
       );
 
       if (sector) {
@@ -216,8 +224,8 @@ const Floor = () => {
         selectedSector: sector,
         sectorList: sectorList,
         floorInfo: currentFloor,
-        mode: isMoveMode ? 'move' : undefined
-      }
+        mode: isMoveMode ? "move" : undefined,
+      },
     });
 
     await fetchSeats(sector);
@@ -232,7 +240,7 @@ const Floor = () => {
       state: {
         sectorList: sectorList,
         floorInfo: currentFloor,
-        mode: isMoveMode ? 'move' : undefined
+        mode: isMoveMode ? "move" : undefined,
       },
     });
     setShowRoomView(false);
@@ -293,26 +301,22 @@ const Floor = () => {
 
     if (showRoomView) {
       updateDimensions();
-      window.addEventListener('resize', updateDimensions);
+      window.addEventListener("resize", updateDimensions);
 
       const timer = setTimeout(updateDimensions, 550);
 
       return () => {
-        window.removeEventListener('resize', updateDimensions);
+        window.removeEventListener("resize", updateDimensions);
         clearTimeout(timer);
       };
     }
   }, [imageTransform, selectedSector, showRoomView]);
 
-
-
   // --------------------- FOCUS TOGGLE WITH '*' ---------------------
   useEffect(() => {
     const onKeyDown = (e) => {
       const isAsterisk =
-        e.key === "*" ||
-        e.code === "NumpadMultiply" ||
-        e.keyCode === 106;
+        e.key === "*" || e.code === "NumpadMultiply" || e.keyCode === 106;
 
       if (!isAsterisk) return;
       if (showSeatModal) return;
@@ -323,8 +327,8 @@ const Floor = () => {
       setFocusedRegion((prev) => {
         if (prev === null) return FocusRegion.FLOOR_STATS;
         if (prev === FocusRegion.FLOOR_STATS) return FocusRegion.LEGEND;
-        if (prev === FocusRegion.FLOOR_STATS) return FocusRegion.MAP;
-        if (prev === FocusRegion.LEGEND) return FocusRegion.FOOTER;
+        if (prev === FocusRegion.LEGEND) return FocusRegion.MAP;
+        if (prev === FocusRegion.MAP) return FocusRegion.FOOTER;
         if (prev === FocusRegion.FOOTER) return FocusRegion.FLOOR_STATS;
 
         return FocusRegion.FLOOR_STATS;
@@ -334,7 +338,6 @@ const Floor = () => {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [showSeatModal]);
-
 
   /* =====================================================
      MINI MAP CLICK
@@ -383,7 +386,7 @@ const Floor = () => {
     setImageTransform({
       x: xPercent,
       y: yPercent,
-      scale: clickScale
+      scale: clickScale,
     });
     setIsZoomed(true);
 
@@ -421,11 +424,17 @@ const Floor = () => {
       mouseX: clientX,
       mouseY: clientY,
       transformX: imageTransform.x,
-      transformY: imageTransform.y
+      transformY: imageTransform.y,
     });
   };
   const handlePanMove = (clientX, clientY) => {
-    if (!isPanning || !isZoomed || !containerRef.current || !imageDimensions.width) return;
+    if (
+      !isPanning ||
+      !isZoomed ||
+      !containerRef.current ||
+      !imageDimensions.width
+    )
+      return;
 
     // Calculate the distance moved in pixels
     const deltaX = clientX - panStart.mouseX;
@@ -452,20 +461,27 @@ const Floor = () => {
     const imageWidthScaled = imageDimensions.width * scale;
     const imageHeightScaled = imageDimensions.height * scale;
 
-    const maxPanX = ((imageWidthScaled - containerWidth) / containerWidth) * 50 / scale;
-    const maxPanY = ((imageHeightScaled - containerHeight) / containerHeight) * 50 / scale;
+    const maxPanX =
+      (((imageWidthScaled - containerWidth) / containerWidth) * 50) / scale;
+    const maxPanY =
+      (((imageHeightScaled - containerHeight) / containerHeight) * 50) / scale;
 
     // Ensure we don't pan beyond the image edges
-    const limitedX = Math.max(-Math.abs(maxPanX), Math.min(Math.abs(maxPanX), newX));
-    const limitedY = Math.max(-Math.abs(maxPanY), Math.min(Math.abs(maxPanY), newY));
+    const limitedX = Math.max(
+      -Math.abs(maxPanX),
+      Math.min(Math.abs(maxPanX), newX)
+    );
+    const limitedY = Math.max(
+      -Math.abs(maxPanY),
+      Math.min(Math.abs(maxPanY), newY)
+    );
 
-    setImageTransform(prev => ({
+    setImageTransform((prev) => ({
       ...prev,
       x: limitedX,
-      y: limitedY
+      y: limitedY,
     }));
   };
-
 
   // ========================================
   // CHANGED: handlePanEnd
@@ -483,13 +499,11 @@ const Floor = () => {
     }
   };
 
-
   const handleMouseDown = (e) => {
     if (e.button !== 0) return; // Only left click
     e.preventDefault(); // Prevent default behavior
     handlePanStart(e.clientX, e.clientY);
   };
-
 
   const handleMouseMove = (e) => {
     if (isPanning) {
@@ -544,18 +558,17 @@ const Floor = () => {
         naturalWidth: img.naturalWidth,
         naturalHeight: img.naturalHeight,
         offsetX: 0,
-        offsetY: 0
+        offsetY: 0,
       });
     });
   };
-
-
 
   /* =====================================================
      SEAT CLICK HANDLER
   ===================================================== */
   const handleSeatClick = (seat) => {
-    const isAvailable = seat.USECNT === 0 && (seat.STATUS === 1 || seat.STATUS === 2);
+    const isAvailable =
+      seat.USECNT === 0 && (seat.STATUS === 1 || seat.STATUS === 2);
     if (!isAvailable) return;
 
     setSelectedSeat(seat);
@@ -581,14 +594,66 @@ const Floor = () => {
 
   const displayableSectors = filterDisplayableSectors(sectorList);
 
+  // ==============Map of Image ==================
+
+  useEffect(() => {
+    if (focusedRegion !== FocusRegion.MAP) {
+      setMapCursor(null);
+    }
+  }, [focusedRegion]);
+
+  useEffect(() => {
+    if (focusedRegion !== FocusRegion.MAP) return;
+    if (!displayableSectors?.length) return;
+
+    const SECTION_COUNT = displayableSectors.length;
+
+    const onKeyDown = (e) => {
+      // 🚫 never consume focus toggle key
+      if (e.key === "*" || e.code === "NumpadMultiply" || e.keyCode === 106) {
+        return;
+      }
+
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        setMapCursor((c) => (c == null ? 0 : (c + 1) % SECTION_COUNT));
+      }
+
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        setMapCursor((c) =>
+          c == null
+            ? SECTION_COUNT - 1
+            : (c - 1 + SECTION_COUNT) % SECTION_COUNT
+        );
+      }
+
+      if (e.key === "Enter" && mapCursor != null) {
+        e.preventDefault();
+        handleSectorClick(displayableSectors[mapCursor]);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [focusedRegion, mapCursor, displayableSectors]);
+
   /* =====================================================
      RENDER
   ===================================================== */
   return (
     <div className="relative h-screen w-screen overflow-hidden font-bold text-white">
-      <img src={BgMainImage} className="absolute inset-0 h-full w-full object-cover" alt="background" />
+      <img
+        src={BgMainImage}
+        className="absolute inset-0 h-full w-full object-cover"
+        alt="background"
+      />
 
-      <img src={logo} alt="logo" className="absolute top-4 left-0 w-[21%] ml-6 z-10" />
+      <img
+        src={logo}
+        alt="logo"
+        className="absolute top-4 left-0 w-[21%] ml-6 z-10"
+      />
 
       {/* ================= FLOOR STATS ================= */}
       <div className="absolute top-[110px] left-0 right-0 z-20 px-4">
@@ -598,16 +663,13 @@ const Floor = () => {
           onFloorClick={handleFloorClick}
           loading={loading}
           isFocused={focusedRegion === FocusRegion.FLOOR_STATS}
-
-
         />
       </div>
 
       {/* ================= MAIN CONTENT ================= */}
       <div className="absolute inset-0 flex items-center justify-center z-0 mb-[-78px] mx-[11px]">
         {currentFloor && (
-          <div className="relative h-[820px] bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden shadow-2xl">
-
+          <div className="relative h-[820px] bg-white/10 backdrop-blur-sm rounded-lg  shadow-2xl">
             {loading ? (
               <LoadingSpinner />
             ) : showRoomView && selectedSector ? (
@@ -641,44 +703,60 @@ const Floor = () => {
                 onTouchEnd={handleTouchEnd}
               />
             ) : (
-              <div className="relative w-full h-full">
-                <FloorMapImage
-                  floorImageUrl={floorImageUrl}
-                  currentFloor={currentFloor}
-                  onImageError={handleImageError}
-                  imageError={imageError}
-                  isFocused={focusedRegion === FocusRegion.MAP
+              <div className="relative w-full h-full p-5">
+                <div
+                  className={`relative w-full h-full ${focusedRegion === FocusRegion.MAP
+                    ? " outline-[6px] outline-[#dc2f02]"
+                    : " outline-[6px] outline-transparent"
+                    }`}
+                >
+                  <FloorMapImage
+                    floorImageUrl={floorImageUrl}
+                    currentFloor={currentFloor}
+                    onImageError={handleImageError}
+                    imageError={imageError}
 
-                  }
-                />
+                  />
 
-                {!imageError &&
-                  displayableSectors.map((sector) => {
-                    const mapStylesList = parseMapPoint(sector.MAPPOINT);
+                  {!imageError &&
+                    displayableSectors.map((sector, sectorIndex) => {
+                      const mapStylesList = parseMapPoint(sector.MAPPOINT);
 
-                    return mapStylesList.map((mapStyles, idx) => (
-                      <button
-                        key={`${sector.SECTORNO}-${idx}`}
-                        onClick={() => handleSectorClick(sector)}
-                        className="absolute group cursor-pointer hover:z-20 transition-all"
-                        style={{
-                          top: mapStyles.top,
-                          left: mapStyles.left,
-                          right: mapStyles.right,
-                          width: mapStyles.width,
-                          height: mapStyles.height,
-                        }}
-                        title={getSectorLabel(sector, idx)}
-                      >
-                        <div className="absolute inset-0 bg-[#FFCA08]/20 border-2 border-[#FFCA08] rounded opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 pointer-events-none">
-                          <span className="bg-[#9A7D4C] text-white px-4 py-1.5 rounded-md text-[30px] font-bold shadow-lg whitespace-nowrap">
-                            {getSectorLabel(sector, idx)}
-                          </span>
-                        </div>
-                      </button>
-                    ));
-                  })}
+                      return mapStylesList.map((mapStyles, idx) => (
+                        <button
+                          key={`${sector.SECTORNO}-${idx}`}
+                          onClick={() => handleSectorClick(sector)}
+                          className={`absolute transition-all z-20`}
+                          aria-selected={
+                            focusedRegion === FocusRegion.MAP &&
+                            mapCursor === sectorIndex
+                          }
+                          style={{
+                            top: mapStyles.top,
+                            left: mapStyles.left,
+                            right: mapStyles.right,
+                            width: mapStyles.width,
+                            height: mapStyles.height,
+                            minHeight: "60px", // ✅ important
+                          }}
+                        >
+                          {/* ✅ FOCUS VISUAL (padding + min height effect) */}
+                          {focusedRegion === FocusRegion.MAP && mapCursor === sectorIndex && (
+                            <div className="pointer-events-none absolute -inset-3 top-[-55px] rounded border-[6px] border-[#dc2f02]" />
+                          )}
+
+                          <div className="absolute inset-0 bg-[#FFCA08]/20 border-2 border-[#FFCA08] rounded opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                          <div className="absolute -top-10 left-1/2 -translate-x-1/2 pointer-events-none">
+                            <span className="bg-[#9A7D4C] text-white px-4 py-1.5 rounded-md text-[30px] font-bold shadow-lg whitespace-nowrap">
+                              {getSectorLabel(sector, idx)}
+                            </span>
+                          </div>
+                        </button>
+
+                      ));
+                    })}
+                </div>
               </div>
             )}
           </div>
@@ -693,18 +771,23 @@ const Floor = () => {
         showBack={showRoomView}
         onBack={backToFloorMap}
         isFocused={focusedRegion === FocusRegion.LEGEND}
-
       />
 
-      <FooterControls
-        userInfo={userInfo}
-        openKeyboard={() => { }}
-        logout={handleLogout}
-        onVolumeUp={() => { }}
-        onVolumeDown={() => { }}
-        onZoom={() => { }}
-        onContrast={() => { }}
-      />
+      <div
+      
+      >
+        <FooterControls
+          userInfo={userInfo}
+          openKeyboard={() => { }}
+          logout={handleLogout}
+          onVolumeUp={() => { }}
+          onVolumeDown={() => { }}
+          onZoom={() => { }}
+          onContrast={() => { }}
+          isFocused={focusedRegion === FocusRegion.FOOTER}
+        />
+      </div>
+
 
       {/* ================= SEAT BOOKING MODAL ================= */}
       <SeatActionModal
