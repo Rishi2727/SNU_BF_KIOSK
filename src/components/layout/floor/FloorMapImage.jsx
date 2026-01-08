@@ -1,6 +1,7 @@
 import React from 'react';
 
-const FloorMapImage = ({ floorImageUrl, currentFloor, onImageError, imageError }) => {
+const FloorMapImage = ({ floorImageUrl, currentFloor, onImageError, imageError ,isFocused }) => {
+  
   if (imageError) {
     return (
       <div className="flex items-center justify-center h-full">

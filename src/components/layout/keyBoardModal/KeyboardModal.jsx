@@ -296,20 +296,19 @@ const KeyboardModal = ({
                       {
                         class:
                           "outline outline-[6px] outline-[#dc2f02] rounded-xl",
-                             buttons: keyboardKeys[keyCursor]
+                        buttons: keyboardKeys[keyCursor]
 
                       }
                     ]
                     : []
                 }
-
               />
             </div>
 
             {/* BUTTONS */}
             <div className={`flex w-full justify-center gap-4 mt-16 ${buttonsFocusClass}`}>
               <button
-                className={`px-6 py-3 sm:h-5 xl:h-12 2xl:h-16 w-[18%] text-white sm:text-md 2xl:text-[30px] rounded-full shadow bg-[#FFCA08] hover:bg-[#3740a3] transition duration-200 ${ submitButtonFocusClass }`}
+                className={`px-6 py-3 sm:h-5 xl:h-12 2xl:h-16 w-[18%] text-white sm:text-md 2xl:text-[30px] rounded-full shadow bg-[#FFCA08] hover:bg-[#3740a3] transition duration-200 ${submitButtonFocusClass}`}
                 onClick={() => {
                   if (setFocused) setFocused("keyboard")
                   onSubmit(input);
