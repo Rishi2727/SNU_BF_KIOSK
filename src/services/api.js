@@ -1,5 +1,4 @@
 import axios from "axios";
-import { getCurrentLanguage } from "../utils/language";
 
 export const MAP_BASE_URL = "http://k-rsv.snu.ac.kr:8012";
 export const ImageBaseUrl =
@@ -17,21 +16,7 @@ const baseClient = axios.create({
     os_kind: "KIOSK",
     "Content-Type": "application/x-www-form-urlencoded",
   },
-});
-
-baseClient.interceptors.request.use(
-  (config) => {
-    const lang = getCurrentLanguage();
-
-    // Map language like old project expects
-    config.headers["Accept-Language"] =
-      lang === "ko"
-        ? "ko-KR,ko;q=0.9,en;q=0.8"
-        : "en-US,en;q=0.9,ko;q=0.8";
-
-    return config;
-  },
-  (error) => Promise.reject(error)
+}
 );
 /* ===============================
    PUBLIC API
