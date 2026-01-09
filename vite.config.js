@@ -34,6 +34,13 @@ export default defineConfig(async () => ({
         secure: false,
         cookieDomainRewrite: "localhost",
       },
+
+      // ✅ ADD THIS
+      "/SEATAPI": {
+        target: "http://k-rsv.snu.ac.kr:8012",
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
 }));

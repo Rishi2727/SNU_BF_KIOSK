@@ -78,8 +78,8 @@ const FloorLegendBar = ({
 
   return (
     <div className={`
-        absolute top-[11%] left-0 right-0 w-full
-        bg-[#9A7D4C] py-2 px-4
+        absolute top-[10%] left-0 right-0 w-full
+        bg-[#9A7D4C] py-1 px-4
         flex items-center justify-between
         text-white shadow-lg z-20
         ${isFocused ? focusRing : ""}
@@ -93,7 +93,7 @@ const FloorLegendBar = ({
             className={`
               flex items-center gap-2
               bg-[#FFCA08] text-[#9A7D4C]
-              px-4 py-2 rounded-lg
+              px-4 py-1 rounded-lg
               text-[26px] font-bold
               ${isFocusedAt(0) ? focusRing : ""}
             `}

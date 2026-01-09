@@ -1,15 +1,11 @@
+
 import { useNavigate } from "react-router-dom";
 import logo from "../../../assets/images/logo.png";
 import LibraryCard from "./LibraryCard";
 import { getSectorList } from "../../../services/api";
 import { useEffect, useState } from "react";
-
-
-const floors = [
-  { id: 16, title: "6F", floor: "6", floorno: "16", total: 230, occupied: 5 },
-  { id: 17, title: "7F", floor: "7", floorno: "17", total: 230, occupied: 10 },
-  { id: 18, title: "8F", floor: "8", floorno: "18", total: 230, occupied: 15 },
-];
+import { useDispatch, useSelector } from "react-redux";
+import { fetchFloorList } from "../../../redux/slice/floorSlice";
 
 const MainSection = ({
   openKeyboard,
@@ -18,28 +14,41 @@ const MainSection = ({
   FocusRegion
 }) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  /* ===============================
+     ✅ REDUX STATE
+  ================================ */
+  const { floors, loading, error } = useSelector((state) => state.floor);
+
+  /* ===============================
+     ✅ LOCAL STATE
+  ================================ */
   const [cursor, setCursor] = useState(null);
   const TOTAL_ITEMS = floors.length + 1;
 
+  /* ===============================
+     ✅ FETCH FLOORS FROM REDUX
+  ================================ */
+  useEffect(() => {
+    dispatch(fetchFloorList(1)); // libno = 1
+  }, [dispatch]);
 
+  /* ===============================
+     ✅ CARD CLICK
+  ================================ */
   const handleCardClick = async (fl) => {
-    // 🔹 Check authentication first
     if (!isAuthenticated) {
-      // Store the floor info to use after login
       openKeyboard(fl.title);
-      return; // Stop here, don't call API yet
+      return;
     }
 
-    // 🔹 User is authenticated, proceed with API call
     try {
       const sectorList = await getSectorList({
         floor: fl.floor,
         floorno: fl.floorno,
       });
 
-      console.log("Sector List:", sectorList);
-
-      // 🔹 Navigate after success
       navigate(`/floor/${fl.title}`, {
         state: {
           sectorList,
@@ -47,18 +56,25 @@ const MainSection = ({
         },
       });
     } catch (error) {
-      console.error("Sector API failed", error);
+      console.error("❌ Sector API failed", error);
     }
   };
+
+  /* ===============================
+     ✅ RESET CURSOR ON BLUR
+  ================================ */
   useEffect(() => {
     if (focusedRegion !== FocusRegion.MAIN_SECTION) {
       setCursor(null);
     }
   }, [focusedRegion, FocusRegion.MAIN_SECTION]);
 
-
+  /* ===============================
+     ✅ KEYBOARD NAVIGATION
+  ================================ */
   useEffect(() => {
     if (focusedRegion !== FocusRegion.MAIN_SECTION) return;
+    if (!floors.length) return;
 
     const onKeyDown = (e) => {
       if (e.key === "ArrowRight") {
@@ -76,51 +92,70 @@ const MainSection = ({
       }
 
       if (e.key === "Enter") {
-        // Ignore Enter when heading is focused
-        if (cursor === 0) return;
-
-        // Cards start from cursor 1
+        if (cursor === 0 || !floors[cursor - 1]) return;
         handleCardClick(floors[cursor - 1]);
       }
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [focusedRegion, cursor]);
+  }, [focusedRegion, cursor, floors, TOTAL_ITEMS]);
 
+  /* ===============================
+     ✅ LOADING / ERROR UI
+  ================================ */
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-full text-white text-2xl">
+        Loading floors...
+      </div>
+    );
+  }
 
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-full text-red-500 text-xl">
+        {error}
+      </div>
+    );
+  }
+
+  /* ===============================
+     ✅ UI
+  ================================ */
   return (
     <div className="relative z-10 flex justify-end items-center h-full mr-7 -mt-25">
       <div className="w-[55%] flex flex-col items-center">
 
-        {/* ✅ Logo with focus border */}
+        {/* ✅ Logo */}
         <div
-          className={`mb-12 ml-[15%] ${focusedRegion === FocusRegion?.LOGO
-            ? "outline-[6px] outline-[#dc2f02] rounded-2xl"
-            : ""
-            }`}
+          className={`mb-12 ml-[15%] ${
+            focusedRegion === FocusRegion?.LOGO
+              ? "outline-[6px] outline-[#dc2f02] rounded-2xl"
+              : ""
+          }`}
         >
           <img src={logo} alt="logo" className="w-[500px]" />
         </div>
 
-        {/* ✅ Main Section (cards container) with focus border */}
+        {/* ✅ Main Section */}
         <div
-          className={`w-full p-12 rounded-3xl bg-[#9A7D4C] border border-white/30 backdrop-blur-xl ${focusedRegion === FocusRegion?.MAIN_SECTION
-            ? "outline-[6px] outline-[#dc2f02]"
-            : ""
-            }`}
+          className={`w-full p-12 rounded-3xl bg-[#9A7D4C] border border-white/30 backdrop-blur-xl ${
+            focusedRegion === FocusRegion?.MAIN_SECTION
+              ? "outline-[6px] outline-[#dc2f02]"
+              : ""
+          }`}
         >
           <h2
             className={`text-[32px] font-semibold mb-10
-    ${focusedRegion === FocusRegion.MAIN_SECTION &&
-                cursor === 0
-                ? "outline-[6px] outline-[#dc2f02] rounded-lg px-2 py-2"
-                : ""
+              ${
+                focusedRegion === FocusRegion.MAIN_SECTION && cursor === 0
+                  ? "outline-[6px] outline-[#dc2f02] rounded-lg px-2 py-2"
+                  : ""
               }`}
           >
             원하는 라이브러리를 선택하십시오
           </h2>
-
 
           <div className="flex justify-between">
             {floors.map((fl, index) => (
@@ -131,7 +166,8 @@ const MainSection = ({
                 totalCount={fl.total}
                 onClick={() => handleCardClick(fl)}
                 isFocused={
-                  focusedRegion === FocusRegion.MAIN_SECTION && cursor === index + 1
+                  focusedRegion === FocusRegion.MAIN_SECTION &&
+                  cursor === index + 1
                 }
               />
             ))}

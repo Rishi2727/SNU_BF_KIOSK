@@ -1,11 +1,12 @@
+
 import axios from "axios";
 
-export const MAP_BASE_URL = "http://k-rsv.snu.ac.kr:8012";
+export const BASE_URL_2 = "/SEATAPI";
 export const ImageBaseUrl =
   "http://k-rsv.snu.ac.kr:8011/NEW_SNU_BOOKING/commons/images/kiosk";
 
 const BASE_PATH = "/NEW_SNU_BOOKING";
-
+export const FloorImageUrl = "http://k-rsv.snu.ac.kr:8012";
 const baseClient = axios.create({
   baseURL: BASE_PATH,
   withCredentials: true,
@@ -16,8 +17,18 @@ const baseClient = axios.create({
     os_kind: "KIOSK",
     "Content-Type": "application/x-www-form-urlencoded",
   },
-}
-);
+});
+
+const baseClient_2 = axios.create({
+  baseURL: BASE_URL_2,
+  timeout: 60000,
+  headers: {
+    Accept: "application/json",
+    "X-Requested-With": "XMLHttpRequest",
+    os_kind: "KIOSK",
+    "Content-Type": "application/x-www-form-urlencoded",
+  },
+});
 /* ===============================
    PUBLIC API
 ================================ */
@@ -45,6 +56,18 @@ export const protectedApi = {
     });
     return res.data;
   },
+};
+
+
+/* ===============================
+   ✅ PUBLIC FLOOR API (SEAT MAP)
+================================ */
+
+export const getFloorList = async (libno) => {
+  const res = await baseClient_2.get("/GetFloorUsingCount.asp", {
+    params: { libno },
+  });
+  return res.data;
 };
 
 /* ===============================
@@ -109,7 +132,7 @@ export const setReturnSeat = ({ b_SeqNo }) =>
   protectedApi.post("/json/setReturnSeat", {
     b_SeqNo,
   });
-  
+
 export const setAssignSeatInfo = ({ bseqno }) =>
   protectedApi.post("/json/getAssignSeatInfo", {
     bseqno,

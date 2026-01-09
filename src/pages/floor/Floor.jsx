@@ -20,9 +20,10 @@ import FloorStatsBar from "../../components/layout/floor/FloorStatsBar";
 import FloorLegendBar from "../../components/layout/floor/FloorLegendBar";
 import FooterControls from "../../components/common/Footer";
 
-import { MAP_BASE_URL, getSeatList, ImageBaseUrl } from "../../services/api";
+import { BASE_URL_2, FloorImageUrl, getSeatList, ImageBaseUrl } from "../../services/api";
 import { MINI_MAP_LAYOUT, MINIMAP_CONFIG } from "../../utils/constant";
 import SeatActionModal from "../../components/common/SeatActionModal";
+
 
 const Floor = () => {
   const navigate = useNavigate();
@@ -77,9 +78,6 @@ const Floor = () => {
   const containerRef = useRef(null);
   const prevSectorNoRef = useRef(null);
   const [focusedRegion, setFocusedRegion] = useState(null);
-
-  //Focus Region
-
   const FocusRegion = Object.freeze({
     FLOOR_STATS: "floor_stats",
     LEGEND: "legend",
@@ -101,6 +99,8 @@ const Floor = () => {
     loading,
     fetchSectorList,
   } = useFloorData(floorId, initialFloorInfo, initialSectorList);
+
+
 
   /* =====================================================
      COMPUTED VALUES FOR ROOM VIEW
@@ -137,7 +137,7 @@ const Floor = () => {
     dispatch(clearUserInfo());
     navigate("/");
   };
-
+  console.log("url", floorImageUrl)
   /* =====================================================
      FLOOR IMAGE ERROR
   ===================================================== */
@@ -676,7 +676,7 @@ const Floor = () => {
               <RoomView
                 key={selectedSector?.SECTOR_IMAGE}
                 selectedSector={selectedSector}
-                baseUrl={MAP_BASE_URL}
+                baseUrl={FloorImageUrl}
                 seats={seats}
                 loadingSeats={loadingSeats}
                 selectedMiniSector={selectedMiniSector}
@@ -722,11 +722,12 @@ const Floor = () => {
                     displayableSectors.map((sector, sectorIndex) => {
                       const mapStylesList = parseMapPoint(sector.MAPPOINT);
 
+                      console.log("--------", mapStylesList, sector)
                       return mapStylesList.map((mapStyles, idx) => (
                         <button
                           key={`${sector.SECTORNO}-${idx}`}
                           onClick={() => handleSectorClick(sector)}
-                          className={`absolute transition-all z-20`}
+                          className="group absolute transition-all z-20"
                           aria-selected={
                             focusedRegion === FocusRegion.MAP &&
                             mapCursor === sectorIndex
@@ -745,9 +746,10 @@ const Floor = () => {
                             <div className="pointer-events-none absolute -inset-3 top-[-55px] rounded border-[6px] border-[#dc2f02]" />
                           )}
 
-                          <div className="absolute inset-0 bg-[#FFCA08]/20 border-2 border-[#FFCA08] rounded opacity-0 group-hover:opacity-100 transition-opacity" />
-
-                          <div className="absolute -top-10 left-1/2 -translate-x-1/2 pointer-events-none">
+                          <div
+                            className="pointer-events-none absolute -top-4 left-[-15px] right-3 bottom-6 bg-[#FFCA08]/20 border-2 border-[#FFCA08] rounded
+                           opacity-0 group-hover:opacity-100 transition-all duration-200" />
+                          <div className="absolute -top-15 left-1/2 -translate-x-1/2 pointer-events-none">
                             <span className="bg-[#9A7D4C] text-white px-4 py-1.5 rounded-md text-[30px] font-bold shadow-lg whitespace-nowrap">
                               {getSectorLabel(sector, idx)}
                             </span>
@@ -774,7 +776,7 @@ const Floor = () => {
       />
 
       <div
-      
+
       >
         <FooterControls
           userInfo={userInfo}

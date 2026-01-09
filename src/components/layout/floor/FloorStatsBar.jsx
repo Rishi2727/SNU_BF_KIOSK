@@ -7,8 +7,6 @@ const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused 
   const [floorCursor, setFloorCursor] = useState(null);
   const SECTION_COUNT = floors.length;
 
-
-
   /* --------------------------
    RESET CURSOR ON DEFOCUS
 ---------------------------*/
@@ -120,7 +118,7 @@ const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused 
           <div className="flex-1 px-4 py-2 relative">
             {/* Percentage badge */}
             <div className="absolute top-7 left-4 bg-[#9A7D4C] text-white font-bold px-3 py-0 rounded-md text-[30px] shadow-md">
-              {item.occupied}%
+              {item.occupied}
             </div>
 
             {/* Progress bar */}
