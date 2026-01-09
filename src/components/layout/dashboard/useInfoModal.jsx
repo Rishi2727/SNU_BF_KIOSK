@@ -80,12 +80,9 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
   }, [isOpen]);
   useEffect(() => {
     if (!isOpen || !isModalFocused) return;
-
     const handleKeyDown = (e) => {
       const maxIndex = focusableActions.length - 1;
-
       if (maxIndex < 0) return;
-
       switch (e.key) {
         case "ArrowRight":
           e.preventDefault();
@@ -122,16 +119,14 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
       onClose={onClose}
       title="User Information"
       size="large"
+     className="h-[55vh]!"
     >
-      <div className="space-y-6">
-      
-        <div className="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-lg p-6 border-l-4 border-teal-500">
+      <div className="space-y-7">
+        <div className="bg-linear-to-r from-teal-50 to-cyan-50 rounded-lg p-6 border-l-4 border-teal-500">
           <p className="text-2xl text-gray-800 font-semibold">
             You are now logged in. Please select the features you wish to use.
           </p>
         </div>
-
-  
         <div className="grid grid-cols-3 gap-4">
           {actions.map((action, index) => {
             const enabledIndex = focusableActions.findIndex(a => a.id === action.id);
@@ -141,23 +136,24 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
                 onClick={action.enabled ? action.action : undefined}
                 disabled={!action.enabled}
                 className={`
-        relative overflow-hidden rounded-xl p-2 transition-all duration-300
+        relative overflow-hidden rounded-lg p-2 transition-all duration-300
         ${action.enabled
-                    ? `bg-gradient-to-br ${action.color} text-white hover:shadow-xl cursor-pointer`
+                    ? `bg-linear-to-br ${action.color} text-white hover:shadow-xl cursor-pointer`
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed opacity-60'
                   }
         ${enabledIndex !== -1 && isFocused(enabledIndex)
-                    ? 'outline outline-[6px] outline-[#dc2f02]'
+                    ? ' outline-[6px] outline-[#dc2f02]'
                     : ''
                   }
       `}
               >
-                <div className="flex flex-col items-center">
-                  <div className={`p-1 rounded-full ${action.enabled ? 'bg-white/20' : 'bg-gray-300/50'}`}>
+                <div className="flex gap-2 items-center ">
+                  <div className={`    flex items-center justify-center
+        w-7 h-7 rounded-full  ${action.enabled ? 'bg-white/20' : 'bg-gray-300/50'}`}>
                     {action.icon}
                   </div>
-                  <div className="text-center">
-                    <h4 className="text-[32px] font-bold">{action.title}</h4>
+                  <div className="text-center ">
+                    <h4 className="text-[28px] text-nowrap font-bold ">{action.title}</h4>
                   </div>
                 </div>
               </button>

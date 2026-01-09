@@ -1,5 +1,3 @@
-
-
 const Modal = ({ 
   isOpen, 
   onClose, 
@@ -7,7 +5,8 @@ const Modal = ({
   children, 
   footer,
   size = 'medium',
-  showCloseButton = true 
+  showCloseButton = true ,
+className = ""
 }) => {
   if (!isOpen) return null;
 
@@ -23,11 +22,11 @@ const Modal = ({
       onClick={onClose}
     >
       <div 
-        className={`bg-white rounded-lg shadow-2xl ${sizeClasses[size]} max-w-[90vw] max-h-[90vh] flex flex-col overflow-hidden`}
+        className={`bg-white rounded-lg shadow-2xl ${sizeClasses[size]} max-w-[90vw] max-h-[90vh] flex flex-col overflow-hidden  ${className}`}
         onClick={(e) => e.stopPropagation()}
       >
         {title && (
-          <div className="bg-gradient-to-r from-gray-100 to-gray-50 px-8 py-5 border-b flex items-center justify-between">
+          <div className="bg-linear-to-r from-gray-100 to-gray-50 px-8 py-5 border-b flex items-center justify-between">
             <h2 className="text-2xl font-bold text-gray-800">{title}</h2>
             {showCloseButton && (
               <button
