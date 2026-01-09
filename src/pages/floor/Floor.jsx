@@ -669,7 +669,7 @@ const Floor = () => {
       {/* ================= MAIN CONTENT ================= */}
       <div className="absolute inset-0 flex items-center justify-center z-0 mb-[-78px] mx-[11px]">
         {currentFloor && (
-          <div className="relative h-[820px] bg-white/10 backdrop-blur-sm rounded-lg  shadow-2xl">
+          <div className={`relative h-[820px] bg-white/10 backdrop-blur-sm rounded-lg  shadow-2xl`}>
             {loading ? (
               <LoadingSpinner />
             ) : showRoomView && selectedSector ? (

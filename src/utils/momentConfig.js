@@ -1,15 +1,8 @@
 // utils/momentConfig.js
-import moment from "moment";
+import moment from "moment-timezone";
 import "moment/locale/en-gb"; // Import English locale (24h friendly)
-
-/**
- * Global Moment.js Configuration
- * Import this file once in your main entry point (index.js or App.js)
- */
-
-// Set default locale to English
 moment.locale("en-gb");
-
+moment.tz.setDefault("Asia/Seoul");
 // Set default date format
 moment.defaultFormat = "YYYY-MM-DD HH:mm:ss";
 

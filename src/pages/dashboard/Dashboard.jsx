@@ -362,9 +362,6 @@ if (
    * Volume control handlers (placeholders)
    */
 
-
-
-
   return (
     <div className="relative h-screen w-screen overflow-hidden font-bold text-white">
       <img
@@ -415,8 +412,6 @@ if (
           openKeyboard={() => openKeyboard(null)}
           logout={handleLogout}
           isFocused={focused === FocusRegion.FOOTER}
-
-
         />
       </div>
 
