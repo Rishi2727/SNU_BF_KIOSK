@@ -1,7 +1,11 @@
 import { CheckCircle, CheckCircle2, Clock, LogOut, Move, User, XCircle } from "lucide-react";
 import Modal from "../../common/Modal";
+import { useEffect, useState, useCallback, useMemo } from "react";
 
 const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
+  const [focusIndex, setFocusIndex] = useState(0);
+  const [isModalFocused, setIsModalFocused] = useState(false);
+
   const actions = [
     {
       id: 'extend',
@@ -61,6 +65,56 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
       action: () => onAction('assignCheck', userInfo?.ASSIGN_NO)
     }
   ];
+  const focusableActions = useMemo(
+    () => actions.filter(a => a.enabled),
+    [actions]
+  );
+  useEffect(() => {
+    if (isOpen) {
+      setIsModalFocused(true);
+      setFocusIndex(0);
+    } else {
+      setIsModalFocused(false);
+      setFocusIndex(0);
+    }
+  }, [isOpen]);
+  useEffect(() => {
+    if (!isOpen || !isModalFocused) return;
+
+    const handleKeyDown = (e) => {
+      const maxIndex = focusableActions.length - 1;
+
+      if (maxIndex < 0) return;
+
+      switch (e.key) {
+        case "ArrowRight":
+          e.preventDefault();
+          setFocusIndex(prev => (prev + 1) % (maxIndex + 1));
+          break;
+
+        case "ArrowLeft":
+          e.preventDefault();
+          setFocusIndex(prev => (prev - 1 + maxIndex + 1) % (maxIndex + 1));
+          break;
+
+        case "Enter":
+          e.preventDefault();
+          focusableActions[focusIndex]?.action();
+          break;
+
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, isModalFocused, focusIndex, focusableActions]);
+
+  const isFocused = useCallback(
+    (index) => isModalFocused && focusIndex === index,
+    [isModalFocused, focusIndex]
+  );
 
   return (
     <Modal
@@ -70,39 +124,46 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
       size="large"
     >
       <div className="space-y-6">
-        {/* Welcome Message */}
+      
         <div className="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-lg p-6 border-l-4 border-teal-500">
           <p className="text-2xl text-gray-800 font-semibold">
             You are now logged in. Please select the features you wish to use.
           </p>
         </div>
 
-        {/* Action Buttons Grid */}
+  
         <div className="grid grid-cols-3 gap-4">
-          {actions.map((action) => (
-            <button
-              key={action.id}
-              onClick={action.enabled ? action.action : undefined}
-              disabled={!action.enabled}
-              className={`
-                relative overflow-hidden rounded-xl p-2 transition-all duration-300
-                ${action.enabled 
-                  ? `bg-gradient-to-br ${action.color} text-white hover:shadow-xl cursor-pointer` 
-                  : 'bg-gray-200 text-gray-400 cursor-not-allowed opacity-60'
-                }
-              `}
-            >
-              <div className="flex flex-col items-center">
-                <div className={`p-1 rounded-full ${action.enabled ? 'bg-white/20' : 'bg-gray-300/50'}`}>
-                  {action.icon}
+          {actions.map((action, index) => {
+            const enabledIndex = focusableActions.findIndex(a => a.id === action.id);
+            return (
+              <button
+                key={action.id}
+                onClick={action.enabled ? action.action : undefined}
+                disabled={!action.enabled}
+                className={`
+        relative overflow-hidden rounded-xl p-2 transition-all duration-300
+        ${action.enabled
+                    ? `bg-gradient-to-br ${action.color} text-white hover:shadow-xl cursor-pointer`
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed opacity-60'
+                  }
+        ${enabledIndex !== -1 && isFocused(enabledIndex)
+                    ? 'outline outline-[6px] outline-[#dc2f02]'
+                    : ''
+                  }
+      `}
+              >
+                <div className="flex flex-col items-center">
+                  <div className={`p-1 rounded-full ${action.enabled ? 'bg-white/20' : 'bg-gray-300/50'}`}>
+                    {action.icon}
+                  </div>
+                  <div className="text-center">
+                    <h4 className="text-[32px] font-bold">{action.title}</h4>
+                  </div>
                 </div>
-                <div className="text-center">
-                  <h4 className="text-[32px] font-bold">{action.title}</h4>
-                </div>
-              </div>
-            </button>
-          ))}
-        </div>      
+              </button>
+            )
+          })}
+        </div>
       </div>
     </Modal>
   );
