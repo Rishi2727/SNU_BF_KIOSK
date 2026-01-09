@@ -13,7 +13,7 @@ className = ""
   const sizeClasses = {
     small: 'w-[400px]',
     medium: 'w-[800px]',
-    large: 'w-[1000px] h-[72vh]',
+    large: 'w-[1000px] ',
   };
 
   return (
