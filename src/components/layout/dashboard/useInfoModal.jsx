@@ -5,7 +5,6 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
   const [focusIndex, setFocusIndex] = useState(0);
   const [isModalFocused, setIsModalFocused] = useState(false);
-
   const actions = [
     {
       id: 'extend',
@@ -103,23 +102,20 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
           break;
       }
     };
-
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, isModalFocused, focusIndex, focusableActions]);
-
   const isFocused = useCallback(
     (index) => isModalFocused && focusIndex === index,
     [isModalFocused, focusIndex]
   );
-
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
       title="User Information"
       size="large"
-     className="h-[55vh]!"
+     className="h-[50vh]!"
     >
       <div className="space-y-7">
         <div className="bg-linear-to-r from-teal-50 to-cyan-50 rounded-lg p-6 border-l-4 border-teal-500">
