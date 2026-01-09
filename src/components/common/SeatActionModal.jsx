@@ -27,6 +27,7 @@ import { MODE_LABELS, MODES } from "../../utils/constant";
 
 /**
  * Common component for seat booking, extension, return, move, and assign check
+ * ✅ NOW WITH FULL KEYBOARD NAVIGATION SUPPORT FOR ACCESSIBILITY
  */
 const SeatActionModal = ({
     mode = MODES.BOOKING,
@@ -67,8 +68,208 @@ const SeatActionModal = ({
     const [actionResult, setActionResult] = useState(null);
     const [seatInfo, setSeatInfo] = useState(null);
 
+    // ✅ NEW: Focus management state
+    const [focusIndex, setFocusIndex] = useState(0);
+    const [isModalFocused, setIsModalFocused] = useState(false);
+
     const navigate = useNavigate();
     const dispatch = useDispatch();
+
+    /**
+     * ✅ STEP 1: Define focusable elements based on modal state
+     * This function calculates all focusable items dynamically
+     */
+    const getFocusableElements = useCallback(() => {
+        const elements = [];
+
+        // RESULT MODAL - Different structure
+        if (showResultModal) {
+            elements.push({ type: 'result-message', label: 'Result Message' });
+            elements.push({ type: 'confirm-button', label: 'Confirm Button' });
+            return elements;
+        }
+
+        // MAIN MODAL
+        // 1. Modal Title (always present)
+        elements.push({ type: 'title', label: 'Modal Title' });
+
+        // 2. Header section (location info)
+        elements.push({ type: 'header', label: 'Location Information' });
+
+        if (isAssignCheck && seatInfo) {
+            // ASSIGN CHECK MODE
+            elements.push({ type: 'name-label', label: 'Name Label' });
+            elements.push({ type: 'name-value', label: 'Name Value' });
+            elements.push({ type: 'time-label', label: 'Time Label' });
+            elements.push({ type: 'time-value', label: 'Time Value' });
+            elements.push({ type: 'confirm-button', label: 'Confirm Button' });
+        } else {
+            // OTHER MODES
+            elements.push({ type: 'name-label', label: 'Name Label' });
+            elements.push({ type: 'name-value', label: 'Name Value' });
+
+            if (!isReturn && !isMove) {
+                elements.push({ type: 'date-label', label: 'Date Duration Label' });
+                elements.push({ type: 'date-value', label: 'Date Duration Value' });
+            } else if (isReturn) {
+                elements.push({ type: 'start-label', label: 'Start Hours Label' });
+                elements.push({ type: 'start-value', label: 'Start Hours Value' });
+            }
+
+            elements.push({ type: 'action-label', label: 'Action Label' });
+
+            // Time selection buttons OR confirmation message
+            if (isReturn || isMove) {
+                elements.push({ type: 'confirmation-message', label: 'Confirmation Message' });
+            } else if (confirmStep) {
+                elements.push({ type: 'confirmation-message', label: 'Confirmation Message' });
+            } else if (!loading && timeOptions.length > 0) {
+                // Add each time option button
+                timeOptions.forEach((opt, i) => {
+                    if (opt.enabled) {
+                        elements.push({
+                            type: 'time-button',
+                            label: opt.label,
+                            index: i,
+                            value: opt.value
+                        });
+                    }
+                });
+            }
+
+            // Footer buttons
+            elements.push({ type: 'cancel-button', label: 'Cancel Button' });
+            elements.push({ type: 'confirm-button', label: 'Confirm Button' });
+        }
+
+        return elements;
+    }, [
+        showResultModal, isAssignCheck, seatInfo, isReturn, isMove,
+        confirmStep, loading, timeOptions
+    ]);
+
+    /**
+     * ✅ STEP 2: Auto-focus modal when it opens
+     * Sets focus to index 0 (title) automatically
+     */
+    useEffect(() => {
+        if (isOpen) {
+            setIsModalFocused(true);
+            setFocusIndex(0); // Start at title
+        } else {
+            setIsModalFocused(false);
+            setFocusIndex(0);
+        }
+    }, [isOpen]);
+
+    /**
+ * ✅ FIX: Auto-focus confirmation message when confirmStep changes
+ */
+    useEffect(() => {
+        if (!isOpen) return;
+
+        // When entering confirmation step, reset focus
+        if (confirmStep) {
+            setFocusIndex(0);
+        }
+    }, [confirmStep, isOpen]);
+
+    /**
+     * ✅ STEP 3: Keyboard navigation handler
+     * Handles Left/Right arrows and Enter key
+     */
+    useEffect(() => {
+        if ((!isOpen && !showResultModal) || !isModalFocused) return;
+
+        const handleKeyDown = (e) => {
+            const focusableElements = getFocusableElements();
+            const maxIndex = focusableElements.length - 1;
+
+            switch (e.key) {
+                case "ArrowRight":
+                    e.preventDefault();
+                    setFocusIndex(prev => (prev + 1) % (maxIndex + 1));
+                    break;
+
+                case "ArrowLeft":
+                    e.preventDefault();
+                    setFocusIndex(prev => (prev - 1 + maxIndex + 1) % (maxIndex + 1));
+                    break;
+
+                case "Enter":
+                    e.preventDefault();
+                    handleEnterPress(focusableElements[focusIndex]);
+                    break;
+
+                default:
+                    break;
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [isOpen, isModalFocused, focusIndex, getFocusableElements, showResultModal]);
+
+    /**
+     * ✅ STEP 4: Handle Enter key press on focused element
+     */
+    const handleEnterPress = useCallback((focusedElement) => {
+        if (!focusedElement) return;
+
+        switch (focusedElement.type) {
+            case 'time-button':
+                handleTimeSelect(focusedElement.index, focusedElement.value);
+                break;
+
+            case 'cancel-button':
+                setConfirmStep(false);
+                onClose();
+                if (onBackToUserInfo) {
+                    setTimeout(() => onBackToUserInfo(), 200);
+                }
+                break;
+
+            case 'confirm-button':
+                if (isAssignCheck) {
+                    onClose();
+                    if (onBackToUserInfo) {
+                        setTimeout(() => onBackToUserInfo(), 300);
+                    }
+                    return;
+                }
+                if (showResultModal) {
+                    handleResultModalClose();
+                } else if (isReturn || isMove) {
+                    handleFinalConfirm();
+                } else if (confirmStep) {
+                    handleFinalConfirm();
+                } else {
+                    setConfirmStep(true);
+                }
+                break;
+
+            default:
+                break;
+        }
+    }, [showResultModal, isReturn, isMove, confirmStep]);
+
+    /**
+     * ✅ STEP 5: Helper to check if element is focused
+     */
+    const isFocused = useCallback((elementType, elementIndex = null) => {
+        if (!isModalFocused) return false;
+
+        const focusableElements = getFocusableElements();
+        const currentElement = focusableElements[focusIndex];
+
+        if (!currentElement) return false;
+
+        if (elementIndex !== null) {
+            return currentElement.type === elementType && currentElement.index === elementIndex;
+        }
+
+        return currentElement.type === elementType;
+    }, [isModalFocused, focusIndex, getFocusableElements]);
 
     /**
      * Fetch assign seat info for assign check mode
@@ -131,6 +332,7 @@ const SeatActionModal = ({
         dispatch
     ]);
 
+
     /**
      * Set default time option using moment
      */
@@ -138,11 +340,23 @@ const SeatActionModal = ({
         if (isReturn || isMove || isAssignCheck) return;
         if (defaultIndex !== null && timeOptions[defaultIndex]?.enabled) {
             setSelectedIndex(defaultIndex);
-            // ✅ Use moment to add minutes
             const endMoment = addMinutes(timeOptions[defaultIndex].value);
             setEndTime(endMoment.toDate());
         }
     }, [timeOptions, defaultIndex, isReturn, isMove, isAssignCheck]);
+
+    /**
+     * ✅ FIX: Auto-focus Result Modal when it opens
+     * Does NOT disturb existing logic
+     */
+    useEffect(() => {
+        if (!showResultModal) return;
+
+        // Result modal has its own focus structure
+        setIsModalFocused(true);
+        setFocusIndex(0); // Focus Result Message by default
+    }, [showResultModal]);
+
 
     /**
      * Execute API call based on mode
@@ -151,8 +365,8 @@ const SeatActionModal = ({
         if (isBooking) {
             const payload = {
                 seatno: seat.SEATNO,
-                date: formatDateNum(startTime), // ✅ Using moment utility
-                useTime: `${formatTimeNum(startTime)}-${formatTimeNum(endTime)}`, // ✅ Using moment utility
+                date: formatDateNum(startTime),
+                useTime: `${formatTimeNum(startTime)}-${formatTimeNum(endTime)}`,
                 schoolno: userInfo.SCHOOLNO,
                 members: "",
             };
@@ -170,7 +384,9 @@ const SeatActionModal = ({
         }
 
         if (isReturn) {
-            return await setReturnSeat({ b_SeqNo: assignNo });
+            return await setReturnSeat({
+                b_SeqNo: assignNo ?? bookingSeatInfo?.B_SEQNO
+            });
         }
 
         if (isMove) {
@@ -248,17 +464,16 @@ const SeatActionModal = ({
      */
     const handleTimeSelect = useCallback((index, value) => {
         setSelectedIndex(index);
-        // ✅ Use moment to add minutes
         const endMoment = addMinutes(value);
         setEndTime(endMoment.toDate());
     }, []);
 
     /**
-     * Render header section
+     * ✅ STEP 6: Render header section with focus highlighting
      */
     const renderHeader = useMemo(() => {
-        const headerClass =
-            "mb-10 p-2 bg-gradient-to-r from-cyan-100 to-teal-100 border-4 border-teal-400 rounded-2xl shadow-md";
+        const headerClass = `mb-10 p-2 bg-gradient-to-r from-cyan-100 to-teal-100 border-4 border-teal-400 rounded-2xl shadow-md ${isFocused('header') ? 'outline outline-[6px] outline-[#dc2f02]' : ''
+            }`;
         const textClass = "text-center text-[30px] text-teal-700 font-bold";
 
         if (isAssignCheck && seatInfo) {
@@ -296,20 +511,12 @@ const SeatActionModal = ({
             </div>
         );
     }, [
-        isAssignCheck,
-        isBooking,
-        isMove,
-        isExtension,
-        isReturn,
-        seatInfo,
-        seat,
-        bookingSeatInfo,
-        mode,
+        isAssignCheck, isBooking, isMove, isExtension, isReturn,
+        seatInfo, seat, bookingSeatInfo, mode, isFocused
     ]);
 
-
     /**
-     * Render time selection grid
+     * ✅ STEP 7: Render time selection grid with focus highlighting
      */
     const renderTimeSelection = useMemo(() => (
         <div className="grid grid-cols-3 gap-2">
@@ -319,52 +526,41 @@ const SeatActionModal = ({
                     disabled={!opt.enabled}
                     onClick={() => handleTimeSelect(i, opt.value)}
                     className={`text-[28px] font-bold py-2 rounded-2xl transition-all
-            ${selectedIndex === i
+                        ${selectedIndex === i
                             ? "bg-teal-500 text-white scale-105 shadow-xl"
                             : opt.enabled
                                 ? "bg-gray-400 hover:bg-gray-300"
                                 : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        }`}
+                        }
+                        ${isFocused('time-button', i) ? 'outline outline-[6px] outline-[#dc2f02]' : ''}
+                    `}
                 >
                     {opt.label}
                 </button>
             ))}
         </div>
-    ), [timeOptions, selectedIndex, handleTimeSelect]);
+    ), [timeOptions, selectedIndex, handleTimeSelect, isFocused]);
 
     /**
      * Render confirmation message
      */
     const renderConfirmationMessage = () => {
-        if (isMove) {
-            return (
-                <p className="text-red-600 font-extrabold text-[34px]">
-                    Do you want to move to this seat?
-                </p>
-            );
-        }
+        if (!isMove && !isReturn && !confirmStep) return null;
 
-        if (isReturn) {
-            return (
-                <p className="text-red-600 font-extrabold text-[34px]">
-                    Do you want to return the seat?
-                </p>
-            );
-        }
-
-        if (confirmStep) {
-            return (
-                <p className="text-red-600 font-extrabold text-[34px]">
-                    Are you sure you want to {MODE_LABELS[mode]} the seat?
-                </p>
-            );
-        }
-
-        return null;
+        return (
+            <p className="text-red-600 font-extrabold text-[34px]">
+                {isMove
+                    ? 'Do you want to move to this seat?'
+                    : isReturn
+                        ? 'Do you want to return the seat?'
+                        : `Are you sure you want to ${MODE_LABELS[mode]} the seat?`}
+            </p>
+        );
     };
 
+
     /**
-     * Main modal footer
+     * ✅ STEP 8: Main modal footer with focus highlighting
      */
     const mainFooter = useMemo(() => {
         if (isAssignCheck) {
@@ -377,7 +573,8 @@ const SeatActionModal = ({
                                 setTimeout(() => onBackToUserInfo(), 300);
                             }
                         }}
-                        className="px-12 py-4 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white rounded-lg font-bold text-lg"
+                        className={`px-12 py-4 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white rounded-lg font-bold text-lg ${isFocused('confirm-button') ? 'outline outline-[6px] outline-[#dc2f02]' : ''
+                            }`}
                     >
                         Confirm
                     </button>
@@ -395,17 +592,15 @@ const SeatActionModal = ({
                     onClick={() => {
                         setConfirmStep(false);
                         onClose();
-
-                        // ✅ Go back to UserInfoModal
                         if (onBackToUserInfo) {
                             setTimeout(() => onBackToUserInfo(), 200);
                         }
                     }}
-                    className="flex-1 px-6 py-4 bg-gray-300 hover:bg-gray-400 rounded-lg font-bold text-lg"
+                    className={`flex-1 px-6 py-4 bg-gray-300 hover:bg-gray-400 rounded-lg font-bold text-lg ${isFocused('cancel-button') ? 'outline outline-[6px] outline-[#dc2f02]' : ''
+                        }`}
                 >
                     Cancel
                 </button>
-
 
                 <button
                     onClick={
@@ -417,35 +612,49 @@ const SeatActionModal = ({
                     }
                     disabled={isConfirmDisabled}
                     className={`flex-1 px-6 py-4 rounded-lg font-bold text-lg
-        ${!isConfirmDisabled && ((isReturn || isMove) || selectedIndex !== null) && (!(isBooking || isMove) || isAvailable)
+                        ${!isConfirmDisabled && ((isReturn || isMove) || selectedIndex !== null) && (!(isBooking || isMove) || isAvailable)
                             ? "bg-gradient-to-r from-teal-500 to-cyan-500 text-white"
                             : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                        }`}
+                        }
+                        ${isFocused('confirm-button') ? 'outline outline-[6px] outline-[#dc2f02]' : ''}
+                    `}
                 >
                     Confirm
                 </button>
             </div>
         );
-
     }, [
         isAssignCheck, isReturn, isMove, isBooking, isExtension,
         isAvailable, selectedIndex, endTime, confirmStep,
-        onClose, onBackToUserInfo, handleFinalConfirm
+        onClose, onBackToUserInfo, handleFinalConfirm, isFocused
     ]);
 
     /**
-     * Result modal footer
+     * ✅ STEP 9: Result modal footer with focus highlighting
      */
     const resultFooter = useMemo(() => (
         <div className="flex justify-center">
             <button
                 onClick={handleResultModalClose}
-                className="px-12 py-4 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white rounded-lg font-bold text-lg"
+                className={`px-12 py-4 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white rounded-lg font-bold text-lg ${isFocused('confirm-button') ? 'outline outline-[6px] outline-[#dc2f02]' : ''
+                    }`}
             >
                 Confirm
             </button>
         </div>
-    ), [handleResultModalClose]);
+    ), [handleResultModalClose, isFocused]);
+
+    // Helper function to get the value and label focus together 
+    const isGroupFocused = useCallback((types = []) => {
+        if (!isModalFocused) return false;
+
+        const focusableElements = getFocusableElements();
+        const current = focusableElements[focusIndex];
+
+        if (!current) return false;
+
+        return types.includes(current.type);
+    }, [isModalFocused, focusIndex, getFocusableElements]);
 
     return (
         <>
@@ -458,7 +667,9 @@ const SeatActionModal = ({
                 footer={mainFooter}
                 showCloseButton={false}
             >
-                <h2 className="text-[36px] font-extrabold text-center text-teal-600 mb-8 tracking-wide">
+                {/* ✅ Modal Title with focus highlighting */}
+                <h2 className={`text-[36px] font-extrabold text-center text-teal-600 mb-8 tracking-wide ${isFocused('title') ? 'outline outline-[6px] outline-[#dc2f02] rounded-lg' : ''
+                    }`}>
                     {isAssignCheck ? "좌석정보" : `좌석 ${MODE_LABELS[mode]}`}
                 </h2>
 
@@ -467,68 +678,117 @@ const SeatActionModal = ({
                         <LoadingSpinner size={80} />
                     </div>
                 ) : isAssignCheck && seatInfo ? (
-                    /* Assign Check Mode Content */
+                    /* ✅ Assign Check Mode Content with focus highlighting */
                     <>
                         {renderHeader}
 
                         <div className="space-y-6 mb-8 text-[30px]">
-                            <div className="flex gap-6 font-bold">
-                                <span className="text-gray-700 min-w-[200px]">이름 :</span>
+                            <div
+                                className={`flex gap-6 font-bold rounded-lg p-2 ${isGroupFocused(['name-label', 'name-value'])
+                                    ? 'outline outline-[6px] outline-[#dc2f02]'
+                                    : ''
+                                    }`}
+                            >
+                                <span className="text-gray-700 min-w-[200px]">
+                                    이름 :
+                                </span>
+
                                 <span className="font-extrabold text-teal-700">
                                     {userInfo?.SCHOOLNO}
                                 </span>
                             </div>
 
-                            <div className="flex gap-6 font-bold">
-                                <span className="text-gray-700 min-w-[200px]">이용시간 :</span>
+
+                            <div
+                                className={`flex gap-6 font-bold rounded-lg p-2 ${isGroupFocused(['time-label', 'time-value'])
+                                    ? 'outline outline-[6px] outline-[#dc2f02]'
+                                    : ''
+                                    }`}
+                            >
+                                <span className="text-gray-700 min-w-[200px]">
+                                    이용시간 :
+                                </span>
+
                                 <div className="flex-1 font-extrabold text-teal-700">
-                                    {/* ✅ Using moment utility */}
-                                    {formatDate(seatInfo.USESTART, DATE_FORMATS.ISO)} ~ {formatDate(seatInfo.USEEXPIRE, DATE_FORMATS.ISO)}
+                                    {formatDate(seatInfo.USESTART, DATE_FORMATS.ISO)} ~{" "}
+                                    {formatDate(seatInfo.USEEXPIRE, DATE_FORMATS.ISO)}
                                 </div>
                             </div>
+
                         </div>
                     </>
                 ) : (
-                    /* Other Modes Content */
+                    /* ✅ Other Modes Content with focus highlighting */
                     <>
                         {userInfo && renderHeader}
 
                         <div className="space-y-6 mb-2 text-[30px]">
-                            <div className="flex gap-6 font-bold">
+
+                            <div
+                                className={`flex gap-6 font-bold rounded-lg p-1 ${isGroupFocused(["name-label", "name-value"])
+                                    ? "outline outline-[6px] outline-[#dc2f02]"
+                                    : ""
+                                    }`}
+                            >
                                 <span className="text-gray-700">Name :</span>
-                                <span className="font-extrabold text-teal-700">{userInfo?.SCHOOLNO}</span>
+                                <span className="font-extrabold text-teal-700">
+                                    {userInfo?.SCHOOLNO}
+                                </span>
                             </div>
 
                             {!isReturn && !isMove ? (
-                                <div className="flex gap-6">
-                                    <span className="text-gray-700 font-bold">Date Duration :</span>
-                                    <span className="font-extrabold text-teal-700">
-                                        {/* ✅ Using moment utility */}
-                                        {formatDate(startTime, DATE_FORMATS.ISO)} ~ {endTime ? formatDate(endTime, DATE_FORMATS.ISO) : ""}
+                                <div
+                                    className={`flex gap-6 rounded-lg p-2 ${isGroupFocused(['date-label', 'date-value'])
+                                        ? 'outline outline-[6px] outline-[#dc2f02]'
+                                        : ''
+                                        }`}
+                                >
+                                    <span className="text-gray-700 font-bold">
+                                        Date Duration :
                                     </span>
-                                </div>
-                            ) : isReturn ? (
-                                <div className="flex gap-6">
-                                    <span className="text-gray-700 font-bold">Start hours :</span>
-                                    <span className="font-extrabold text-teal-700">
-                                        {/* ✅ Using moment utility */}
-                                        {formatDate(startTime, DATE_FORMATS.ISO)} ~ {bookingSeatInfo?.USEEXPIRE ? formatDate(bookingSeatInfo.USEEXPIRE, DATE_FORMATS.ISO) : "종료정보 없음"}
-                                    </span>
-                                </div>
-                            ) : null}
 
-                            <div className="flex gap-6">
+                                    <span className="font-extrabold text-teal-700">
+                                        {formatDate(startTime, DATE_FORMATS.ISO)} ~{" "}
+                                        {endTime ? formatDate(endTime, DATE_FORMATS.ISO) : ""}
+                                    </span>
+                                </div>
+
+                            ) : isReturn ? (
+                                <div
+                                    className={`flex gap-6 rounded-lg p-2 ${isGroupFocused(['start-label', 'start-value'])
+                                        ? 'outline outline-[6px] outline-[#dc2f02]'
+                                        : ''
+                                        }`}
+                                >
+                                    <span className="text-gray-700 font-bold">
+                                        Start hours :
+                                    </span>
+
+                                    <span className="font-extrabold text-teal-700">
+                                        {formatDate(startTime, DATE_FORMATS.ISO)} ~{" "}
+                                        {bookingSeatInfo?.USEEXPIRE
+                                            ? formatDate(bookingSeatInfo.USEEXPIRE, DATE_FORMATS.ISO)
+                                            : "종료정보 없음"}
+                                    </span>
+                                </div>
+
+                            ) : null}
+                            <div
+                                className={`flex gap-6 rounded-lg p-2 ${isGroupFocused(['action-label', 'confirmation-message'])
+                                    ? 'outline outline-[6px] outline-[#dc2f02]'
+                                    : ''
+                                    }`}
+                            >
                                 <span className="text-gray-700 font-bold min-w-[200px]">
                                     {isReturn
-                                        ? "Return Confirmation :"
+                                        ? 'Return Confirmation :'
                                         : isMove
-                                            ? "Move Confirmation :"
+                                            ? 'Move Confirmation :'
                                             : confirmStep
-                                                ? "Confirmation :"
+                                                ? 'Confirmation :'
                                                 : isBooking
-                                                    ? "Select Time :"
-                                                    : "Extension Time :"}
-
+                                                    ? 'Select Time :'
+                                                    : 'Extension Time :'}
                                 </span>
 
                                 <div className="flex-1">
@@ -541,12 +801,13 @@ const SeatActionModal = ({
                                     )}
                                 </div>
                             </div>
+
                         </div>
                     </>
                 )}
             </Modal>
 
-            {/* Result Modal */}
+            {/* ✅ Result Modal with focus highlighting */}
             <Modal
                 isOpen={showResultModal}
                 onClose={handleResultModalClose}
@@ -555,7 +816,8 @@ const SeatActionModal = ({
                 footer={resultFooter}
                 showCloseButton={false}
             >
-                <div className="text-center py-8">
+                <div className={`text-center py-8 ${isFocused('result-message') ? 'outline outline-[6px] outline-[#dc2f02] rounded-lg' : ''
+                    }`}>
                     {/* Success/Error Icon */}
                     <div className="flex justify-center mb-6">
                         {actionResult?.success ? (
@@ -591,7 +853,6 @@ const SeatActionModal = ({
                                         {seat.ROOM_NAME} - {seat?.VNAME}
                                     </p>
                                     <p className="text-[20px] text-gray-600 mt-2">
-                                        {/* ✅ Using moment utility */}
                                         {formatDate(startTime, DATE_FORMATS.ISO)} ~ {endTime ? formatDate(endTime, DATE_FORMATS.ISO) : ""}
                                     </p>
                                 </>
