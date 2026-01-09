@@ -31,7 +31,7 @@ const Floor = () => {
   const location = useLocation();
   const { floorId, sectorNo, move } = useParams();
   const [mapCursor, setMapCursor] = useState(null);
-
+  const [miniMapCursor, setMiniMapCursor] = useState(-1);
   const { userInfo } = useSelector((state) => state.userInfo);
 
   const isMoveMode = move === "move" || location.state?.mode === "move";
@@ -47,6 +47,7 @@ const Floor = () => {
   ===================================================== */
   const [selectedSector, setSelectedSector] = useState(null);
   const [showRoomView, setShowRoomView] = useState(false);
+  
 
   /* =====================================================
      ROOM VIEW STATE - UPDATED FOR PAN/ZOOM
@@ -101,6 +102,11 @@ const Floor = () => {
   } = useFloorData(floorId, initialFloorInfo, initialSectorList);
 
 
+useEffect(() => {
+  setMiniMapCursor(-1);
+}, [selectedSector]);
+
+
 
   /* =====================================================
      COMPUTED VALUES FOR ROOM VIEW
@@ -128,6 +134,51 @@ const Floor = () => {
     }
     return path;
   };
+
+
+useEffect(() => {
+  if (focusedRegion !== FocusRegion.MAP) return;
+  if (!showRoomView) return;
+  if (!layout?.sectors?.length) return;
+
+  const TOTAL = layout.sectors.length;
+
+  const onKeyDown = (e) => {
+    if (e.key === "*" || e.code === "NumpadMultiply" || e.keyCode === 106) return;
+
+    // 👉 ONLY MOVE RED BORDER (NO ZOOM, NO CLICK)
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      setMiniMapCursor((prev) =>
+        prev === -1 ? 0 : (prev + 1) % TOTAL
+      );
+    }
+
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      setMiniMapCursor((prev) =>
+        prev === -1 ? TOTAL - 1 : (prev - 1 + TOTAL) % TOTAL
+      );
+    }
+
+    // ✅ ENTER = ACTUAL SELECTION
+    if (e.key === "Enter" && miniMapCursor !== -1) {
+      e.preventDefault();
+
+      const sector = layout.sectors[miniMapCursor];
+      if (!sector) return;
+
+      setSelectedMiniSector(sector);
+      setImageTransform(sector.transform);
+      setIsZoomed(true);
+    }
+  };
+
+  window.addEventListener("keydown", onKeyDown);
+  return () => window.removeEventListener("keydown", onKeyDown);
+
+}, [focusedRegion, showRoomView, layout, miniMapCursor]);
+
 
   /* =====================================================
      LOGOUT
@@ -342,17 +393,16 @@ const Floor = () => {
   /* =====================================================
      MINI MAP CLICK
   ===================================================== */
-  const handleMiniSectorClick = (sector) => {
-    if (selectedMiniSector?.id === sector.id) {
-      setSelectedMiniSector(null);
-      setImageTransform({ x: 0, y: 0, scale: 1 });
-      setIsZoomed(false);
-      return;
-    }
-    setSelectedMiniSector(sector);
-    setImageTransform(sector.transform);
-    setIsZoomed(true);
-  };
+const handleMiniSectorClick = (sector) => {
+  const index = layout.sectors.findIndex((s) => s.id === sector.id);
+
+  setMiniMapCursor(index);              // focus moves
+  setSelectedMiniSector(sector);        // selection
+  setImageTransform(sector.transform);  // zoom
+  setIsZoomed(true);
+};
+
+
 
   /* =====================================================
      MAIN IMAGE CLICK - ZOOM TO CLICKED POINT
@@ -669,7 +719,10 @@ const Floor = () => {
       {/* ================= MAIN CONTENT ================= */}
       <div className="absolute inset-0 flex items-center justify-center z-0 mb-[-78px] mx-[11px]">
         {currentFloor && (
-          <div className={`relative h-[820px] bg-white/10 backdrop-blur-sm rounded-lg  shadow-2xl`}>
+          <div className={`relative h-[820px] bg-white/10 backdrop-blur-sm rounded-lg  shadow-2xl ${focusedRegion === FocusRegion.MAP
+            ? " outline-[6px] outline-[#dc2f02]"
+            : " outline-[6px] outline-transparent"
+            }`}>
             {loading ? (
               <LoadingSpinner />
             ) : showRoomView && selectedSector ? (
@@ -701,14 +754,12 @@ const Floor = () => {
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
+                miniMapCursor={miniMapCursor}
               />
             ) : (
               <div className="relative w-full h-full p-5">
                 <div
-                  className={`relative w-full h-full ${focusedRegion === FocusRegion.MAP
-                    ? " outline-[6px] outline-[#dc2f02]"
-                    : " outline-[6px] outline-transparent"
-                    }`}
+                  className={`relative w-full h-full`}
                 >
                   <FloorMapImage
                     floorImageUrl={floorImageUrl}
