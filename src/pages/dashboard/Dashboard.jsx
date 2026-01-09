@@ -383,11 +383,11 @@ if (
       <div className="absolute bottom-[150px] right-0 w-[70%] px-6">
         <div
           className={`bg-yellow-500/90 backdrop-blur-sm rounded-lg p-5 shadow-lg flex gap-4 ${focused === FocusRegion.NOTICE_BANNER
-              ? "outline outline-[6px] outline-[#dc2f02]"
+              ? "outline-[6px] outline-[#dc2f02]"
               : ""
             }`}
         >
-          <AlertCircle className="w-10 h-10 mt-2 flex-shrink-0" />
+          <AlertCircle className="w-10 h-10 mt-2 shrink-0" />
           <div>
             <h3 className="text-[32px]">Important Notice</h3>
             <div className="text-[30px] leading-9 font-medium">

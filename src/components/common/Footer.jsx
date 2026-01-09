@@ -192,7 +192,7 @@ const FooterControls = ({
   };
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 z-30 flex items-center justify-between px-6 py-3 bg-black/40 backdrop-blur-md">
+    <div className="absolute bottom-px left-0 right-0 z-30 flex items-center justify-between px-6 py-3 bg-black/40 backdrop-blur-md ">
       {/* ✅ Footer Focus Border */}
       {isFocused && (
         <div className="pointer-events-none absolute inset-0 border-[6px] border-[#dc2f02]" />
@@ -325,7 +325,7 @@ const FooterButton = ({
 }) => (
   <button
     onClick={onClick}
-    className={`h-16 px-4 flex items-center gap-3 rounded-xl
+    className={`h-14 px-4 flex items-center gap-3 rounded-xl
     ${active ? "bg-[#e2ac37] text-white" : "bg-[#FFCA08] text-[#9A7D4C]"}
     shadow-lg hover:bg-[#FFD640] active:scale-95 transition-all
     ${isFocused && isSelected ? "outline-[6px] outline-[#dc2f02]" : ""}`}

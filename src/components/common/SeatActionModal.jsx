@@ -525,7 +525,7 @@ const SeatActionModal = ({
                     key={i}
                     disabled={!opt.enabled}
                     onClick={() => handleTimeSelect(i, opt.value)}
-                    className={`text-[28px] font-bold py-2 rounded-2xl transition-all
+                    className={`text-[28px] font-bold py-1 rounded-lg ml-1 transition-all 
                         ${selectedIndex === i
                             ? "bg-teal-500 text-white scale-105 shadow-xl"
                             : opt.enabled
@@ -548,7 +548,7 @@ const SeatActionModal = ({
         if (!isMove && !isReturn && !confirmStep) return null;
 
         return (
-            <p className="text-red-600 font-extrabold text-[34px]">
+            <p className="text-red-600 font-extrabold text-[30px]">
                 {isMove
                     ? 'Do you want to move to this seat?'
                     : isReturn

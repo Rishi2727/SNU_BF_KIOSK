@@ -68,8 +68,8 @@ const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused 
     <div
       className={`
     w-[80%]
-    absolute bottom-0 right-0 z-30
-    flex items-center justify-between gap-4
+    absolute bottom-2 right-[5px] z-30
+    flex items-center justify-between gap-5
     px-6 py-2
     bg-white/90 backdrop-blur-md
     rounded-tl-2xl shadow-xl
@@ -81,9 +81,9 @@ const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused 
           key={item.id}
           onClick={() => onFloorClick(item)}
           disabled={loading}
-          className={`w-[35%] flex items-center rounded-xl overflow-hidden
+          className={`w-[35%] flex items-center rounded-xl overflow-hidden 
             transition-all duration-200 cursor-pointer
-            hover:scale-[1.02] hover:shadow-lg
+            hover:scale-[1.02] hover:shadow-lg 
             disabled:opacity-50 disabled:cursor-not-allowed
             ${currentFloor?.id === item.id
               ? "bg-[#FFCA08] shadow-md"
@@ -105,7 +105,7 @@ const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused 
               }`}
           >
             <span
-              className={`text-[36px] font-bold tracking-wide ${currentFloor?.id === item.id
+              className={`text-[32px] font-bold tracking-wide ${currentFloor?.id === item.id
                 ? "text-white"
                 : "text-[#9A7D4C]"
                 }`}
