@@ -36,11 +36,24 @@ const RoomView = ({
   onTouchStart,
   onTouchMove,
   onTouchEnd,
-  key
+  miniMapCursor,
+  focusStage,
+  seatCursor,
+  
 }) => {
+
+  
+
   /* ===================================================== 
      PARSE SEAT POSITION 
   ===================================================== */
+  const focusableSeats = seats.filter(
+  (s) =>
+    s.POSX &&
+    s.POSY &&
+    s.USECNT === 0 &&
+    (s.STATUS === 1 || s.STATUS === 2) // ✅ only selectable seats
+);
   const parseSeatPosition = (seat) => {
     if (
       !seat?.POSX ||
@@ -75,47 +88,54 @@ const RoomView = ({
   return (
     <>
       {/* ================= MINI MAP ================= */}
-       {loadingSeats ? (
-          <LoadingSpinner />
-        ) : 
-      miniMapUrl && layout && !miniMapError && (
-        <div className="absolute top-0 right-0 z-30">
-          <div className="relative rounded shadow-2xl bg-black/20 p-1">
-            <img
-              src={miniMapUrl}
-              alt="Mini Map"
-              className="w-80 rounded opacity-90"
-              onError={onMiniMapError}
-            />
-            <div
-              className="absolute inset-0 p-1"
-              style={{
-                display: "grid",
-                gridTemplateRows: `repeat(${layout.rows}, 1fr)`,
-                gridTemplateColumns: selectedSector?.SECTORNO === 16301
-                  ? "1fr 1.2fr"
-                  : `repeat(${layout.cols}, 1fr)`,
-              }}
-            >
-              {layout.sectors.map((sector) => (
-                <button
-                  key={sector.id}
-                  style={{
-                    gridRow: sector.row + 1,
-                    gridColumn: sector.col + 1,
-                  }}
-                  onClick={() => onMiniSectorClick(sector)}
-                  className={`border transition-all duration-200 ${selectedMiniSector?.id === sector.id
-                    ? "border-blue-400 bg-blue-500/40"
-                    : "border-white/20 hover:bg-white/20"
-                    }`}
-                  title={sector.label}
-                />
-              ))}
+      {loadingSeats ? (
+        <LoadingSpinner />
+      ) :
+        miniMapUrl && layout && !miniMapError && (
+          <div className="absolute top-0 right-0 z-30">
+            <div className="relative rounded shadow-2xl bg-black/20 p-1">
+              <img
+                src={miniMapUrl}
+                alt="Mini Map"
+                className="w-80 rounded opacity-90"
+                onError={onMiniMapError}
+              />
+              <div
+                className="absolute inset-0 p-1"
+                style={{
+                  display: "grid",
+                  gridTemplateRows: `repeat(${layout.rows}, 1fr)`,
+                  gridTemplateColumns: selectedSector?.SECTORNO === 16301
+                    ? "1fr 1.2fr"
+                    : `repeat(${layout.cols}, 1fr)`,
+                }}
+              >
+                {layout.sectors.map((sector, index) => {
+                  const isFocused = index === miniMapCursor;
+                  const isSelected = selectedMiniSector?.id === sector.id;
+
+                  return (
+                    <button
+                      key={sector.id}
+                      style={{
+                        gridRow: sector.row + 1,
+                        gridColumn: sector.col + 1,
+                      }}
+                      onClick={() => onMiniSectorClick(sector)}
+                      className={`border transition-all duration-200
+
+        ${isFocused ? "border-red-500 scale-105 border-2" : "border-white/20"}
+
+        ${isSelected ? " bg-blue-500/40" : " hover:bg-white/20"}
+      `}
+                    />
+                  );
+                })}
+
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
       {/* ================= MAIN IMAGE WITH SEATS ================= */}
       <div
@@ -127,7 +147,7 @@ const RoomView = ({
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-       {selectedSector?.SECTOR_IMAGE ? (
+        {selectedSector?.SECTOR_IMAGE ? (
           <div
             className={`relative border transition-transform ease-out ${isPanning ? 'duration-0 cursor-grabbing' : 'duration-500 cursor-pointer'
               } ${isZoomed && !isPanning ? 'cursor-grab' : ''}`}
@@ -173,6 +193,9 @@ const RoomView = ({
 
               {/* Seat Markers */}
               {seats.map((seat) => {
+                const isFocusedSeat =
+  focusStage === "seats" &&
+  focusableSeats?.[seatCursor]?.SEATNO === seat.SEATNO;
                 const position = parseSeatPosition(seat);
                 if (!position) return null;
 
@@ -185,7 +208,10 @@ const RoomView = ({
                   return (
                     <div
                       key={seat.SEATNO}
-                      className="absolute pointer-events-auto cursor-pointer hover:opacity-80 transition-opacity"
+                      className={`absolute pointer-events-auto cursor-pointer transition-all
+    ${isFocusedSeat ? "ring-4 ring-red-500 scale-110 z-40" : "hover:opacity-80"}
+  `}
+
                       style={{
                         left: position.left,
                         top: position.top,

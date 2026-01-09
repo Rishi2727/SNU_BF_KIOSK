@@ -70,6 +70,10 @@ export const getFloorList = async (libno) => {
   return res.data;
 };
 
+export const getNoticeInfo = async () => {
+  const res = await baseClient_2.get("/GetNoticeInfo_TEST.asp");
+  return res.data;
+};
 /* ===============================
    AUTH
 ================================ */

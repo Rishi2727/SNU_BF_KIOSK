@@ -15,6 +15,7 @@ import { clearUserInfo, setUserInfo } from "../../redux/slice/userInfo";
 import { setSectorList, setCurrentFloor, setSectorLoading, setSectorError } from "../../redux/slice/sectorSlice";
 import { fetchBookingTime } from "../../redux/slice/bookingTimeSlice";
 import { FLOORS_CONFIG, MODAL_TYPES } from "../../utils/constant";
+import NoticeBanner from "../../components/layout/dashboard/Notice";
 
 
 const Dashboard = () => {
@@ -22,6 +23,7 @@ const Dashboard = () => {
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const [isUserInfoModalOpen, setIsUserInfoModalOpen] = useState(false);
   const [selectedFloor, setSelectedFloor] = useState(null);
+
   const [modalStates, setModalStates] = useState({
     [MODAL_TYPES.EXTENSION]: false,
     [MODAL_TYPES.RETURN]: false,
@@ -50,10 +52,7 @@ const Dashboard = () => {
     HEADING: "heading",
   });
 
-
-  // ✅For KeyBoard
-
-   const FocusRegionforKeyboardModal = Object.freeze({
+  const FocusRegionforKeyboardModal = Object.freeze({
     KEYBOARD: "keyboard",
   });
 
@@ -68,27 +67,27 @@ const Dashboard = () => {
       if (!isAsterisk) return;
 
       // Don't cycle focus if any modal is open
-// ⭐ CASE 1: Keyboard is open but NOT focused → Shift + * enters keyboard focus
-if (
-  isKeyboardOpen &&
-  focused !== FocusRegionforKeyboardModal.KEYBOARD
-) {
-  e.preventDefault();
-  e.stopPropagation();
-  setFocused(FocusRegionforKeyboardModal.KEYBOARD);
-  return;
-}
+      // ⭐ CASE 1: Keyboard is open but NOT focused → Shift + * enters keyboard focus
+      if (
+        isKeyboardOpen &&
+        focused !== FocusRegionforKeyboardModal.KEYBOARD
+      ) {
+        e.preventDefault();
+        e.stopPropagation();
+        setFocused(FocusRegionforKeyboardModal.KEYBOARD);
+        return;
+      }
 
-// ⭐ CASE 2: Keyboard already focused → dashboard should NOT react
-if (
-  focused === FocusRegionforKeyboardModal.KEYBOARD ||
-  isUserInfoModalOpen ||
-  modalStates[MODAL_TYPES.EXTENSION] ||
-  modalStates[MODAL_TYPES.RETURN] ||
-  modalStates[MODAL_TYPES.ASSIGN_CHECK]
-) {
-  return;
-}
+      // ⭐ CASE 2: Keyboard already focused → dashboard should NOT react
+      if (
+        focused === FocusRegionforKeyboardModal.KEYBOARD ||
+        isUserInfoModalOpen ||
+        modalStates[MODAL_TYPES.EXTENSION] ||
+        modalStates[MODAL_TYPES.RETURN] ||
+        modalStates[MODAL_TYPES.ASSIGN_CHECK]
+      ) {
+        return;
+      }
 
 
       // Cycle through focus regions: Logo → MainSection → Notice → Footer → Logo
@@ -379,24 +378,11 @@ if (
         FocusRegion={FocusRegion}
       />
 
-      {/* ✅ Notice Banner with focus border */}
-      <div className="absolute bottom-[150px] right-0 w-[70%] px-6">
-        <div
-          className={`bg-yellow-500/90 backdrop-blur-sm rounded-lg p-5 shadow-lg flex gap-4 ${focused === FocusRegion.NOTICE_BANNER
-              ? "outline-[6px] outline-[#dc2f02]"
-              : ""
-            }`}
-        >
-          <AlertCircle className="w-10 h-10 mt-2 shrink-0" />
-          <div>
-            <h3 className="text-[32px]">Important Notice</h3>
-            <div className="text-[30px] leading-9 font-medium">
-              Scheduled maintenance will occur on December 15, 2025 from 2:00 AM to 4:00 AM UTC.
-              Services may be temporarily unavailable.
-            </div>
-          </div>
-        </div>
-      </div>
+      <NoticeBanner
+        isFocused={focused === FocusRegion.NOTICE_BANNER}
+        FocusRegion={FocusRegion}
+      />
+
 
       {/* ✅ Footer Controls with focus border */}
       <div
@@ -422,8 +408,8 @@ if (
         onClose={closeKeyboard}
         onSubmit={handleKeyboardSubmit}
         autoCloseTime={30000}
-          isFocused={focused === FocusRegionforKeyboardModal.KEYBOARD}
-            setFocused={setFocused}
+        isFocused={focused === FocusRegionforKeyboardModal.KEYBOARD}
+        setFocused={setFocused}
       />
 
       {/* User Info Modal */}
