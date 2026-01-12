@@ -54,7 +54,7 @@ const NoticeBanner = ({isFocused, FocusRegion }) => {
         <div className="flex flex-col gap-2 w-full h-full overflow-hidden">
           
           {/* Title */}
-          <h3 className="text-[32px] font-extrabold tracking-wide leading-8 drop-shadow-md shrink-0">
+          <h3 className="text-[32px] font-extrabold tracking-wide leading-8 drop-shadow-md shrink-0 text-[#9A7D4C]">
             {notices.length
               ? notices[noticeIndex]?.TITLE || "Notice"
               : "Notice"}
