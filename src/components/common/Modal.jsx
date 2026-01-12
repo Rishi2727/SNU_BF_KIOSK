@@ -1,12 +1,12 @@
-const Modal = ({ 
-  isOpen, 
-  onClose, 
-  title, 
-  children, 
+const Modal = ({
+  isOpen,
+  onClose,
+  title,
+  children,
   footer,
   size = 'medium',
-  showCloseButton = true ,
-className = ""
+  showCloseButton = true,
+  className = ""
 }) => {
   if (!isOpen) return null;
 
@@ -17,11 +17,11 @@ className = ""
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
       onClick={onClose}
     >
-      <div 
+      <div
         className={`bg-white rounded-lg shadow-2xl ${sizeClasses[size]} max-w-[90vw] max-h-[90vh] flex flex-col overflow-hidden  ${className}`}
         onClick={(e) => e.stopPropagation()}
       >
