@@ -4,6 +4,7 @@ import bookingTimeReducer from "../redux/slice/bookingTimeSlice";
 import sectorInfoReducer from "../redux/slice/sectorSlice";
 import accessibilityReducer from "../redux/slice/accessibilitySlice";
 import floorReducer from "../redux/slice/floorSlice";
+import langReducer from "../redux/slice/langSlice";
 
 export const store = configureStore({
   reducer: {
@@ -12,5 +13,6 @@ export const store = configureStore({
     sectorInfo: sectorInfoReducer,
     accessibility: accessibilityReducer,
     floor: floorReducer,
+    lang: langReducer, 
   },
 });

@@ -6,5 +6,7 @@
     "Mute": "음소거",
     "Info": "정보",
     "Zoom": "확대",
-    "Contrast": "대비"
+    "Contrast": "대비",
+    "Please select a desired floor" : "원하시는 층을 선택해 주세요.",
+    "Login" : "로그인"
 }

@@ -6,6 +6,7 @@ import { fetchFloorList } from "../redux/slice/floorSlice";
 export const useFloorData = (floorId, initialFloorInfo, initialSectorList) => {
   const dispatch = useDispatch();
   const { floors, error } = useSelector((state) => state.floor);
+  const lang = useSelector((state) => state.lang.current);
   const [currentFloor, setCurrentFloor] = useState(null);
   const [sectorList, setSectorList] = useState(initialSectorList);
   const [floorImageUrl, setFloorImageUrl] = useState("");
@@ -13,7 +14,7 @@ export const useFloorData = (floorId, initialFloorInfo, initialSectorList) => {
   const [loading, setLoading] = useState(false);
   useEffect(() => {
     dispatch(fetchFloorList(1)); // libno = 1
-  }, [dispatch]);
+  }, [dispatch, lang]);
   useEffect(() => {
     if (initialFloorInfo) {
       setCurrentFloor(initialFloorInfo);

@@ -1,4 +1,10 @@
-const LibraryCard = ({ title, subtitle, availableCount = 0, totalCount = 217, onClick,  isFocused, }) => {
+const LibraryCard = ({
+  name,
+  availableCount = 0,
+  totalCount = 0,
+  onClick,
+  isFocused,
+}) => {
   return (
     <button
       onClick={onClick}
@@ -7,18 +13,15 @@ const LibraryCard = ({ title, subtitle, availableCount = 0, totalCount = 217, on
         bg-[#FFCA08] hover:bg-[#D7D8D2]
         transition rounded-2xl
         flex-1 h-[220px] min-w-[180px] mx-2 p-6
-
         ${isFocused ? "outline outline-[6px] outline-[#dc2f02]" : ""}
       `}
     >
-      {/* Top Text Section */}
-      <div className="flex flex-col gap-2">
-        <div className="text-[50px] font-bold text-[#9A7D4C] leading-tight">
-          {title}
-        </div>
+      {/* ✅ FLOOR NAME */}
+      <div className="text-[50px] font-bold text-[#9A7D4C] leading-tight">
+        {name}
       </div>
 
-      {/* Progress Bar (moved up naturally) */}
+      {/* Progress Bar */}
       <div className="mt-20 relative">
         <div className="w-full h-4 bg-gray-300 rounded-full overflow-hidden">
           <div
@@ -27,13 +30,11 @@ const LibraryCard = ({ title, subtitle, availableCount = 0, totalCount = 217, on
           />
         </div>
 
-        {/* Moving Count Badge */}
+        {/* Used count */}
         <div
           className="absolute -top-11 -translate-x-1/2 bg-[#9A7D4C] text-white
                      px-2 rounded-md text-[30px] font-bold shadow-md"
-          style={{
-            left: `${(availableCount / totalCount) * 100}%`,
-          }}
+          style={{ left: `${(availableCount / totalCount) * 100}%` }}
         >
           {availableCount}
         </div>

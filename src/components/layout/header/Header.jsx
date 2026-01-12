@@ -1,9 +1,14 @@
 import { useEffect, useState } from "react";
 import { LogOut, User } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import i18n from "../../../translation/language/i18n";
+import { setLanguage as setLanguageAction } from "../../../redux/slice/langSlice";
 
 const Header = ({ userInfo, openKeyboard, logout }) => {
   const [time, setTime] = useState("");
-  const [language, setLanguage] = useState("KR");
+  const dispatch = useDispatch();
+  const currentLang = useSelector((state) => state.lang.current);
+  const uiLanguage = currentLang === "ko" ? "KR" : "EN";
 
   useEffect(() => {
     const updateTime = () =>
@@ -29,16 +34,20 @@ const Header = ({ userInfo, openKeyboard, logout }) => {
     >
       {/* Language Switch */}
       <div className="flex rounded-xl overflow-hidden border-2 border-white">
-        {["KR", "EN"].map((lang) => (
+        {['KR', 'EN'].map((uiLangBtn) => (
           <button
-            key={lang}
-            onClick={() => setLanguage(lang)}
+            key={uiLangBtn}
+            onClick={() => {
+              const backend = uiLangBtn === 'KR' ? 'ko' : 'en';
+              dispatch(setLanguageAction(backend));
+              i18n.changeLanguage(backend);
+            }}
             className={`
               min-w-[80px] h-[56px] text-[28px] font-bold
-              ${language === lang ? "bg-[#FFCA08] text-white" : "bg-white text-black"}
+              ${uiLanguage === uiLangBtn ? "bg-[#FFCA08] text-white" : "bg-white text-black"}
             `}
           >
-            {lang}
+            {uiLangBtn}
           </button>
         ))}
       </div>
