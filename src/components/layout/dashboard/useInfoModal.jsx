@@ -87,17 +87,14 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
           e.preventDefault();
           setFocusIndex(prev => (prev + 1) % (maxIndex + 1));
           break;
-
         case "ArrowLeft":
           e.preventDefault();
           setFocusIndex(prev => (prev - 1 + maxIndex + 1) % (maxIndex + 1));
           break;
-
         case "Enter":
           e.preventDefault();
           focusableActions[focusIndex]?.action();
           break;
-
         default:
           break;
       }

@@ -411,7 +411,6 @@ const SeatActionModal = ({
                 break;
 
             case 'confirmation-message':
-                // ✅ FIX: When focused on confirmation message, pressing Enter should confirm
                 if (isReturn || isMove) {
                     handleFinalConfirm();
                 } else if (confirmStep) {
