@@ -17,6 +17,7 @@ import {
 } from "../../redux/slice/accessibilitySlice";
 import { useTranslation } from "react-i18next";
 import i18n from "../../translation/language/i18n";
+import { useVoice } from "../../context/voiceContext";
 
 const applyContrastMode = (mode) => {
   document.documentElement.setAttribute("data-contrast", mode);
@@ -32,6 +33,7 @@ const FooterControls = ({
 }) => {
   const dispatch = useDispatch();
   const { t } = useTranslation();
+  const { speak } = useVoice();
 
   const magnifierEnabled = useSelector(
     (state) => state.accessibility.magnifierEnabled
@@ -191,6 +193,8 @@ const FooterControls = ({
     applyContrastMode(nextMode);
   };
 
+
+
   return (
     <div className="absolute bottom-px left-0 right-0 z-30 flex items-center justify-between px-6 py-3 bg-black/40 backdrop-blur-md ">
       {/* ✅ Footer Focus Border */}
@@ -205,7 +209,11 @@ const FooterControls = ({
             <button
               onClick={logout}
               className={`flex items-center gap-2 bg-red-500 px-5 py-2 rounded-full text-white text-[26px]
-              ${cursor === 0 && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}`}
+              ${
+                cursor === 0 && isFocused
+                  ? "outline-[6px] outline-[#dc2f02]"
+                  : ""
+              }`}
             >
               <LogOut className="w-7 h-7" />
               로그아웃
@@ -213,7 +221,11 @@ const FooterControls = ({
 
             <div
               className={`flex items-center gap-2 bg-white text-black px-5 py-2 rounded-lg text-[26px]
-              ${cursor === 1 && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}`}
+              ${
+                cursor === 1 && isFocused
+                  ? "outline-[6px] outline-[#dc2f02]"
+                  : ""
+              }`}
             >
               <User className="w-7 h-7" />
               {userInfo.SCHOOLNO}
@@ -223,7 +235,9 @@ const FooterControls = ({
           <button
             onClick={openKeyboard}
             className={`px-7 py-2.5 rounded-full bg-[#D7D8D2] text-white text-[28px]
-            ${cursor === 0 && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}`}
+            ${
+              cursor === 0 && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""
+            }`}
           >
             로그인
           </button>
@@ -331,9 +345,7 @@ const FooterButton = ({
     ${isFocused && isSelected ? "outline-[6px] outline-[#dc2f02]" : ""}`}
   >
     {icon}
-    <span className="text-[30px] font-semibold whitespace-nowrap">
-      {label}
-    </span>
+    <span className="text-[30px] font-semibold whitespace-nowrap">{label}</span>
   </button>
 );
 

@@ -16,8 +16,8 @@ function App() {
     <BrowserRouter>
         <Provider store={store}>     
           <Magnifier />
-          <GlobalShortcuts />
            <VoiceProvider>
+          <GlobalShortcuts />
           <AppRoutes />  
           </VoiceProvider>   
         </Provider>

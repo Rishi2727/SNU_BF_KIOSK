@@ -1,21 +1,19 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { AlertCircle } from "lucide-react";
-
 import BgMainImage from "../../assets/images/BgMain.jpg";
 import MainSection from "../../components/layout/dashboard/MainSection";
 import KeyboardModal from "../../components/layout/keyBoardModal/KeyboardModal";
 import FooterControls from "../../components/common/Footer";
 import UserInfoModal from "../../components/layout/dashboard/useInfoModal";
 import SeatActionModal from "../../components/common/SeatActionModal";
-
 import { getKioskUserInfo, getSectorList, loginBySchoolNo } from "../../services/api";
 import { clearUserInfo, setUserInfo } from "../../redux/slice/userInfo";
 import { setSectorList, setCurrentFloor, setSectorLoading, setSectorError } from "../../redux/slice/sectorSlice";
 import { fetchBookingTime } from "../../redux/slice/bookingTimeSlice";
 import { FLOORS_CONFIG, MODAL_TYPES } from "../../utils/constant";
 import NoticeBanner from "../../components/layout/dashboard/Notice";
+import { useVoice } from "../../context/voiceContext";
 
 
 const Dashboard = () => {
@@ -23,7 +21,7 @@ const Dashboard = () => {
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const [isUserInfoModalOpen, setIsUserInfoModalOpen] = useState(false);
   const [selectedFloor, setSelectedFloor] = useState(null);
-
+  const { speak, stop } = useVoice();
   const [modalStates, setModalStates] = useState({
     [MODAL_TYPES.EXTENSION]: false,
     [MODAL_TYPES.RETURN]: false,
@@ -55,6 +53,9 @@ const Dashboard = () => {
   const FocusRegionforKeyboardModal = Object.freeze({
     KEYBOARD: "keyboard",
   });
+
+
+
 
   // ✅ Focus cycling with '*' key
   useEffect(() => {
@@ -360,6 +361,34 @@ const Dashboard = () => {
   /**
    * Volume control handlers (placeholders)
    */
+
+  // 🔊 VOICE: speak when dashboard focus changes
+useEffect(() => {
+  if (!focused) return;
+
+  stop(); // stop previous speech before new focus speech
+
+  switch (focused) {
+    case FocusRegion.LOGO:
+      speak("Seoul National University Library kiosk");
+      break;
+
+    case FocusRegion.MAIN_SECTION:
+      speak("Select the desired floor");
+      break;
+
+    case FocusRegion.NOTICE_BANNER:
+      speak("Notice information");
+      break;
+
+    case FocusRegion.FOOTER:
+      speak("Footer controls");
+      break;
+
+    default:
+      break;
+  }
+}, [focused, speak, stop]);
 
   return (
     <div className="relative h-screen w-screen overflow-hidden font-bold text-white">

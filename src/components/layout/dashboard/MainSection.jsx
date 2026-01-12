@@ -6,6 +6,7 @@ import { getSectorList } from "../../../services/api";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchFloorList } from "../../../redux/slice/floorSlice";
+import { useVoice } from "../../../context/voiceContext";
 
 const MainSection = ({
   openKeyboard,
@@ -15,6 +16,7 @@ const MainSection = ({
 }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+const { speak, stop } = useVoice();
 
   /* ===============================
      ✅ REDUX STATE
@@ -68,6 +70,28 @@ const MainSection = ({
       setCursor(null);
     }
   }, [focusedRegion, FocusRegion.MAIN_SECTION]);
+  
+  // 🔊 VOICE: speak when cursor changes
+useEffect(() => {
+  if (focusedRegion !== FocusRegion.MAIN_SECTION) return;
+  if (cursor === null) return;
+
+  stop();
+
+  // cursor = 0 → heading
+  if (cursor === 0) {
+    speak("Please select the desired library floor");
+    return;
+  }
+
+  // cursor >= 1 → floor cards
+  const floor = floors[cursor - 1];
+  if (floor) {
+    speak(
+      `${floor.title}. Total seats ${floor.total}. Occupied seats ${floor.occupied}`
+    );
+  }
+}, [cursor, focusedRegion, floors, speak, stop]);
 
   /* ===============================
      ✅ KEYBOARD NAVIGATION
@@ -119,6 +143,7 @@ const MainSection = ({
       </div>
     );
   }
+
 
   /* ===============================
      ✅ UI
