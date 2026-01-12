@@ -472,9 +472,9 @@ const SeatActionModal = ({
      * ✅ STEP 6: Render header section with focus highlighting
      */
     const renderHeader = useMemo(() => {
-        const headerClass = `mb-10 p-2 bg-gradient-to-r from-cyan-100 to-teal-100 border-4 border-teal-400 rounded-2xl shadow-md ${isFocused('header') ? 'outline outline-[6px] outline-[#dc2f02]' : ''
+        const headerClass = `mb-10 p-2  border-4 border-[#DDAB2C] rounded-2xl shadow-md ${isFocused('header') ? 'outline outline-[6px] outline-[#dc2f02]' : ''
             }`;
-        const textClass = "text-center text-[30px] text-teal-700 font-bold";
+        const textClass = "text-center text-[30px] text-[#DDAB2C] font-bold";
 
         if (isAssignCheck && seatInfo) {
             return (
@@ -527,7 +527,7 @@ const SeatActionModal = ({
                     onClick={() => handleTimeSelect(i, opt.value)}
                     className={`text-[28px] font-bold py-1 rounded-lg ml-1 transition-all 
                         ${selectedIndex === i
-                            ? "bg-teal-500 text-white scale-105 shadow-xl"
+                            ? "bg-linear-to-r from-[#FFCB35] to-[#dfac15] text-white scale-105 shadow-xl"
                             : opt.enabled
                                 ? "bg-gray-400 hover:bg-gray-300"
                                 : "bg-gray-100 text-gray-400 cursor-not-allowed"
@@ -573,7 +573,7 @@ const SeatActionModal = ({
                                 setTimeout(() => onBackToUserInfo(), 300);
                             }
                         }}
-                        className={`px-12 py-4 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white rounded-lg font-bold text-lg ${isFocused('confirm-button') ? 'outline outline-[6px] outline-[#dc2f02]' : ''
+                        className={`px-12 py-4 bg-linear-to-r from-[#FFCB35] to-[#cf9e0b] hover:from-[#fccc3b] hover:to-[#c79706] text-white rounded-lg font-bold text-lg ${isFocused('confirm-button') ? 'outline outline-[6px] outline-[#dc2f02]' : ''
                             }`}
                     >
                         Confirm
@@ -613,7 +613,7 @@ const SeatActionModal = ({
                     disabled={isConfirmDisabled}
                     className={`flex-1 px-6 py-4 rounded-lg font-bold text-lg
                         ${!isConfirmDisabled && ((isReturn || isMove) || selectedIndex !== null) && (!(isBooking || isMove) || isAvailable)
-                            ? "bg-gradient-to-r from-teal-500 to-cyan-500 text-white"
+                            ? "bg-gradient-to-r from-[#FFCB35] to-[#cf9e0b] text-white"
                             : "bg-gray-300 text-gray-500 cursor-not-allowed"
                         }
                         ${isFocused('confirm-button') ? 'outline outline-[6px] outline-[#dc2f02]' : ''}
@@ -636,7 +636,7 @@ const SeatActionModal = ({
         <div className="flex justify-center">
             <button
                 onClick={handleResultModalClose}
-                className={`px-12 py-4 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white rounded-lg font-bold text-lg ${isFocused('confirm-button') ? 'outline outline-[6px] outline-[#dc2f02]' : ''
+                className={`px-12 py-4 bg-gradient-to-r from-[#FFCB35] to-[#cf9e0b] hover:from-[#fccc3b] hover:to-[#c79706] text-white rounded-lg font-bold text-lg ${isFocused('confirm-button') ? 'outline outline-[6px] outline-[#dc2f02]' : ''
                     }`}
             >
                 Confirm
@@ -668,7 +668,7 @@ const SeatActionModal = ({
                 showCloseButton={false}
             >
                 {/* ✅ Modal Title with focus highlighting */}
-                <h2 className={`text-[36px] font-extrabold text-center text-teal-600 mb-8 tracking-wide ${isFocused('title') ? 'outline outline-[6px] outline-[#dc2f02] rounded-lg' : ''
+                <h2 className={`text-[36px] font-extrabold text-center text-[#f7c224] mb-8 tracking-wide ${isFocused('title') ? 'outline outline-[6px] outline-[#dc2f02] rounded-lg' : ''
                     }`}>
                     {isAssignCheck ? "좌석정보" : `좌석 ${MODE_LABELS[mode]}`}
                 </h2>
@@ -693,7 +693,7 @@ const SeatActionModal = ({
                                     이름 :
                                 </span>
 
-                                <span className="font-extrabold text-teal-700">
+                                <span className="font-extrabold text-[#f7c224]">
                                     {userInfo?.SCHOOLNO}
                                 </span>
                             </div>
@@ -709,7 +709,7 @@ const SeatActionModal = ({
                                     이용시간 :
                                 </span>
 
-                                <div className="flex-1 font-extrabold text-teal-700">
+                                <div className="flex-1 font-extrabold text-[#f7c224]">
                                     {formatDate(seatInfo.USESTART, DATE_FORMATS.ISO)} ~{" "}
                                     {formatDate(seatInfo.USEEXPIRE, DATE_FORMATS.ISO)}
                                 </div>
@@ -731,7 +731,7 @@ const SeatActionModal = ({
                                     }`}
                             >
                                 <span className="text-gray-700">Name :</span>
-                                <span className="font-extrabold text-teal-700">
+                                <span className="font-extrabold text-[#f7c224]">
                                     {userInfo?.SCHOOLNO}
                                 </span>
                             </div>
@@ -747,7 +747,7 @@ const SeatActionModal = ({
                                         Date Duration :
                                     </span>
 
-                                    <span className="font-extrabold text-teal-700">
+                                    <span className="font-extrabold text-[#f7c224]">
                                         {formatDate(startTime, DATE_FORMATS.ISO)} ~{" "}
                                         {endTime ? formatDate(endTime, DATE_FORMATS.ISO) : ""}
                                     </span>
@@ -764,7 +764,7 @@ const SeatActionModal = ({
                                         Start hours :
                                     </span>
 
-                                    <span className="font-extrabold text-teal-700">
+                                    <span className="font-extrabold text-[#f7c224]">
                                         {formatDate(startTime, DATE_FORMATS.ISO)} ~{" "}
                                         {bookingSeatInfo?.USEEXPIRE
                                             ? formatDate(bookingSeatInfo.USEEXPIRE, DATE_FORMATS.ISO)
@@ -821,7 +821,7 @@ const SeatActionModal = ({
                     {/* Success/Error Icon */}
                     <div className="flex justify-center mb-6">
                         {actionResult?.success ? (
-                            <div className="w-24 h-24 bg-gradient-to-r from-teal-500 to-cyan-500 rounded-full flex items-center justify-center">
+                            <div className="w-24 h-24 bg-gradient-to-r from-[#FFCB35] to-[#cf9e0b] rounded-full flex items-center justify-center">
                                 <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                 </svg>
@@ -836,7 +836,7 @@ const SeatActionModal = ({
                     </div>
 
                     {/* Result Message */}
-                    <h2 className={`text-[36px] font-extrabold mb-4 ${actionResult?.success ? "text-teal-600" : "text-red-600"}`}>
+                    <h2 className={`text-[36px] font-extrabold mb-4 ${actionResult?.success ? "text-[#F7C233]" : "text-red-600"}`}>
                         {actionResult?.success ? `${MODE_LABELS[mode]} 완료` : `${MODE_LABELS[mode]} 실패`}
                     </h2>
 
@@ -846,10 +846,10 @@ const SeatActionModal = ({
 
                     {/* Success Details */}
                     {actionResult?.success && !isReturn && !isMove && (
-                        <div className="mt-6 p-6 bg-gradient-to-r from-cyan-100 to-teal-100 border-4 border-teal-400 rounded-2xl">
+                        <div className="mt-6 p-4 bg-gradient-to-r from-[#FFCB35] to-[#cf9e0bd0] border-4 border-[#cf9e0b] rounded-2xl">
                             {isBooking && seat ? (
                                 <>
-                                    <p className="text-[24px] text-teal-700 font-bold">
+                                    <p className="text-[24px] text-[#F7C233] font-bold">
                                         {seat.ROOM_NAME} - {seat?.VNAME}
                                     </p>
                                     <p className="text-[20px] text-gray-600 mt-2">
@@ -858,7 +858,7 @@ const SeatActionModal = ({
                                 </>
                             ) : (
                                 <>
-                                    <p className="text-[24px] text-teal-700 font-bold">
+                                    <p className="text-[24px]  font-bold">
                                         연장 시간: {endTime ? formatDate(endTime, DATE_FORMATS.ISO) : ""}
                                     </p>
                                     <p className="text-[20px] text-gray-600 mt-2">
@@ -870,8 +870,8 @@ const SeatActionModal = ({
                     )}
 
                     {actionResult?.success && isMove && (
-                        <div className="mt-6 p-6 bg-gradient-to-r from-cyan-100 to-teal-100 border-4 border-teal-400 rounded-2xl">
-                            <p className="text-[24px] text-teal-700 font-bold">
+                        <div className="mt-6 p-6 bg-gradient-to-r from-[#FFCB35] to-[#cf9e0b] border-4 border-[#cf9e0b] rounded-2xl">
+                            <p className="text-[24px] font-bold">
                                 좌석 이동이 완료되었습니다
                             </p>
                             <p className="text-[20px] text-gray-600 mt-2">
@@ -881,8 +881,8 @@ const SeatActionModal = ({
                     )}
 
                     {actionResult?.success && isReturn && (
-                        <div className="mt-6 p-6 bg-gradient-to-r from-cyan-100 to-teal-100 border-4 border-teal-400 rounded-2xl">
-                            <p className="text-[24px] text-teal-700 font-bold">
+                        <div className="mt-6 p-6 bg-gradient-to-r from-[#FFCB35] to-[#cf9e0b] border-4 border-[#cf9e0b] rounded-2xl">
+                            <p className="text-[24px]  font-bold">
                                 좌석이 성공적으로 반납되었습니다
                             </p>
                             <p className="text-[20px] text-gray-600 mt-2">
