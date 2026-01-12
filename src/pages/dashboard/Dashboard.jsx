@@ -23,7 +23,7 @@ const Dashboard = () => {
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const [isUserInfoModalOpen, setIsUserInfoModalOpen] = useState(false);
   const [selectedFloor, setSelectedFloor] = useState(null);
-
+  const lang = useSelector((state) => state.lang.current);
   const [modalStates, setModalStates] = useState({
     [MODAL_TYPES.EXTENSION]: false,
     [MODAL_TYPES.RETURN]: false,
@@ -177,7 +177,7 @@ const Dashboard = () => {
       console.error("Sector API failed:", error);
       dispatch(setSectorError(error.message));
     }
-  }, [dispatch, navigate]);
+  }, [dispatch, navigate, lang]);
 
 
 
@@ -295,7 +295,7 @@ const Dashboard = () => {
     } catch (error) {
       console.error('Error fetching booking info:', error);
     }
-  }, [userInfo, bookingSeatInfo, dispatch, navigate]);
+  }, [userInfo, bookingSeatInfo, dispatch, navigate, lang]);
 
   /**
    * Handle actions from UserInfoModal
@@ -381,6 +381,7 @@ const Dashboard = () => {
       <NoticeBanner
         isFocused={focused === FocusRegion.NOTICE_BANNER}
         FocusRegion={FocusRegion}
+        lang = {lang}
       />
 
 

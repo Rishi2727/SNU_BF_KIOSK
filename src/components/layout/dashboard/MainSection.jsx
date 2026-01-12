@@ -6,6 +6,7 @@ import { getSectorList } from "../../../services/api";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchFloorList } from "../../../redux/slice/floorSlice";
+import { useTranslation } from "react-i18next";
 
 const MainSection = ({
   openKeyboard,
@@ -15,7 +16,8 @@ const MainSection = ({
 }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
+  const lang = useSelector((state) => state.lang.current);
+  const {t} = useTranslation();
   /* ===============================
      ✅ REDUX STATE
   ================================ */
@@ -32,7 +34,7 @@ const MainSection = ({
   ================================ */
   useEffect(() => {
     dispatch(fetchFloorList(1)); // libno = 1
-  }, [dispatch]);
+  }, [dispatch, lang]);
 
   /* ===============================
      ✅ CARD CLICK
@@ -147,14 +149,14 @@ const MainSection = ({
           }`}
         >
           <h2
-            className={`text-[32px] font-semibold mb-10
+            className={`text-[32px] font-semibold mb-10 capitalize
               ${
                 focusedRegion === FocusRegion.MAIN_SECTION && cursor === 0
                   ? "outline-[6px] outline-[#dc2f02] rounded-lg px-2 py-2"
                   : ""
               }`}
           >
-            원하는 라이브러리를 선택하십시오
+            {t("Please select a desired floor")}
           </h2>
 
           <div className="flex justify-between">
@@ -162,6 +164,7 @@ const MainSection = ({
               <LibraryCard
                 key={fl.id}
                 {...fl}
+                name={fl.name}
                 availableCount={fl.occupied}
                 totalCount={fl.total}
                 onClick={() => handleCardClick(fl)}

@@ -17,6 +17,7 @@ import {
 } from "../../redux/slice/accessibilitySlice";
 import { useTranslation } from "react-i18next";
 import i18n from "../../translation/language/i18n";
+import { setLanguage as setLanguageAction } from "../../redux/slice/langSlice";
 
 const applyContrastMode = (mode) => {
   document.documentElement.setAttribute("data-contrast", mode);
@@ -32,7 +33,6 @@ const FooterControls = ({
 }) => {
   const dispatch = useDispatch();
   const { t } = useTranslation();
-
   const magnifierEnabled = useSelector(
     (state) => state.accessibility.magnifierEnabled
   );
@@ -183,6 +183,8 @@ const FooterControls = ({
     setLanguage(uiLang);
     localStorage.setItem("lang", backendLang);
     i18n.changeLanguage(backendLang);
+    // keep redux in sync so components can react and re-fetch
+    dispatch(setLanguageAction(backendLang));
   };
 
   const toggleContrast = () => {
@@ -225,7 +227,7 @@ const FooterControls = ({
             className={`px-7 py-2.5 rounded-full bg-[#D7D8D2] text-white text-[28px]
             ${cursor === 0 && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}`}
           >
-            로그인
+            {t("Login")}
           </button>
         )}
       </div>
