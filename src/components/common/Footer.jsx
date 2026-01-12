@@ -17,11 +17,8 @@ import {
 } from "../../redux/slice/accessibilitySlice";
 import { useTranslation } from "react-i18next";
 import i18n from "../../translation/language/i18n";
-<<<<<<< HEAD
 import { useVoice } from "../../context/voiceContext";
-=======
 import { setLanguage as setLanguageAction } from "../../redux/slice/langSlice";
->>>>>>> 6ddf8f41ecf53f5b0a06d9dd6ce91368b34a6aa9
 
 const applyContrastMode = (mode) => {
   document.documentElement.setAttribute("data-contrast", mode);
@@ -37,11 +34,8 @@ const FooterControls = ({
 }) => {
   const dispatch = useDispatch();
   const { t } = useTranslation();
-<<<<<<< HEAD
-  const { speak } = useVoice();
 
-=======
->>>>>>> 6ddf8f41ecf53f5b0a06d9dd6ce91368b34a6aa9
+
   const magnifierEnabled = useSelector(
     (state) => state.accessibility.magnifierEnabled
   );

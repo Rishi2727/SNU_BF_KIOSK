@@ -6,11 +6,8 @@ import { getSectorList } from "../../../services/api";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchFloorList } from "../../../redux/slice/floorSlice";
-<<<<<<< HEAD
 import { useVoice } from "../../../context/voiceContext";
-=======
 import { useTranslation } from "react-i18next";
->>>>>>> 6ddf8f41ecf53f5b0a06d9dd6ce91368b34a6aa9
 
 const MainSection = ({
   openKeyboard,
@@ -20,13 +17,10 @@ const MainSection = ({
 }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-<<<<<<< HEAD
 const { speak, stop } = useVoice();
 
-=======
   const lang = useSelector((state) => state.lang.current);
   const {t} = useTranslation();
->>>>>>> 6ddf8f41ecf53f5b0a06d9dd6ce91368b34a6aa9
   /* ===============================
      ✅ REDUX STATE
   ================================ */

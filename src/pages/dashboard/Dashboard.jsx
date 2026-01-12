@@ -21,11 +21,8 @@ const Dashboard = () => {
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const [isUserInfoModalOpen, setIsUserInfoModalOpen] = useState(false);
   const [selectedFloor, setSelectedFloor] = useState(null);
-<<<<<<< HEAD
   const { speak, stop } = useVoice();
-=======
   const lang = useSelector((state) => state.lang.current);
->>>>>>> 6ddf8f41ecf53f5b0a06d9dd6ce91368b34a6aa9
   const [modalStates, setModalStates] = useState({
     [MODAL_TYPES.EXTENSION]: false,
     [MODAL_TYPES.RETURN]: false,
