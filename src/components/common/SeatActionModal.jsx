@@ -206,49 +206,7 @@ const SeatActionModal = ({
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [isOpen, isModalFocused, focusIndex, getFocusableElements, showResultModal]);
 
-    /**
-     * ✅ STEP 4: Handle Enter key press on focused element
-     */
-    const handleEnterPress = useCallback((focusedElement) => {
-        if (!focusedElement) return;
-
-        switch (focusedElement.type) {
-            case 'time-button':
-                handleTimeSelect(focusedElement.index, focusedElement.value);
-                break;
-
-            case 'cancel-button':
-                setConfirmStep(false);
-                onClose();
-                if (onBackToUserInfo) {
-                    setTimeout(() => onBackToUserInfo(), 200);
-                }
-                break;
-
-            case 'confirm-button':
-                if (isAssignCheck) {
-                    onClose();
-                    if (onBackToUserInfo) {
-                        setTimeout(() => onBackToUserInfo(), 300);
-                    }
-                    return;
-                }
-                if (showResultModal) {
-                    handleResultModalClose();
-                } else if (isReturn || isMove) {
-                    handleFinalConfirm();
-                } else if (confirmStep) {
-                    handleFinalConfirm();
-                } else {
-                    setConfirmStep(true);
-                }
-                break;
-
-            default:
-                break;
-        }
-    }, [showResultModal, isReturn, isMove, confirmStep]);
-
+ 
     /**
      * ✅ STEP 5: Helper to check if element is focused
      */
@@ -435,6 +393,55 @@ const SeatActionModal = ({
         isAvailable, executeApiCall, onClose, mode
     ]);
 
+    // ===================HANDLE BY ENTER KEY ================
+    const handleEnterPress = useCallback((focusedElement) => {
+        if (!focusedElement) return;
+
+        switch (focusedElement.type) {
+            case 'time-button':
+                handleTimeSelect(focusedElement.index, focusedElement.value);
+                break;
+
+            case 'cancel-button':
+                setConfirmStep(false);
+                onClose();
+                if (onBackToUserInfo) {
+                    setTimeout(() => onBackToUserInfo(), 200);
+                }
+                break;
+
+            case 'confirmation-message':
+                // ✅ FIX: When focused on confirmation message, pressing Enter should confirm
+                if (isReturn || isMove) {
+                    handleFinalConfirm();
+                } else if (confirmStep) {
+                    handleFinalConfirm();
+                }
+                break;
+
+            case 'confirm-button':
+                if (isAssignCheck) {
+                    onClose();
+                    if (onBackToUserInfo) {
+                        setTimeout(() => onBackToUserInfo(), 300);
+                    }
+                    return;
+                }
+                if (showResultModal) {
+                    handleResultModalClose();
+                } else if (isReturn || isMove) {
+                    handleFinalConfirm();
+                } else if (confirmStep) {
+                    handleFinalConfirm();
+                } else {
+                    setConfirmStep(true);
+                }
+                break;
+
+            default:
+                break;
+        }
+    }, [showResultModal, isReturn, isMove, confirmStep, handleFinalConfirm]);
     /**
      * Handle result modal close
      */
