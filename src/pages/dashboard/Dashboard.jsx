@@ -385,7 +385,7 @@ const Dashboard = () => {
       default:
         break;
     }
-  }, [focused, speak, stop,t]);
+  }, [focused, speak, stop, t]);
 
   return (
     <div className="relative h-screen w-screen overflow-hidden font-bold text-white">
