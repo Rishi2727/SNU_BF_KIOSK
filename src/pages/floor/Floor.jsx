@@ -23,6 +23,8 @@ import FooterControls from "../../components/common/Footer";
 import { BASE_URL_2, FloorImageUrl, getSeatList, ImageBaseUrl } from "../../services/api";
 import { MINI_MAP_LAYOUT, MINIMAP_CONFIG } from "../../utils/constant";
 import SeatActionModal from "../../components/common/SeatActionModal";
+import { useTranslation } from "react-i18next";
+import { useVoice } from "../../context/voiceContext";
 
 
 const Floor = () => {
@@ -33,6 +35,9 @@ const Floor = () => {
   const [mapCursor, setMapCursor] = useState(null);
   const [miniMapCursor, setMiniMapCursor] = useState(-1);
   const { userInfo } = useSelector((state) => state.userInfo);
+  // For speak and translations 
+  const { speak, stop } = useVoice();
+  const { t } = useTranslation();
 
   const isMoveMode = move === "move" || location.state?.mode === "move";
 
@@ -47,7 +52,7 @@ const Floor = () => {
   ===================================================== */
   const [selectedSector, setSelectedSector] = useState(null);
   const [showRoomView, setShowRoomView] = useState(false);
-  
+
 
   /* =====================================================
      ROOM VIEW STATE - UPDATED FOR PAN/ZOOM
@@ -79,6 +84,7 @@ const Floor = () => {
   const containerRef = useRef(null);
   const prevSectorNoRef = useRef(null);
   const [focusedRegion, setFocusedRegion] = useState(null);
+
   const FocusRegion = Object.freeze({
     FLOOR_STATS: "floor_stats",
     LEGEND: "legend",
@@ -102,9 +108,9 @@ const Floor = () => {
   } = useFloorData(floorId, initialFloorInfo, initialSectorList);
 
 
-useEffect(() => {
-  setMiniMapCursor(-1);
-}, [selectedSector]);
+  useEffect(() => {
+    setMiniMapCursor(-1);
+  }, [selectedSector]);
 
 
 
@@ -136,48 +142,48 @@ useEffect(() => {
   };
 
 
-useEffect(() => {
-  if (focusedRegion !== FocusRegion.MAP) return;
-  if (!showRoomView) return;
-  if (!layout?.sectors?.length) return;
+  useEffect(() => {
+    if (focusedRegion !== FocusRegion.MAP) return;
+    if (!showRoomView) return;
+    if (!layout?.sectors?.length) return;
 
-  const TOTAL = layout.sectors.length;
+    const TOTAL = layout.sectors.length;
 
-  const onKeyDown = (e) => {
-    if (e.key === "*" || e.code === "NumpadMultiply" || e.keyCode === 106) return;
+    const onKeyDown = (e) => {
+      if (e.key === "*" || e.code === "NumpadMultiply" || e.keyCode === 106) return;
 
-    // 👉 ONLY MOVE RED BORDER (NO ZOOM, NO CLICK)
-    if (e.key === "ArrowRight") {
-      e.preventDefault();
-      setMiniMapCursor((prev) =>
-        prev === -1 ? 0 : (prev + 1) % TOTAL
-      );
-    }
+      // 👉 ONLY MOVE RED BORDER (NO ZOOM, NO CLICK)
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        setMiniMapCursor((prev) =>
+          prev === -1 ? 0 : (prev + 1) % TOTAL
+        );
+      }
 
-    if (e.key === "ArrowLeft") {
-      e.preventDefault();
-      setMiniMapCursor((prev) =>
-        prev === -1 ? TOTAL - 1 : (prev - 1 + TOTAL) % TOTAL
-      );
-    }
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        setMiniMapCursor((prev) =>
+          prev === -1 ? TOTAL - 1 : (prev - 1 + TOTAL) % TOTAL
+        );
+      }
 
-    // ✅ ENTER = ACTUAL SELECTION
-    if (e.key === "Enter" && miniMapCursor !== -1) {
-      e.preventDefault();
+      // ✅ ENTER = ACTUAL SELECTION
+      if (e.key === "Enter" && miniMapCursor !== -1) {
+        e.preventDefault();
 
-      const sector = layout.sectors[miniMapCursor];
-      if (!sector) return;
+        const sector = layout.sectors[miniMapCursor];
+        if (!sector) return;
 
-      setSelectedMiniSector(sector);
-      setImageTransform(sector.transform);
-      setIsZoomed(true);
-    }
-  };
+        setSelectedMiniSector(sector);
+        setImageTransform(sector.transform);
+        setIsZoomed(true);
+      }
+    };
 
-  window.addEventListener("keydown", onKeyDown);
-  return () => window.removeEventListener("keydown", onKeyDown);
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
 
-}, [focusedRegion, showRoomView, layout, miniMapCursor]);
+  }, [focusedRegion, showRoomView, layout, miniMapCursor]);
 
 
   /* =====================================================
@@ -393,14 +399,14 @@ useEffect(() => {
   /* =====================================================
      MINI MAP CLICK
   ===================================================== */
-const handleMiniSectorClick = (sector) => {
-  const index = layout.sectors.findIndex((s) => s.id === sector.id);
+  const handleMiniSectorClick = (sector) => {
+    const index = layout.sectors.findIndex((s) => s.id === sector.id);
 
-  setMiniMapCursor(index);              // focus moves
-  setSelectedMiniSector(sector);        // selection
-  setImageTransform(sector.transform);  // zoom
-  setIsZoomed(true);
-};
+    setMiniMapCursor(index);              // focus moves
+    setSelectedMiniSector(sector);        // selection
+    setImageTransform(sector.transform);  // zoom
+    setIsZoomed(true);
+  };
 
 
 
@@ -687,6 +693,36 @@ const handleMiniSectorClick = (sector) => {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [focusedRegion, mapCursor, displayableSectors]);
+
+
+  // 🔊 VOICE: speak when floor focus section changes (Dashboard-style)
+useEffect(() => {
+  if (!focusedRegion) return;
+
+  stop(); // stop previous section speech
+
+  switch (focusedRegion) {
+    case FocusRegion.FLOOR_STATS:
+      speak(t("Floor header section"));
+      break;
+
+    case FocusRegion.LEGEND:
+      speak(t("Floor information"));
+      break;
+
+    case FocusRegion.MAP:
+      speak(t("Floor map section"));
+      break;
+
+    case FocusRegion.FOOTER:
+      speak(t("Footer controls"));
+      break;
+
+    default:
+      break;
+  }
+}, [focusedRegion, speak, stop, t]);
+
 
   /* =====================================================
      RENDER

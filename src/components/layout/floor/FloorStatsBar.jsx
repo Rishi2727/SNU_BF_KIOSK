@@ -1,4 +1,8 @@
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useVoice } from "../../../context/voiceContext";
+import { useTranslation } from "react-i18next";
+import { formatFloorForSpeech } from "../../../utils/speechFormatter";
+import { useSelector } from "react-redux";
 
 const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused }) => {
   const calculatePercentage = (occupied, total) => {
@@ -6,6 +10,10 @@ const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused 
   };
   const [floorCursor, setFloorCursor] = useState(null);
   const SECTION_COUNT = floors.length;
+  const { speak, stop } = useVoice();
+  const { t } = useTranslation();
+  const lang = useSelector((state) => state.lang.current);
+
 
   /* --------------------------
    RESET CURSOR ON DEFOCUS
@@ -61,6 +69,24 @@ const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused 
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [isFocused, floorCursor, floors, loading, SECTION_COUNT]);
 
+  // 🔊 VOICE: speak floor stats on focus change
+  useEffect(() => {
+    if (!isFocused) return;
+    if (floorCursor === null) return;
+
+    const floor = floors[floorCursor];
+    if (!floor) return;
+
+    stop();
+
+    speak(
+      t("MAIN_FLOOR_INFO", {
+        floor: formatFloorForSpeech(floor.title, lang),
+        total: floor.total,
+        occupied: floor.occupied,
+      })
+    );
+  }, [isFocused, floorCursor, floors, speak, stop, t, lang]);
 
 
 

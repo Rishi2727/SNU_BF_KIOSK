@@ -17,7 +17,7 @@
   "No notices available.": "No notices available.",
   "Virtual Keyboard": "Virtual Keyboard",
   "Type here": "Type here",
-   "BACKTICK": "backtick",
+  "BACKTICK": "backtick",
   "LEFT_BRACKET": "left bracket",
   "RIGHT_BRACKET": "right bracket",
   "TILDE": "tilde",
@@ -51,7 +51,11 @@
   "PIPE": "pipe",
   "HYPHEN": "hyphen",
   "EQUALS": "equals",
-   "shift": "shift",
-    "Submit": "Submit",
-"UserID":"UserID"
+  "shift": "shift",
+  "Submit": "Submit",
+  "UserID": "UserID",
+  "Floor header section": "Floor header section",
+"Floor information": "Floor information",
+"Floor map section": "Floor map section"
+
 }
