@@ -73,9 +73,11 @@
   "Available seats": "이용 가능한 좌석",
   "Booked seats": "사용 중 좌석",
   "Disabled seats": "사용 불가 좌석",
-  "Central Library, Gwanjeong Building":"중앙도서관, 관정빌딩",
+  "Booked": "예약됨",
+  "Disabled": "비활성화됨",
+  "Central Library, Gwanjeong Building": "중앙도서관, 관정빌딩",
   "MAP_SECTOR_INFO": "{{sector}} 구역",
-  "Floor Selection Section":"층 선택 섹션",
+  "Floor Selection Section": "층 선택 섹션",
   "SEAT_MODAL_TITLE": "좌석 {{action}}",
   "SEAT_MODAL_LOCATION_INFO": "좌석 위치 정보",
   "SEAT_MODAL_USER_NAME": "사용자 이름 {{name}}",
@@ -89,6 +91,6 @@
   "SEAT_MODAL_SUCCESS": "좌석 처리가 완료되었습니다",
   "SEAT_MODAL_FAILURE": "좌석 처리에 실패했습니다",
   "Confirm": "확인",
-  "Cancel": "취소"
-
+  "Cancel": "취소",
+  "Back": "뒤쪽에"
 }

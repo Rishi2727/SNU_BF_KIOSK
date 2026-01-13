@@ -19,7 +19,7 @@ const FloorLegendBar = ({
   const [cursor, setCursor] = useState(null);
   const { speak, stop } = useVoice();
   const { t } = useTranslation();
-const lang = i18n.language; 
+  const lang = i18n.language;
   /* --------------------------
    RESET CURSOR ON DEFOCUS
 ---------------------------*/
@@ -75,60 +75,60 @@ const lang = i18n.language;
   }, [isFocused, cursor, SECTION_COUNT, showBack, onBack]);
 
 
-// 🔊 VOICE: speak legend item when cursor changes
-useEffect(() => {
-  if (!isFocused) return;
-  if (cursor === null) return;
+  // 🔊 VOICE: speak legend item when cursor changes
+  useEffect(() => {
+    if (!isFocused) return;
+    if (cursor === null) return;
 
-  stop();
+    stop();
 
-  // BACK BUTTON
-  if (showBack && cursor === 0) {
-    speak(t("Back to floor map"));
-    return;
-  }
+    // BACK BUTTON
+    if (showBack && cursor === 0) {
+      speak(t("Back to floor map"));
+      return;
+    }
 
-  const index = showBack ? cursor - 1 : cursor;
+    const index = showBack ? cursor - 1 : cursor;
 
-  switch (index) {
-    case 0:
-      speak(
-  t("Floor legend location", {
-    building: t(buildingName),
-    floor: formatFloorForSpeech(floorName, lang),
-    room: roomName,
-  })
-);
-      break;
+    switch (index) {
+      case 0:
+        speak(
+          t("Floor legend location", {
+            building: t(buildingName),
+            floor: formatFloorForSpeech(floorName, lang),
+            room: roomName,
+          })
+        );
+        break;
 
-    case 1:
-      speak(t("Available seats"));
-      break;
+      case 1:
+        speak(t("Available seats"));
+        break;
 
-    case 2:
-      speak(t("Booked seats"));
-      break;
+      case 2:
+        speak(t("Booked seats"));
+        break;
 
-    case 3:
-      speak(t("Disabled seats"));
-      break;
+      case 3:
+        speak(t("Disabled seats"));
+        break;
 
-    default:
-      break;
-  }
-}, [
-  cursor,
-  isFocused,
-  showBack,
-  buildingName,
-  floorName,
-  roomName,
-  speak,
-  stop,
-  t,
-]);
+      default:
+        break;
+    }
+  }, [
+    cursor,
+    isFocused,
+    showBack,
+    buildingName,
+    floorName,
+    roomName,
+    speak,
+    stop,
+    t,
+  ]);
 
-  
+
   // --------------------------
   // FOCUS RING HELPER
   // --------------------------
@@ -161,7 +161,7 @@ useEffect(() => {
             aria-selected={isFocusedAt(0)}
           >
             <ArrowLeft className="w-6 h-6" />
-            Back
+            {t("Back")}
           </button>
         )}
 
@@ -169,11 +169,12 @@ useEffect(() => {
           aria-selected={isFocusedAt(showBack ? 1 : 0)}>
           <Home className="w-8 h-8" />
           <span className="text-[30px] font-semibold">
-            {buildingName && `${buildingName} `}
-            {floorName && `( ${floorName} `}
+            {buildingName && `${t(buildingName)} `}
+            {floorName && `( ${t(floorName)} `}
             {roomName && `: ${roomName} `}
             {(floorName || roomName) && ')'}
           </span>
+
         </div>
       </div>
 
@@ -182,13 +183,13 @@ useEffect(() => {
         <div className={`flex items-center gap-2 ${isFocusedAt(showBack ? 2 : 1) ? focusRing : ""}`}
           aria-selected={isFocusedAt(showBack ? 2 : 1)}>
           <div className="w-8 h-8 bg-[#FFCA08] rounded"></div>
-          <span className="text-[30px]">Available seats</span>
+          <span className="text-[30px]">{t("Available seats")}</span>
         </div>
 
         <div className={`flex items-center gap-2 ${isFocusedAt(showBack ? 3 : 2) ? focusRing : ""}`}
           aria-selected={isFocusedAt(showBack ? 3 : 2)}>
           <Users className="w-8 h-8 text-blue-400" />
-          <span className="text-[30px]">Booked</span>
+          <span className="text-[30px]">{t("Booked")}</span>
         </div>
 
         <div className={`flex items-center gap-2 ${isFocusedAt(showBack ? 4 : 3) ? focusRing : ""}`}
@@ -196,7 +197,7 @@ useEffect(() => {
           <div className="w-8 h-8 border-2 border-gray-300 rounded flex items-center justify-center">
             <Armchair className="w-8 h-8 text-gray-300" />
           </div>
-          <span className="text-[30px]">Disabled</span>
+          <span className="text-[30px]">{t("Disabled")}</span>
         </div>
       </div>
     </div>

@@ -136,7 +136,7 @@ const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused 
                 : "text-[#9A7D4C]"
                 }`}
             >
-              {item.title}
+              {t(`${item.title}`)}
             </span>
           </div>
 
