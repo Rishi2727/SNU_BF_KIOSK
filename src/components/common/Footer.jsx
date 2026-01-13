@@ -16,7 +16,6 @@ import {
   decreaseVolume,
 } from "../../redux/slice/accessibilitySlice";
 import { useTranslation } from "react-i18next";
-import i18n from "../../translation/language/i18n";
 import { useVoice } from "../../context/voiceContext";
 import { setLanguage as setLanguageAction } from "../../redux/slice/langSlice";
 
@@ -33,7 +32,7 @@ const FooterControls = ({
   isFocused,
 }) => {
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const { t } = useTranslation()
 
 
   const magnifierEnabled = useSelector(
@@ -47,6 +46,8 @@ const FooterControls = ({
     localStorage.getItem("contrastMode") === "high"
   );
   const [cursor, setCursor] = useState(null);
+  const { speak, stop } = useVoice();
+
 
   const FOOTER_BUTTON_COUNT = userInfo ? 10 : 9;
 
@@ -196,6 +197,47 @@ const FooterControls = ({
     applyContrastMode(nextMode);
   };
 
+  // 🔊 VOICE: speak footer item on focus change
+  useEffect(() => {
+    if (!isFocused) return;
+    if (cursor === null) return;
+
+    stop();
+
+    const speakMapWithUser = [
+      t("Logout"),
+      t("UserID"),
+      t("Volume Down"),
+      `${Math.round(volume * 100)} percent`,
+      t("Volume Up"),
+      t("Info"),
+      t("Zoom"),
+      t("Contrast"),
+      t("Language") + " Korean",
+      t("Language") + " English",
+    ];
+
+    const speakMapWithoutUser = [
+      t("Login"),
+      t("Volume Down"),
+      `${Math.round(volume * 100)} percent`,
+      t("Volume Up"),
+      t("Info"),
+      t("Zoom"),
+      t("Contrast"),
+      t("Language") + " Korean",
+      t("Language") + " English",
+    ];
+
+    const speakText = userInfo
+      ? speakMapWithUser[cursor]
+      : speakMapWithoutUser[cursor];
+
+    if (speakText) {
+      speak(speakText);
+    }
+  }, [cursor, isFocused, userInfo, volume, speak, stop, t]);
+
 
 
   return (
@@ -212,11 +254,10 @@ const FooterControls = ({
             <button
               onClick={logout}
               className={`flex items-center gap-2 bg-red-500 px-5 py-2 rounded-full text-white text-[26px]
-              ${
-                cursor === 0 && isFocused
+              ${cursor === 0 && isFocused
                   ? "outline-[6px] outline-[#dc2f02]"
                   : ""
-              }`}
+                }`}
             >
               <LogOut className="w-7 h-7" />
               로그아웃
@@ -224,11 +265,10 @@ const FooterControls = ({
 
             <div
               className={`flex items-center gap-2 bg-white text-black px-5 py-2 rounded-lg text-[26px]
-              ${
-                cursor === 1 && isFocused
+              ${cursor === 1 && isFocused
                   ? "outline-[6px] outline-[#dc2f02]"
                   : ""
-              }`}
+                }`}
             >
               <User className="w-7 h-7" />
               {userInfo.SCHOOLNO}
@@ -238,9 +278,8 @@ const FooterControls = ({
           <button
             onClick={openKeyboard}
             className={`px-7 py-2.5 rounded-full bg-[#D7D8D2] text-white text-[28px]
-            ${
-              cursor === 0 && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""
-            }`}
+            ${cursor === 0 && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""
+              }`}
           >
             {t("Login")}
           </button>
@@ -259,7 +298,7 @@ const FooterControls = ({
 
         <FooterButton
           label={`${Math.round(volume * 100)}%`}
-          onClick={() => {}}
+          onClick={() => { }}
           isSelected={cursor === (userInfo ? 3 : 2)}
           isFocused={isFocused}
         />
@@ -312,16 +351,14 @@ const FooterControls = ({
               key={lang}
               onClick={() => handleLanguageChange(lang)}
               className={`min-w-20 h-14 text-[28px] font-bold
-              ${
-                language === lang
+              ${language === lang
                   ? "bg-[#FFCA08] rounded-lg text-white"
                   : "bg-white text-black"
-              }
-              ${
-                cursor === (userInfo ? 8 + i : 7 + i) && isFocused
+                }
+              ${cursor === (userInfo ? 8 + i : 7 + i) && isFocused
                   ? "outline-[6px] outline-[#dc2f02]"
                   : ""
-              }`}
+                }`}
             >
               {lang}
             </button>

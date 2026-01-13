@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchFloorList } from "../../../redux/slice/floorSlice";
 import { useVoice } from "../../../context/voiceContext";
 import { useTranslation } from "react-i18next";
+import { formatFloorForSpeech } from "../../../utils/speechFormatter";
 
 const MainSection = ({
   openKeyboard,
@@ -17,10 +18,10 @@ const MainSection = ({
 }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-const { speak, stop } = useVoice();
+  const { speak, stop } = useVoice();
 
   const lang = useSelector((state) => state.lang.current);
-  const {t} = useTranslation();
+  const { t } = useTranslation();
   /* ===============================
      ✅ REDUX STATE
   ================================ */
@@ -65,6 +66,7 @@ const { speak, stop } = useVoice();
     }
   };
 
+
   /* ===============================
      ✅ RESET CURSOR ON BLUR
   ================================ */
@@ -73,28 +75,33 @@ const { speak, stop } = useVoice();
       setCursor(null);
     }
   }, [focusedRegion, FocusRegion.MAIN_SECTION]);
-  
-  // 🔊 VOICE: speak when cursor changes
-useEffect(() => {
-  if (focusedRegion !== FocusRegion.MAIN_SECTION) return;
-  if (cursor === null) return;
 
-  stop();
+  // 🔊 VOICE: speak when cursor changes (language-safe)
+  useEffect(() => {
+    if (focusedRegion !== FocusRegion.MAIN_SECTION) return;
+    if (cursor === null) return;
 
-  // cursor = 0 → heading
-  if (cursor === 0) {
-    speak("Please select the desired library floor");
-    return;
-  }
+    stop();
 
-  // cursor >= 1 → floor cards
-  const floor = floors[cursor - 1];
-  if (floor) {
-    speak(
-      `${floor.title}. Total seats ${floor.total}. Occupied seats ${floor.occupied}`
-    );
-  }
-}, [cursor, focusedRegion, floors, speak, stop]);
+    // cursor = 0 → heading
+    if (cursor === 0) {
+      speak(t("Please select a desired floor"));
+      return;
+    }
+
+    // cursor >= 1 → floor cards
+    const floor = floors[cursor - 1];
+    if (floor) {
+      speak(
+        t("MAIN_FLOOR_INFO", {
+          floor: formatFloorForSpeech(floor.title, lang),
+          total: floor.total,
+          occupied: floor.occupied,
+        })
+      );
+    }
+  }, [cursor, focusedRegion, floors, speak, stop, t]);
+
 
   /* ===============================
      ✅ KEYBOARD NAVIGATION
@@ -157,29 +164,26 @@ useEffect(() => {
 
         {/* ✅ Logo */}
         <div
-          className={`mb-12 ml-[15%] ${
-            focusedRegion === FocusRegion?.LOGO
-              ? "outline-[6px] outline-[#dc2f02] rounded-2xl"
-              : ""
-          }`}
+          className={`mb-12 ml-[15%] ${focusedRegion === FocusRegion?.LOGO
+            ? "outline-[6px] outline-[#dc2f02] rounded-2xl"
+            : ""
+            }`}
         >
           <img src={logo} alt="logo" className="w-[500px]" />
         </div>
 
         {/* ✅ Main Section */}
         <div
-          className={`w-full p-12 rounded-3xl bg-[#9A7D4C] border border-white/30 backdrop-blur-xl ${
-            focusedRegion === FocusRegion?.MAIN_SECTION
-              ? "outline-[6px] outline-[#dc2f02]"
-              : ""
-          }`}
+          className={`w-full p-12 rounded-3xl bg-[#9A7D4C] border border-white/30 backdrop-blur-xl ${focusedRegion === FocusRegion?.MAIN_SECTION
+            ? "outline-[6px] outline-[#dc2f02]"
+            : ""
+            }`}
         >
           <h2
             className={`text-[32px] font-semibold mb-10 capitalize
-              ${
-                focusedRegion === FocusRegion.MAIN_SECTION && cursor === 0
-                  ? "outline-[6px] outline-[#dc2f02] rounded-lg px-2 py-2"
-                  : ""
+              ${focusedRegion === FocusRegion.MAIN_SECTION && cursor === 0
+                ? "outline-[6px] outline-[#dc2f02] rounded-lg px-2 py-2"
+                : ""
               }`}
           >
             {t("Please select a desired floor")}

@@ -2,6 +2,8 @@ import React, { useRef, useState, useEffect } from "react";
 import Keyboard from "react-simple-keyboard";
 import "react-simple-keyboard/build/css/index.css";
 import "./KeyboardModal.css";
+import { useTranslation } from "react-i18next";
+import { useVoice } from "../../../context/voiceContext";
 
 
 const KeyboardModal = ({
@@ -18,6 +20,8 @@ const KeyboardModal = ({
   const keyboardRef = useRef(null);
   const modalRef = useRef(null);
   const inputRef = useRef(null);
+  const { t } = useTranslation();
+  const { speak } = useVoice();
 
 
   // ✅keyboard sections
@@ -60,7 +64,78 @@ const KeyboardModal = ({
     "{tab}": "Tab",
     "{space}": "Space",
   };
+  // ⭐ FIX — Speech name for special characters
+  const specialKeySpeech = {
+    "`": t("BACKTICK"),
+    "~": t("TILDE"),
+    "!": t("EXCLAMATION"),
+    "@": t("AT"),
+    "#": t("HASH"),
+    "$": t("DOLLAR"),
+    "%": t("PERCENT"),
+    "^": t("CARET"),
+    "&": t("AMPERSAND"),
+    "*": t("ASTERISK"),
+    "(": t("LEFT PARENTHESIS"),
+    ")": t("RIGHT PARENTHESIS"),
+    "_": t("UNDERSCORE"),
+    "+": t("PLUS"),
+    "[": t("LEFT BRACKET"),
+    "]": t("RIGHT BRACKET"),
+    "{": t("LEFT BRACE"),
+    "}": t("RIGHT BRACE"),
+    ";": t("SEMICOLON"),
+    ":": t("COLON"),
+    "'": t("APOSTROPHE"),
+    "\"": t("QUOTE"),
+    ",": t("COMMA"),
+    "<": t("LESS THAN"),
+    ".": t("DOT"),
+    ">": t("GREATER THAN"),
+    "/": t("SLASH"),
+    "?": t("QUESTION"),
+    "\\": t("BACKSLASH"),
+    "|": t("PIPE"),
+    "-": t("HYPHEN"),
+    "=": t("EQUALS"),
+  };
 
+
+  // -----------------------------
+  // 🔊 SPEAK ON FOCUS / CURSOR CHANGE
+  // -----------------------------
+  useEffect(() => {
+    if (!isFocused) return;
+
+    if (kbFocus === KBFocus.HEADING) {
+      speak(t("Virtual Keyboard"));
+      return;
+    }
+
+    if (kbFocus === KBFocus.INPUT) {
+      speak(t("Type here"));
+      return;
+    }
+
+    if (kbFocus === KBFocus.KEYS) {
+      const selectedKey = keyboardKeys[keyCursor];
+      const cleaned = selectedKey.replace(/[{}]/g, "");
+
+      // ⭐ FIX — Give proper names to characters
+      const label =
+        keyDisplay[selectedKey] ||
+        specialKeySpeech[cleaned] ||
+        cleaned;
+
+      speak(label);
+      return;
+    }
+
+    if (kbFocus === KBFocus.BUTTONS) {
+      if (buttonCursor === 0) speak(t("Submit"));
+      if (buttonCursor === 1) speak(t("Close"));
+    }
+  }, [kbFocus, keyCursor, buttonCursor, isFocused]);
 
   const startTimer = () => {
     clearTimer();
@@ -77,6 +152,14 @@ const KeyboardModal = ({
     if (isOpen) startTimer();
     return () => clearTimer();
   }, [isOpen, autoCloseTime]);
+
+  useEffect(() => {
+    if (isOpen && isFocused) {
+      setKbFocus(KBFocus.HEADING);
+      setKeyCursor(0);
+      setButtonCursor(0);
+    }
+  }, [isOpen, isFocused]);
 
 
 
@@ -258,7 +341,7 @@ const KeyboardModal = ({
             {/* HEADING */}
             <div className={`flex items-center gap-5 p-2 justify-center`}>
               <p className={`sm:text-xl xl:text-3xl 2xl:text-4xl font-semibold text-gray-600 ${headingFocusClass}`}>
-                {("Virtual Keyboard")}
+                {t("Virtual Keyboard")}
               </p>
             </div>
 
@@ -268,7 +351,7 @@ const KeyboardModal = ({
                 <input
                   ref={inputRef}
                   className={`w-full sm:h-5 xl:h-12 2xl:h-16 px-4 sm:text-md 2xl:text-[35px] border border-gray-300 rounded-lg focus:outline-none transition duration-200 text-gray-400`}
-                  placeholder={("Type here...")}
+                  placeholder={t("Type here")}
                   value={input}
                   onChange={(e) => {
                     setInput(e.target.value);
@@ -315,14 +398,14 @@ const KeyboardModal = ({
                   handleClose();
                 }}
               >
-                {("Submit")}
+                {t("Submit")}
               </button>
 
               <button
                 className={`px-6 py-3 sm:h-5 xl:h-12 2xl:h-16 w-[18%] text-white sm:text-md 2xl:text-3xl bg-gray-600 rounded-full shadow hover:bg-gray-500 transition duration-200 ${closeButtonFocusClass}`}
                 onClick={handleClose}
               >
-                {("Close")}
+                {t("Close")}
               </button>
             </div>
 

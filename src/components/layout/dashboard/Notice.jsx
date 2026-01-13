@@ -1,10 +1,17 @@
 import { AlertCircle } from "lucide-react";
 import { getNoticeInfo } from "../../../services/api";
 import { useEffect, useState } from "react";
+import { useVoice } from "../../../context/voiceContext";
+import { useTranslation } from "react-i18next";
+import { useRef } from "react";
+
 
 const NoticeBanner = ({ isFocused, lang }) => {
   const [notices, setNotices] = useState([]);
   const [noticeIndex, setNoticeIndex] = useState(0);
+  const { speak, stop } = useVoice();
+  const { t } = useTranslation();
+  const hasAnnouncedHeadingRef = useRef(false);
 
   // 🔁 Re-fetch when language changes
   useEffect(() => {
@@ -36,16 +43,52 @@ const NoticeBanner = ({ isFocused, lang }) => {
     };
   }, [lang]); // ✅ language dependency
 
-  // 🔁 Auto slide
+
+  // 🔁 Auto slide (slow down when focused)
   useEffect(() => {
     if (!notices.length) return;
+    const intervalTime = isFocused ? 20000 : 5000;
 
     const interval = setInterval(() => {
       setNoticeIndex((prev) => (prev + 1) % notices.length);
-    }, 5000);
+    }, intervalTime);
 
     return () => clearInterval(interval);
-  }, [notices]);
+  }, [notices, isFocused]);
+
+
+
+  // 🔊 VOICE: speak notice when focused or notice changes
+useEffect(() => {
+  if (!isFocused) {
+    hasAnnouncedHeadingRef.current = false; // reset when focus leaves
+    return;
+  }
+
+  if (!notices.length) return;
+
+  const currentNotice = notices[noticeIndex];
+  if (!currentNotice) return;
+
+  const timer = setTimeout(() => {
+    stop();
+
+    const heading = !hasAnnouncedHeadingRef.current
+      ? `${t("Notice information")}. `
+      : "";
+
+    speak(
+      `${heading}${currentNotice.TITLE}. ${currentNotice.CONTENTS}`
+    );
+
+    hasAnnouncedHeadingRef.current = true;
+  }, 300);
+
+  return () => clearTimeout(timer);
+}, [isFocused, noticeIndex, notices, speak, stop, t]);
+
+
+
 
   return (
     <div className="absolute bottom-[100px] right-0 w-[73%] px-6">
@@ -64,16 +107,19 @@ const NoticeBanner = ({ isFocused, lang }) => {
 
         <div className="flex flex-col gap-2 w-full h-full overflow-hidden">
           <h3 className="text-[32px] font-extrabold tracking-wide leading-8 drop-shadow-md shrink-0 text-[#9A7D4C]">
-            {notices.length ? notices[noticeIndex]?.TITLE : "Notice"}
+        {notices.length
+  ? notices[noticeIndex]?.TITLE
+  : t("Notice information")}
+
           </h3>
 
           <div className="w-full h-[2px] bg-white/40 rounded-full shrink-0" />
 
           <div className="flex-1 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/50 scrollbar-track-transparent">
             <p className="text-[30px] leading-10 font-medium text-white/95 transition-all duration-500">
-              {notices.length
+              {t(`${notices.length
                 ? notices[noticeIndex]?.CONTENTS
-                : "No notices available."}
+                : "No notices available."}`)}
             </p>
           </div>
         </div>
