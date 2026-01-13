@@ -20,6 +20,8 @@ import {
     DATE_FORMATS
 } from "../../utils/momentConfig";
 import { MODE_LABELS, MODES } from "../../utils/constant";
+import { useTranslation } from "react-i18next";
+import { useVoice } from "../../context/voiceContext";
 
 /**
  * Common component for seat booking, extension, return, move, and assign check
@@ -41,6 +43,9 @@ const SeatActionModal = ({
         isMove: mode === MODES.MOVE,
         isAssignCheck: mode === MODES.ASSIGN_CHECK
     }), [mode]);
+
+    const { speak, stop } = useVoice();
+    const { t } = useTranslation();
 
     const { isBooking, isExtension, isReturn, isMove, isAssignCheck } = modeFlags;
 
@@ -170,6 +175,31 @@ const SeatActionModal = ({
         }
     }, [confirmStep, isOpen]);
 
+    const getNextVisibleFocusIndex = useCallback(
+        (current, direction) => {
+            const items = getFocusableElements();
+            const len = items.length;
+
+            let next = current;
+
+            do {
+                next =
+                    direction === "next"
+                        ? (next + 1) % len
+                        : (next - 1 + len) % len;
+
+                // 👇 SKIP label-only elements (they are grouped visually)
+            } while (
+                ["name-label", "date-label", "start-label", "action-label"].includes(
+                    items[next]?.type
+                )
+            );
+
+            return next;
+        },
+        [getFocusableElements]
+    );
+
     /**
      * ✅ STEP 3: Keyboard navigation handler
      * Handles Left/Right arrows and Enter key
@@ -184,12 +214,12 @@ const SeatActionModal = ({
             switch (e.key) {
                 case "ArrowRight":
                     e.preventDefault();
-                    setFocusIndex(prev => (prev + 1) % (maxIndex + 1));
+                    setFocusIndex(prev => getNextVisibleFocusIndex(prev, "next"));
                     break;
 
                 case "ArrowLeft":
                     e.preventDefault();
-                    setFocusIndex(prev => (prev - 1 + maxIndex + 1) % (maxIndex + 1));
+                    setFocusIndex(prev => getNextVisibleFocusIndex(prev, "prev"));
                     break;
 
                 case "Enter":
@@ -206,7 +236,7 @@ const SeatActionModal = ({
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [isOpen, isModalFocused, focusIndex, getFocusableElements, showResultModal]);
 
- 
+
     /**
      * ✅ STEP 5: Helper to check if element is focused
      */
@@ -657,6 +687,104 @@ const SeatActionModal = ({
 
         return types.includes(current.type);
     }, [isModalFocused, focusIndex, getFocusableElements]);
+
+
+    const getSpeechForFocusedElement = useCallback(
+        (element) => {
+            if (!element) return "";
+
+            switch (element.type) {
+                case "title":
+                    return t("SEAT_MODAL_TITLE", {
+                        action: MODE_LABELS[mode],
+                    });
+
+                case "header":
+                    return t("SEAT_MODAL_LOCATION_INFO");
+
+                case "name-label":
+                case "name-value":
+                    return t("SEAT_MODAL_USER_NAME", {
+                        name: userInfo?.SCHOOLNO,
+                    });
+
+                case "date-label":
+                case "date-value":
+                    return t("SEAT_MODAL_DATE_DURATION");
+
+                case "start-label":
+                case "start-value":
+                    return t("SEAT_MODAL_START_TIME");
+
+                case "action-label":
+                    return t("SEAT_MODAL_ACTION_SECTION");
+
+                case "time-button":
+                    return t("SEAT_MODAL_TIME_OPTION", {
+                        time: element.label,
+                    });
+
+                case "confirmation-message":
+                    if (isMove) return t("SEAT_MODAL_MOVE_CONFIRM");
+                    if (isReturn) return t("SEAT_MODAL_RETURN_CONFIRM");
+                    return t("SEAT_MODAL_CONFIRM_GENERIC", {
+                        action: MODE_LABELS[mode],
+                    });
+
+                case "cancel-button":
+                    return t("Cancel");
+
+                case "confirm-button":
+                    return t("Confirm");
+
+                case "result-message":
+                    return actionResult?.success
+                        ? t("SEAT_MODAL_SUCCESS")
+                        : t("SEAT_MODAL_FAILURE");
+
+                default:
+                    return "";
+            }
+        },
+        [
+            t,
+            mode,
+            userInfo,
+            isMove,
+            isReturn,
+            actionResult,
+        ]
+    );
+
+    useEffect(() => {
+        if (!isOpen && !showResultModal) return;
+        if (!isModalFocused) return;
+
+        const focusableElements = getFocusableElements();
+        const currentElement = focusableElements[focusIndex];
+
+        if (!currentElement) return;
+
+        stop(); // 🔇 stop previous speech
+
+        const speechText = getSpeechForFocusedElement(currentElement);
+
+        if (speechText) {
+            speak(speechText);
+        }
+    }, [
+        isOpen,
+        showResultModal,
+        isModalFocused,
+        focusIndex,
+        getFocusableElements,
+        getSpeechForFocusedElement,
+        speak,
+        stop,
+    ]);
+
+
+
 
     return (
         <>

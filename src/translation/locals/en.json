@@ -63,7 +63,23 @@
 "Booked seats": "Booked seats",
 "Disabled seats": "Disabled seats",
 "Central Library, Gwanjeong Building":"Central Library, Gwanjeong Building",
-"MAP_SECTOR_INFO": "{{sector}} section"
+"MAP_SECTOR_INFO": "{{sector}} section",
+"Floor Selection Section":"Floor Selection Section",
+  "SEAT_MODAL_TITLE": "Seat {{action}}",
+  "SEAT_MODAL_LOCATION_INFO": "Seat location information",
+  "SEAT_MODAL_USER_NAME": "User name {{name}}",
+  "SEAT_MODAL_DATE_DURATION": "Seat usage duration",
+  "SEAT_MODAL_START_TIME": "Seat start time",
+  "SEAT_MODAL_ACTION_SECTION": "Action section",
+  "SEAT_MODAL_TIME_OPTION": "Time option {{time}}",
+  "SEAT_MODAL_MOVE_CONFIRM": "Do you want to move to this seat?",
+  "SEAT_MODAL_RETURN_CONFIRM": "Do you want to return the seat?",
+  "SEAT_MODAL_CONFIRM_GENERIC": "Are you sure you want to {{action}} this seat?",
+  "SEAT_MODAL_SUCCESS": "Seat action completed successfully",
+  "SEAT_MODAL_FAILURE": "Seat action failed",
+  "Confirm": "Confirm",
+  "Cancel": "Cancel",
+  "Close":"Close"
 
 
 

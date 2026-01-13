@@ -371,7 +371,7 @@ const Dashboard = () => {
         break;
 
       case FocusRegion.MAIN_SECTION:
-        speak(t("Select the desired floor"));
+        speak(t("Floor Selection Section"));
         break;
 
       case FocusRegion.NOTICE_BANNER:
