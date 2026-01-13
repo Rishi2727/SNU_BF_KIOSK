@@ -14,6 +14,7 @@ import { fetchBookingTime } from "../../redux/slice/bookingTimeSlice";
 import { FLOORS_CONFIG, MODAL_TYPES } from "../../utils/constant";
 import NoticeBanner from "../../components/layout/dashboard/Notice";
 import { useVoice } from "../../context/voiceContext";
+import { useTranslation } from "react-i18next";
 
 
 const Dashboard = () => {
@@ -36,7 +37,7 @@ const Dashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-
+  const { t } = useTranslation()
 
   // Redux selectors
   const { userInfo, isAuthenticated } = useSelector((state) => state.userInfo);
@@ -359,37 +360,32 @@ const Dashboard = () => {
     dispatch(clearUserInfo());
   }, [dispatch]);
 
-  /**
-   * Volume control handlers (placeholders)
-   */
 
   // 🔊 VOICE: speak when dashboard focus changes
-useEffect(() => {
-  if (!focused) return;
+  useEffect(() => {
+    if (!focused) return;
+    stop(); // stop previous speech before new focus speech
+    switch (focused) {
+      case FocusRegion.LOGO:
+        speak(t("Seoul National University Library"));
+        break;
 
-  stop(); // stop previous speech before new focus speech
+      case FocusRegion.MAIN_SECTION:
+        speak(t("Select the desired floor"));
+        break;
 
-  switch (focused) {
-    case FocusRegion.LOGO:
-      speak("Seoul National University Library kiosk");
-      break;
+      case FocusRegion.NOTICE_BANNER:
+        speak(t("Notice information"));
+        break;
 
-    case FocusRegion.MAIN_SECTION:
-      speak("Select the desired floor");
-      break;
+      case FocusRegion.FOOTER:
+        speak(t("Footer controls"));
+        break;
 
-    case FocusRegion.NOTICE_BANNER:
-      speak("Notice information");
-      break;
-
-    case FocusRegion.FOOTER:
-      speak("Footer controls");
-      break;
-
-    default:
-      break;
-  }
-}, [focused, speak, stop]);
+      default:
+        break;
+    }
+  }, [focused, speak, stop,t]);
 
   return (
     <div className="relative h-screen w-screen overflow-hidden font-bold text-white">
@@ -411,7 +407,7 @@ useEffect(() => {
       <NoticeBanner
         isFocused={focused === FocusRegion.NOTICE_BANNER}
         FocusRegion={FocusRegion}
-        lang = {lang}
+        lang={lang}
       />
 
 
