@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
 import { Home, Users, Armchair, ArrowLeft } from 'lucide-react';
+import { useVoice } from "../../../context/voiceContext";
+import { useTranslation } from "react-i18next";
+import i18n from "../../../translation/language/i18n";
+import { formatFloorForSpeech } from "../../../utils/speechFormatter";
 
 const FloorLegendBar = ({
   buildingName,
@@ -13,7 +17,9 @@ const FloorLegendBar = ({
   const BASE_OFFSET = showBack ? 0 : -1;
   const SECTION_COUNT = showBack ? 5 : 4;
   const [cursor, setCursor] = useState(null);
-
+  const { speak, stop } = useVoice();
+  const { t } = useTranslation();
+const lang = i18n.language; 
   /* --------------------------
    RESET CURSOR ON DEFOCUS
 ---------------------------*/
@@ -68,6 +74,61 @@ const FloorLegendBar = ({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [isFocused, cursor, SECTION_COUNT, showBack, onBack]);
 
+
+// 🔊 VOICE: speak legend item when cursor changes
+useEffect(() => {
+  if (!isFocused) return;
+  if (cursor === null) return;
+
+  stop();
+
+  // BACK BUTTON
+  if (showBack && cursor === 0) {
+    speak(t("Back to floor map"));
+    return;
+  }
+
+  const index = showBack ? cursor - 1 : cursor;
+
+  switch (index) {
+    case 0:
+      speak(
+  t("Floor legend location", {
+    building: t(buildingName),
+    floor: formatFloorForSpeech(floorName, lang),
+    room: roomName,
+  })
+);
+      break;
+
+    case 1:
+      speak(t("Available seats"));
+      break;
+
+    case 2:
+      speak(t("Booked seats"));
+      break;
+
+    case 3:
+      speak(t("Disabled seats"));
+      break;
+
+    default:
+      break;
+  }
+}, [
+  cursor,
+  isFocused,
+  showBack,
+  buildingName,
+  floorName,
+  roomName,
+  speak,
+  stop,
+  t,
+]);
+
+  
   // --------------------------
   // FOCUS RING HELPER
   // --------------------------

@@ -723,6 +723,34 @@ useEffect(() => {
   }
 }, [focusedRegion, speak, stop, t]);
 
+useEffect(() => {
+  if (focusedRegion !== FocusRegion.MAP) return;
+  if (mapCursor === null) return;
+  if (!displayableSectors?.length) return;
+
+  const sector = displayableSectors[mapCursor];
+  if (!sector) return;
+
+  stop();
+
+  const label = getSectorLabel(sector);
+
+  // Basic speech (safe)
+  speak(
+    t("MAP_SECTOR_INFO", {
+      sector: label,
+    })
+  );
+
+}, [
+  focusedRegion,
+  mapCursor,
+  displayableSectors,
+  speak,
+  stop,
+  t,
+]);
+
 
   /* =====================================================
      RENDER

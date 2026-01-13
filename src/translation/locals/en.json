@@ -56,6 +56,15 @@
   "UserID": "UserID",
   "Floor header section": "Floor header section",
 "Floor information": "Floor information",
-"Floor map section": "Floor map section"
+"Floor map section": "Floor map section",
+"Back to floor map": "Back to floor map",
+"Floor legend location": "{{building}}, {{floor}}, {{room}}",
+"Available seats": "Available seats",
+"Booked seats": "Booked seats",
+"Disabled seats": "Disabled seats",
+"Central Library, Gwanjeong Building":"Central Library, Gwanjeong Building",
+"MAP_SECTOR_INFO": "{{sector}} section"
+
+
 
 }

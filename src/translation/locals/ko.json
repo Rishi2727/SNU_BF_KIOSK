@@ -67,6 +67,13 @@
   "UserID": "사용자ID",
   "Floor header section": "바닥 헤더 섹션",
   "Floor information": "층별 정보",
-  "Floor map section": "층 지도 영역"
- 
+  "Floor map section": "층 지도 영역",
+  "Back to floor map": "층별 지도로 돌아가기",
+  "Floor legend location": "{{building}}, {{floor}}, {{room}}",
+  "Available seats": "이용 가능한 좌석",
+  "Booked seats": "사용 중 좌석",
+  "Disabled seats": "사용 불가 좌석",
+  "Central Library, Gwanjeong Building":"중앙도서관, 관정빌딩",
+  "MAP_SECTOR_INFO": "{{sector}} 구역"
+
 }
