@@ -68,7 +68,6 @@ const SeatActionModal = ({
     const [showResultModal, setShowResultModal] = useState(false);
     const [actionResult, setActionResult] = useState(null);
     const [seatInfo, setSeatInfo] = useState(null);
-
     // ✅ NEW: Focus management state
     const [focusIndex, setFocusIndex] = useState(0);
     const [isModalFocused, setIsModalFocused] = useState(false);
@@ -512,7 +511,7 @@ const SeatActionModal = ({
             return (
                 <div className={headerClass}>
                     <p className={textClass}>
-                        Central Library → {seatInfo.FLOOR_NAME} → {seatInfo.SECTOR_NAME} →
+                        {t("Central Library")} → {seatInfo.FLOOR_NAME} → {seatInfo.SECTOR_NAME} →
                         <span className="text-red-600 font-extrabold ml-3">
                             {seatInfo.SEAT_VNAME}
                         </span>
@@ -525,7 +524,7 @@ const SeatActionModal = ({
             return (
                 <div className={headerClass}>
                     <p className={textClass}>
-                        Central Library → {seat?.ROOM_NAME || bookingSeatInfo?.FLOOR_NAME} →{" "}
+                        {t("Central Library")} → {seat?.ROOM_NAME || bookingSeatInfo?.FLOOR_NAME} →{" "}
                         {seat?.NAME || bookingSeatInfo?.SECTOR_NAME} →
                         <span className="text-red-600 font-extrabold ml-3">
                             {(seat?.VNAME || bookingSeatInfo?.SEAT_VNAME) ?? "-"}
@@ -538,7 +537,7 @@ const SeatActionModal = ({
         return (
             <div className={headerClass}>
                 <p className={textClass}>
-                    Seat {MODE_LABELS[mode]} Request
+                    {t("Seat")} {MODE_LABELS[mode]} {t("Request")}
                 </p>
             </div>
         );
@@ -608,7 +607,7 @@ const SeatActionModal = ({
                         className={`px-12 py-4 bg-linear-to-r from-[#FFCB35] to-[#cf9e0b] hover:from-[#fccc3b] hover:to-[#c79706] text-white rounded-lg font-bold text-lg ${isFocused('confirm-button') ? 'outline-[6px] outline-[#dc2f02]' : ''
                             }`}
                     >
-                        Confirm
+                        {t("Confirm")}
                     </button>
                 </div>
             );
@@ -631,7 +630,7 @@ const SeatActionModal = ({
                     className={`flex-1 px-6 py-4 bg-gray-300 hover:bg-gray-400 rounded-lg font-bold text-lg ${isFocused('cancel-button') ? 'outline-[6px] outline-[#dc2f02]' : ''
                         }`}
                 >
-                    Cancel
+                    {t("Cancel")}
                 </button>
 
                 <button
@@ -651,7 +650,7 @@ const SeatActionModal = ({
                         ${isFocused('confirm-button') ? 'outline-[6px] outline-[#dc2f02]' : ''}
                     `}
                 >
-                    Confirm
+                    {t("Confirm")}
                 </button>
             </div>
         );
@@ -671,7 +670,7 @@ const SeatActionModal = ({
                 className={`px-12 py-4 bg-linear-to-r from-[#FFCB35] to-[#cf9e0b] hover:from-[#fccc3b] hover:to-[#c79706] text-white rounded-lg font-bold text-lg ${isFocused('confirm-button') ? 'outline-[6px] outline-[#dc2f02]' : ''
                     }`}
             >
-                Confirm
+                {t("Confirm")}
             </button>
         </div>
     ), [handleResultModalClose, isFocused]);
@@ -823,7 +822,7 @@ const SeatActionModal = ({
                                     }`}
                             >
                                 <span className="text-gray-700">
-                                    이름
+                                    {t("Name")}
                                 </span>
                                 <span className="text-gray-700">:</span>
 
@@ -841,7 +840,7 @@ const SeatActionModal = ({
                                     }`}
                             >
                                 <span className="text-gray-700">
-                                    이용시간
+                                    {t("Time of use")}
                                 </span>
                                 <span className="text-gray-700">:</span>
 
@@ -869,7 +868,7 @@ const SeatActionModal = ({
                                         : ""
                                     }`}
                             >
-                                <span className="text-gray-700">Name</span>
+                                <span className="text-gray-700">{t("Name")}</span>
                                 <span className="text-gray-700">: </span>
                                 <span className="font-extrabold text-[#f7c224]">
                                     {userInfo?.SCHOOLNO}
@@ -886,7 +885,7 @@ const SeatActionModal = ({
                                         }`}
                                 >
                                     <span className="text-gray-700 font-bold">
-                                        Date Duration
+                                        {t("Date Duration")}
                                     </span>
                                     <span className="text-gray-700 font-bold">:</span>
 
@@ -905,7 +904,7 @@ const SeatActionModal = ({
                                         }`}
                                 >
                                     <span className="text-gray-700 font-bold">
-                                        Start hours
+                                        {t("Start hours")}
                                     </span>
                                     <span className="text-gray-700 font-bold">:</span>
 

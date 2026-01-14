@@ -1,21 +1,37 @@
-import i18n from "i18next";
-import { initReactI18next } from "react-i18next";
-import en from "../locals/en.json";
-import ko from "../locals/ko.json";
+import { initReactI18next } from 'react-i18next';
 
-const getInitialLang = () => {
-  if (typeof window === "undefined") return "ko";
-  return localStorage.getItem("lang") || "ko";
+import i18n from 'i18next';
+import enTranslations from '../locals/en';
+import koTranslations from '../locals/ko';
+
+const resources = {
+   en: { translation: enTranslations },
+  ko: { translation: koTranslations },
 };
 
-i18n.use(initReactI18next).init({
-  resources: {
-    en: { translation: en },
-    ko: { translation: ko },
-  },
-  lng: getInitialLang(),
-  fallbackLng: "ko",
-  interpolation: { escapeValue: false },
-});
+const getInitialLanguage = () => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('lang') || 'ko';
+  }
+  return 'ko'; 
+};
+
+i18n
+  .use(initReactI18next)
+  .init({
+    resources,
+    lng: getInitialLanguage(),
+    defaultNS: 'translation',
+    interpolation: {
+      escapeValue: false,
+    },
+    saveMissing: false,
+    parseMissingKeyHandler: (key) => {
+      const lastPart = key.split('.').pop() || key;
+      
+      return lastPart
+    },
+    returnEmptyString: false,
+  });
 
 export default i18n;

@@ -367,19 +367,19 @@ const Dashboard = () => {
     stop(); // stop previous speech before new focus speech
     switch (focused) {
       case FocusRegion.LOGO:
-        speak(t("Seoul National University Library"));
+        speak(t("speech.Seoul National University Library"));
         break;
 
       case FocusRegion.MAIN_SECTION:
-        speak(t("Floor Selection Section"));
+        speak(t("speech.Floor Selection Section"));
         break;
 
       case FocusRegion.NOTICE_BANNER:
-        speak(t("Notice information"));
+        speak(t("speech.Notice information"));
         break;
 
       case FocusRegion.FOOTER:
-        speak(t("Footer controls"));
+        speak(t("speech.Footer controls"));
         break;
 
       default:

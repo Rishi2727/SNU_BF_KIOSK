@@ -85,7 +85,7 @@ const MainSection = ({
 
     // cursor = 0 → heading
     if (cursor === 0) {
-      speak(t("Please select a desired floor"));
+      speak(t("common.Please select a desired floor"));
       return;
     }
 
@@ -93,7 +93,7 @@ const MainSection = ({
     const floor = floors[cursor - 1];
     if (floor) {
       speak(
-        t("MAIN_FLOOR_INFO", {
+        t("speech.MAIN_FLOOR_INFO", {
           floor: formatFloorForSpeech(floor.title, lang),
           total: floor.total,
           occupied: floor.occupied,
@@ -141,7 +141,7 @@ const MainSection = ({
   if (loading) {
     return (
       <div className="flex justify-center items-center h-full text-white text-2xl">
-        Loading floors...
+        {t("common.Loading floors")}
       </div>
     );
   }
@@ -186,7 +186,7 @@ const MainSection = ({
                 : ""
               }`}
           >
-            {t("Please select a desired floor")}
+            {t("common.Please select a desired floor")}
           </h2>
 
           <div className="flex justify-between">

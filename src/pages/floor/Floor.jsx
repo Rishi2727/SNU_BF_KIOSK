@@ -866,7 +866,7 @@ useEffect(() => {
                            opacity-0 group-hover:opacity-100 transition-all duration-200" />
                           <div className="absolute -top-15 left-1/2 -translate-x-1/2 pointer-events-none">
                             <span className="bg-[#9A7D4C] text-white px-4 py-1.5 rounded-md text-[30px] font-bold shadow-lg whitespace-nowrap">
-                              {getSectorLabel(sector, idx)}
+                           {t(`${getSectorLabel(sector, idx)}`)}
                             </span>
                           </div>
                         </button>

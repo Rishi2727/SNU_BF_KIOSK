@@ -74,7 +74,7 @@ useEffect(() => {
     stop();
 
     const heading = !hasAnnouncedHeadingRef.current
-      ? `${t("Notice information")}. `
+      ? `${t("speech.Notice information")}. `
       : "";
 
     speak(
@@ -109,7 +109,7 @@ useEffect(() => {
           <h3 className="text-[32px] font-extrabold tracking-wide leading-8 drop-shadow-md shrink-0 text-[#9A7D4C]">
         {notices.length
   ? notices[noticeIndex]?.TITLE
-  : t("Notice information")}
+  : t("speech.Notice information")}
 
           </h3>
 
@@ -117,7 +117,7 @@ useEffect(() => {
 
           <div className="flex-1 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/50 scrollbar-track-transparent">
             <p className="text-[30px] leading-10 font-medium text-white/95 transition-all duration-500">
-              {t(`${notices.length
+              {t(`speech.${notices.length
                 ? notices[noticeIndex]?.CONTENTS
                 : "No notices available."}`)}
             </p>

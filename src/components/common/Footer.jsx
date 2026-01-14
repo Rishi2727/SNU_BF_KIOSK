@@ -260,7 +260,7 @@ const FooterControls = ({
                 }`}
             >
               <LogOut className="w-7 h-7" />
-              로그아웃
+              {t("common.Logout")}
             </button>
 
             <div
@@ -281,7 +281,7 @@ const FooterControls = ({
             ${cursor === 0 && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""
               }`}
           >
-            {t("Login")}
+            {t("common.Login")}
           </button>
         )}
       </div>
@@ -290,7 +290,7 @@ const FooterControls = ({
       <div className="flex items-center gap-2">
         <FooterButton
           icon={<Volume1 size={28} />}
-          label={t("Volume Down")}
+          label={t("common.Volume Down")}
           onClick={() => dispatch(decreaseVolume())}
           isSelected={cursor === (userInfo ? 2 : 1)}
           isFocused={isFocused}
@@ -305,7 +305,7 @@ const FooterControls = ({
 
         <FooterButton
           icon={<Volume2 size={28} />}
-          label={t("Volume Up")}
+          label={t("common.Volume Up")}
           onClick={() => dispatch(increaseVolume())}
           isSelected={cursor === (userInfo ? 4 : 3)}
           isFocused={isFocused}
@@ -313,7 +313,7 @@ const FooterControls = ({
 
         <FooterButton
           icon={<InfoIcon size={28} />}
-          label={t("Info")}
+          label={t("common.Info")}
           onClick={onZoom}
           isSelected={cursor === (userInfo ? 5 : 4)}
           isFocused={isFocused}
@@ -321,7 +321,7 @@ const FooterControls = ({
 
         <FooterButton
           icon={<ZoomIn size={28} />}
-          label={t("Zoom")}
+          label={t("common.Zoom")}
           active={magnifierEnabled}
           onClick={() => dispatch(toggleMagnifier())}
           isSelected={cursor === (userInfo ? 6 : 5)}
@@ -330,7 +330,7 @@ const FooterControls = ({
 
         <FooterButton
           icon={<Contrast size={28} />}
-          label={t("Contrast")}
+          label={t("common.Contrast")}
           onClick={toggleContrast}
           active={contrastEnabled}
           isSelected={cursor === (userInfo ? 7 : 6)}
