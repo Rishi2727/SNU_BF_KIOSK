@@ -703,19 +703,19 @@ useEffect(() => {
 
   switch (focusedRegion) {
     case FocusRegion.FLOOR_STATS:
-      speak(t("Floor header section"));
+      speak(t("speech.Floor header section"));
       break;
 
     case FocusRegion.LEGEND:
-      speak(t("Floor information"));
+      speak(t("speech.Floor information"));
       break;
 
     case FocusRegion.MAP:
-      speak(t("Floor map section"));
+      speak(t("speech.Floor map section"));
       break;
 
     case FocusRegion.FOOTER:
-      speak(t("Footer controls"));
+      speak(t("speech.Footer controls"));
       break;
 
     default:

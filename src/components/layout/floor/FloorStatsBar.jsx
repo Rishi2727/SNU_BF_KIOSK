@@ -80,7 +80,7 @@ const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused 
     stop();
 
     speak(
-      t("MAIN_FLOOR_INFO", {
+      t("speech.MAIN_FLOOR_INFO", {
         floor: formatFloorForSpeech(floor.title, lang),
         total: floor.total,
         occupied: floor.occupied,
@@ -136,7 +136,7 @@ const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused 
                 : "text-[#9A7D4C]"
                 }`}
             >
-              {t(`${item.title}`)}
+              {t(`common.${item.title}`)}
             </span>
           </div>
 

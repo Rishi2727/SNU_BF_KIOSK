@@ -93,8 +93,8 @@ const FloorLegendBar = ({
     switch (index) {
       case 0:
         speak(
-          t("Floor legend location", {
-            building: t(buildingName),
+          t("speech.Floor legend location", {
+            building: t(`translations.${buildingName}`),
             floor: formatFloorForSpeech(floorName, lang),
             room: roomName,
           })
@@ -102,15 +102,15 @@ const FloorLegendBar = ({
         break;
 
       case 1:
-        speak(t("Available seats"));
+        speak(t("speech.Available seats"));
         break;
 
       case 2:
-        speak(t("Booked seats"));
+        speak(t("speech.Booked seats"));
         break;
 
       case 3:
-        speak(t("Disabled seats"));
+        speak(t("speech.Disabled seats"));
         break;
 
       default:
@@ -161,7 +161,7 @@ const FloorLegendBar = ({
             aria-selected={isFocusedAt(0)}
           >
             <ArrowLeft className="w-6 h-6" />
-            {t("Back")}
+            {t("common.Back")}
           </button>
         )}
 
@@ -169,8 +169,8 @@ const FloorLegendBar = ({
           aria-selected={isFocusedAt(showBack ? 1 : 0)}>
           <Home className="w-8 h-8" />
           <span className="text-[30px] font-semibold">
-            {buildingName && `${t(buildingName)} `}
-            {floorName && `( ${t(floorName)} `}
+            {buildingName && `${t(`translations.${buildingName}`)} `}
+            {floorName && `( ${t(`common.${floorName}`)} `}
             {roomName && `: ${roomName} `}
             {(floorName || roomName) && ')'}
           </span>
@@ -183,13 +183,13 @@ const FloorLegendBar = ({
         <div className={`flex items-center gap-2 ${isFocusedAt(showBack ? 2 : 1) ? focusRing : ""}`}
           aria-selected={isFocusedAt(showBack ? 2 : 1)}>
           <div className="w-8 h-8 bg-[#FFCA08] rounded"></div>
-          <span className="text-[30px]">{t("Available seats")}</span>
+          <span className="text-[30px]">{t("translations.Available seats")}</span>
         </div>
 
         <div className={`flex items-center gap-2 ${isFocusedAt(showBack ? 3 : 2) ? focusRing : ""}`}
           aria-selected={isFocusedAt(showBack ? 3 : 2)}>
           <Users className="w-8 h-8 text-blue-400" />
-          <span className="text-[30px]">{t("Booked")}</span>
+          <span className="text-[30px]">{t("translations.Booked")}</span>
         </div>
 
         <div className={`flex items-center gap-2 ${isFocusedAt(showBack ? 4 : 3) ? focusRing : ""}`}
@@ -197,7 +197,7 @@ const FloorLegendBar = ({
           <div className="w-8 h-8 border-2 border-gray-300 rounded flex items-center justify-center">
             <Armchair className="w-8 h-8 text-gray-300" />
           </div>
-          <span className="text-[30px]">{t("Disabled")}</span>
+          <span className="text-[30px]">{t("translations.Disabled")}</span>
         </div>
       </div>
     </div>

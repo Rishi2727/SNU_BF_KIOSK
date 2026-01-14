@@ -22,7 +22,7 @@ const koTranslations = {
     "Zoom": "확대",
     "Contrast": "대비",
     "Logout": "로그아웃",
-    "Enter":"를 입력하세요.",
+    "Enter": "를 입력하세요.",
     "BACKTICK": "백틱",
     "LEFT_BRACKET": "왼쪽 대괄호",
     "RIGHT_BRACKET": "오른쪽 대괄호",
@@ -62,6 +62,7 @@ const koTranslations = {
     "shift": "쉬프트",
     "Submit": "로그인",
     "Close": "닫기",
+    "Back": "뒤쪽에",
 
   },
   speech: {
@@ -81,9 +82,6 @@ const koTranslations = {
     "Available seats": "이용 가능한 좌석",
     "Booked seats": "사용 중 좌석",
     "Disabled seats": "사용 불가 좌석",
-    "Booked": "예약됨",
-    "Disabled": "비활성화됨",
-    "Central Library, Gwanjeong Building": "중앙도서관, 관정빌딩",
     "MAP_SECTOR_INFO": "{{sector}} 구역",
     "SEAT_MODAL_TITLE": "좌석 {{action}}",
     "SEAT_MODAL_LOCATION_INFO": "좌석 위치 정보",
@@ -111,7 +109,6 @@ const koTranslations = {
   translations: {
     "Confirm": "확인",
     "Cancel": "취소",
-    "Back": "뒤쪽에",
     "Central Library": "중앙도서관",
     "Seat": "좌석",
     "Request": "요구",
@@ -119,6 +116,10 @@ const koTranslations = {
     "Time of use": "이용시간",
     "Date Duration": "날짜 기간",
     "Start hours": "시작 시간",
+    "Booked": "예약됨",
+    "Disabled": "비활성화됨",
+    "Central Library, Gwanjeong Building": "중앙도서관, 관정빌딩",
+    "Available seats": "이용 가능한 좌석",
   }
 }
 export default koTranslations;

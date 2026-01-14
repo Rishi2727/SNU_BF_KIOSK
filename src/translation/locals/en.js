@@ -22,7 +22,7 @@ const enTranslations = {
     "Zoom": "Zoom",
     "Contrast": "Contrast",
     "Logout": "Logout",
-    "Enter":"Enter",
+    "Enter": "Enter",
     "BACKTICK": "backtick",
     "LEFT_BRACKET": "left bracket",
     "RIGHT_BRACKET": "right bracket",
@@ -62,6 +62,7 @@ const enTranslations = {
     "shift": "shift",
     "Submit": "Submit",
     "Close": "Close",
+    "Back": "Back",
   },
   speech: {
     "Seoul National University Library": "Seoul National University Library",
@@ -80,9 +81,6 @@ const enTranslations = {
     "Available seats": "Available seats",
     "Booked seats": "Booked seats",
     "Disabled seats": "Disabled seats",
-    "Booked": "Booked",
-    "Disabled": "Disabled",
-    "Central Library, Gwanjeong Building": "Central Library, Gwanjeong Building",
     "MAP_SECTOR_INFO": "{{sector}} section",
     "SEAT_MODAL_TITLE": "Seat {{action}}",
     "SEAT_MODAL_LOCATION_INFO": "Seat location information",
@@ -102,7 +100,6 @@ const enTranslations = {
   translations: {
     "Confirm": "Confirm",
     "Cancel": "Cancel",
-    "Back": "Back",
     "Central Library": "Central Library",
     "Seat": "Seat",
     "Request": "Request",
@@ -110,7 +107,10 @@ const enTranslations = {
     "Time of use": "Time of use",
     "Date Duration": "Date Duration",
     "Start hours": "Start hours",
-
+    "Available seats": "Available seats",
+    "Booked": "Booked",
+    "Disabled": "Disabled",
+    "Central Library, Gwanjeong Building": "Central Library, Gwanjeong Building",
 
   }
 
