@@ -422,6 +422,27 @@ const SeatActionModal = ({
         isAvailable, executeApiCall, onClose, mode
     ]);
 
+    //helper function to hours and minutes 
+    const formatDurationLabel = (minutes, t) => {
+        if (!minutes) return "";
+
+        const hrs = Math.floor(minutes / 60);
+        const mins = minutes % 60;
+
+        // English
+        if (t("common.hour") === "hour") {
+            if (hrs && mins) return `${hrs} ${t("common.hour")}${hrs > 1 ? "s" : ""} ${mins} ${t("common.minutes")}`;
+            if (hrs) return `${hrs} ${t("common.hour")}${hrs > 1 ? "s" : ""}`;
+            return `${mins} ${t("common.minutes")}`;
+        }
+
+        // Korean
+        if (hrs && mins) return `${hrs}${t("common.hour")} ${mins}${t("common.minutes")}`;
+        if (hrs) return `${hrs}${t("common.hour")}`;
+        return `${mins}${t("common.minutes")}`;
+    };
+
+
     // ===================HANDLE BY ENTER KEY ================
     const handleEnterPress = useCallback((focusedElement) => {
         if (!focusedElement) return;
@@ -524,7 +545,7 @@ const SeatActionModal = ({
             return (
                 <div className={headerClass}>
                     <p className={textClass}>
-                        {t("Central Library")} → {seat?.ROOM_NAME || bookingSeatInfo?.FLOOR_NAME} →{" "}
+                        {t("translations.Central Library")} → {seat?.ROOM_NAME || bookingSeatInfo?.FLOOR_NAME} →{" "}
                         {seat?.NAME || bookingSeatInfo?.SECTOR_NAME} →
                         <span className="text-red-600 font-extrabold ml-3">
                             {(seat?.VNAME || bookingSeatInfo?.SEAT_VNAME) ?? "-"}
@@ -566,7 +587,8 @@ const SeatActionModal = ({
                         ${isFocused('time-button', i) ? 'outline-[6px] outline-[#dc2f02]' : ''}
                     `}
                 >
-                    {opt.label}
+                    {formatDurationLabel(opt.value, t)}
+
                 </button>
             ))}
         </div>
@@ -581,10 +603,12 @@ const SeatActionModal = ({
         return (
             <p className="text-red-600 font-extrabold text-[30px]">
                 {isMove
-                    ? 'Do you want to move to this seat?'
+                    ? t('common.Do you want to move to this seat?')
                     : isReturn
-                        ? 'Do you want to return the seat?'
-                        : `Are you sure you want to ${MODE_LABELS[mode]} the seat?`}
+                        ? t('common.Do you want to return the seat?')
+                        : t("common.SEAT_CONFIRM_GENERIC", {
+                            action: t(`common.${MODE_LABELS[mode]}`)
+                        })}
             </p>
         );
     };
@@ -630,7 +654,7 @@ const SeatActionModal = ({
                     className={`flex-1 px-6 py-4 bg-gray-300 hover:bg-gray-400 rounded-lg font-bold text-lg ${isFocused('cancel-button') ? 'outline-[6px] outline-[#dc2f02]' : ''
                         }`}
                 >
-                    {t("Cancel")}
+                    {t("translations.Cancel")}
                 </button>
 
                 <button
@@ -650,7 +674,7 @@ const SeatActionModal = ({
                         ${isFocused('confirm-button') ? 'outline-[6px] outline-[#dc2f02]' : ''}
                     `}
                 >
-                    {t("Confirm")}
+                    {t("translations.Confirm")}
                 </button>
             </div>
         );
@@ -694,12 +718,12 @@ const SeatActionModal = ({
 
             switch (element.type) {
                 case "title":
-                    return t("SEAT_MODAL_TITLE", {
+                    return t("speech.SEAT_MODAL_TITLE", {
                         action: MODE_LABELS[mode],
                     });
 
                 case "header":
-                    return t("SEAT_MODAL_LOCATION_INFO");
+                    return t("speech.SEAT_MODAL_LOCATION_INFO");
 
                 case "name-label":
                 case "name-value":
@@ -708,38 +732,52 @@ const SeatActionModal = ({
                     });
 
                 case "date-label":
-                case "date-value":
-                    return t("SEAT_MODAL_DATE_DURATION");
+                case "date-value": {
+                    let durationText = "";
+
+                    if (startTime && endTime) {
+                        const diffMs = endTime - startTime;
+                        if (diffMs > 0) {
+                            const minutes = Math.floor(diffMs / 60000);
+                            durationText = formatDurationLabel(minutes, t);
+                        }
+                    }
+
+                    return durationText
+                        ? `${t("speech.SEAT_MODAL_DATE_DURATION")}. ${durationText}`
+                        : t("speech.SEAT_MODAL_DATE_DURATION");
+                }
+
 
                 case "start-label":
                 case "start-value":
-                    return t("SEAT_MODAL_START_TIME");
+                    return t("speech.SEAT_MODAL_START_TIME");
 
                 case "action-label":
-                    return t("SEAT_MODAL_ACTION_SECTION");
+                    return t("speech.SEAT_MODAL_ACTION_SECTION");
 
                 case "time-button":
-                    return t("SEAT_MODAL_TIME_OPTION", {
+                    return t("speech.SEAT_MODAL_TIME_OPTION", {
                         time: element.label,
                     });
 
                 case "confirmation-message":
-                    if (isMove) return t("SEAT_MODAL_MOVE_CONFIRM");
-                    if (isReturn) return t("SEAT_MODAL_RETURN_CONFIRM");
-                    return t("SEAT_MODAL_CONFIRM_GENERIC", {
+                    if (isMove) return t("speech.SEAT_MODAL_MOVE_CONFIRM");
+                    if (isReturn) return t("speech.SEAT_MODAL_RETURN_CONFIRM");
+                    return t("speech.SEAT_MODAL_CONFIRM_GENERIC", {
                         action: MODE_LABELS[mode],
                     });
 
                 case "cancel-button":
-                    return t("Cancel");
+                    return t("speech.Cancel");
 
                 case "confirm-button":
-                    return t("Confirm");
+                    return t("speech.Confirm");
 
                 case "result-message":
                     return actionResult?.success
-                        ? t("SEAT_MODAL_SUCCESS")
-                        : t("SEAT_MODAL_FAILURE");
+                        ? t("speech.SEAT_MODAL_SUCCESS")
+                        : t("speech.SEAT_MODAL_FAILURE");
 
                 default:
                     return "";
@@ -799,7 +837,11 @@ const SeatActionModal = ({
                 {/* ✅ Modal Title with focus highlighting */}
                 <h2 className={`text-[36px] font-extrabold text-center text-[#f7c224] mb-8 tracking-wide ${isFocused('title') ? 'outline-[6px] outline-[#dc2f02] rounded-lg' : ''
                     }`}>
-                    {isAssignCheck ? "좌석정보" : `좌석 ${MODE_LABELS[mode]}`}
+                    {isAssignCheck
+                        ? t("common.Seat information")
+                        : `${t("common.Seat")} ${t(`common.${MODE_LABELS[mode]}`)}`
+                    }
+
                 </h2>
 
                 {loading ? (
@@ -822,7 +864,7 @@ const SeatActionModal = ({
                                     }`}
                             >
                                 <span className="text-gray-700">
-                                    {t("Name")}
+                                    {t("translations.Name")}
                                 </span>
                                 <span className="text-gray-700">:</span>
 
@@ -840,7 +882,7 @@ const SeatActionModal = ({
                                     }`}
                             >
                                 <span className="text-gray-700">
-                                    {t("Time of use")}
+                                    {t("translations.Time of use")}
                                 </span>
                                 <span className="text-gray-700">:</span>
 
@@ -868,7 +910,7 @@ const SeatActionModal = ({
                                         : ""
                                     }`}
                             >
-                                <span className="text-gray-700">{t("Name")}</span>
+                                <span className="text-gray-700">{t("translations.Name")}</span>
                                 <span className="text-gray-700">: </span>
                                 <span className="font-extrabold text-[#f7c224]">
                                     {userInfo?.SCHOOLNO}
@@ -885,7 +927,7 @@ const SeatActionModal = ({
                                         }`}
                                 >
                                     <span className="text-gray-700 font-bold">
-                                        {t("Date Duration")}
+                                        {t("translations.Date Duration")}
                                     </span>
                                     <span className="text-gray-700 font-bold">:</span>
 
@@ -904,7 +946,7 @@ const SeatActionModal = ({
                                         }`}
                                 >
                                     <span className="text-gray-700 font-bold">
-                                        {t("Start hours")}
+                                        {t("translations.Start hours")}
                                     </span>
                                     <span className="text-gray-700 font-bold">:</span>
 
@@ -927,14 +969,14 @@ const SeatActionModal = ({
                             >
                                 <span className="text-gray-700 font-bold">
                                     {isReturn
-                                        ? 'Return Confirmation'
+                                        ? t('common.Return Confirmation')
                                         : isMove
-                                            ? 'Move Confirmation'
+                                            ? t('common.Move Confirmation')
                                             : confirmStep
-                                                ? 'Confirmation'
+                                                ? t('common.Confirmation')
                                                 : isBooking
-                                                    ? 'Select Time'
-                                                    : 'Extension Time'}
+                                                    ? t('common.Select Time')
+                                                    : t('common.Extension Time')}
                                 </span>
 
                                 <span className="text-gray-700 font-bold">:</span>

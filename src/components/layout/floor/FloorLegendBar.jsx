@@ -84,7 +84,7 @@ const FloorLegendBar = ({
 
     // BACK BUTTON
     if (showBack && cursor === 0) {
-      speak(t("Back to floor map"));
+      speak(t("speech.Back to floor map"));
       return;
     }
 

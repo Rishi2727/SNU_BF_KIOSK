@@ -737,7 +737,7 @@ useEffect(() => {
 
   // Basic speech (safe)
   speak(
-    t("MAP_SECTOR_INFO", {
+    t("speech.MAP_SECTOR_INFO", {
       sector: label,
     })
   );
@@ -837,7 +837,6 @@ useEffect(() => {
                     displayableSectors.map((sector, sectorIndex) => {
                       const mapStylesList = parseMapPoint(sector.MAPPOINT);
 
-                      console.log("--------", mapStylesList, sector)
                       return mapStylesList.map((mapStyles, idx) => (
                         <button
                           key={`${sector.SECTORNO}-${idx}`}
@@ -853,7 +852,7 @@ useEffect(() => {
                             right: mapStyles.right,
                             width: mapStyles.width,
                             height: mapStyles.height,
-                            minHeight: "60px", // ✅ important
+                            minHeight: "60px",
                           }}
                         >
                           {/* ✅ FOCUS VISUAL (padding + min height effect) */}
