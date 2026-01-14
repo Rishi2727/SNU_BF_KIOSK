@@ -66,38 +66,38 @@ const KeyboardModal = ({
   };
   // ⭐ FIX — Speech name for special characters
   const specialKeySpeech = {
-    "`": t("BACKTICK"),
-    "~": t("TILDE"),
-    "!": t("EXCLAMATION"),
-    "@": t("AT"),
-    "#": t("HASH"),
-    "$": t("DOLLAR"),
-    "%": t("PERCENT"),
-    "^": t("CARET"),
-    "&": t("AMPERSAND"),
-    "*": t("ASTERISK"),
-    "(": t("LEFT PARENTHESIS"),
-    ")": t("RIGHT PARENTHESIS"),
-    "_": t("UNDERSCORE"),
-    "+": t("PLUS"),
-    "[": t("LEFT BRACKET"),
-    "]": t("RIGHT BRACKET"),
-    "{": t("LEFT BRACE"),
-    "}": t("RIGHT BRACE"),
-    ";": t("SEMICOLON"),
-    ":": t("COLON"),
-    "'": t("APOSTROPHE"),
-    "\"": t("QUOTE"),
-    ",": t("COMMA"),
-    "<": t("LESS THAN"),
-    ".": t("DOT"),
-    ">": t("GREATER THAN"),
-    "/": t("SLASH"),
-    "?": t("QUESTION"),
-    "\\": t("BACKSLASH"),
-    "|": t("PIPE"),
-    "-": t("HYPHEN"),
-    "=": t("EQUALS"),
+    "`": t("common.BACKTICK"),
+    "~": t("common.TILDE"),
+    "!": t("common.EXCLAMATION"),
+    "@": t("common.AT"),
+    "#": t("common.HASH"),
+    "$": t("common.DOLLAR"),
+    "%": t("common.PERCENT"),
+    "^": t("common.CARET"),
+    "&": t("common.AMPERSAND"),
+    "*": t("common.ASTERISK"),
+    "(": t("common.LEFT PARENTHESIS"),
+    ")": t("common.RIGHT PARENTHESIS"),
+    "_": t("common.UNDERSCORE"),
+    "+": t("common.PLUS"),
+    "[": t("common.LEFT BRACKET"),
+    "]": t("common.RIGHT BRACKET"),
+    "{": t("common.LEFT BRACE"),
+    "}": t("common.RIGHT BRACE"),
+    ";": t("common.SEMICOLON"),
+    ":": t("common.COLON"),
+    "'": t("common.APOSTROPHE"),
+    "\"": t("common.QUOTE"),
+    ",": t("common.COMMA"),
+    "<": t("common.LESS THAN"),
+    ".": t("common.DOT"),
+    ">": t("common.GREATER THAN"),
+    "/": t("common.SLASH"),
+    "?": t("common.QUESTION"),
+    "\\": t("common.BACKSLASH"),
+    "|": t("common.PIPE"),
+    "-": t("common.HYPHEN"),
+    "=": t("common.EQUALS"),
   };
 
 
@@ -108,12 +108,12 @@ const KeyboardModal = ({
     if (!isFocused) return;
 
     if (kbFocus === KBFocus.HEADING) {
-      speak(t("Virtual Keyboard"));
+      speak(t("common.Virtual Keyboard"));
       return;
     }
 
     if (kbFocus === KBFocus.INPUT) {
-      speak(t("Type here"));
+      speak(t("common.Type here"));
       return;
     }
 
@@ -132,8 +132,8 @@ const KeyboardModal = ({
     }
 
     if (kbFocus === KBFocus.BUTTONS) {
-      if (buttonCursor === 0) speak(t("Submit"));
-      if (buttonCursor === 1) speak(t("Close"));
+      if (buttonCursor === 0) speak(t("common.Submit"));
+      if (buttonCursor === 1) speak(t("common.Close"));
     }
   }, [kbFocus, keyCursor, buttonCursor, isFocused]);
 
@@ -335,13 +335,13 @@ const KeyboardModal = ({
   return (
     <>
       {isOpen && (
-        <div className="fixed w-full inset-0 flex items-center justify-center bg-opacity-50 backdrop-blur-sm z-[9999] shadow">
+        <div className="fixed w-full inset-0 flex items-center justify-center bg-opacity-50 backdrop-blur-sm z-9999 shadow">
           <div ref={modalRef} className={`p-4 bg-white rounded-3xl shadow-lg w-[80%] md:h-[60%] 2xl:h-[75%] transition-all duration-300  ${focusRingClass}`}>
 
             {/* HEADING */}
             <div className={`flex items-center gap-5 p-2 justify-center`}>
               <p className={`sm:text-xl xl:text-3xl 2xl:text-4xl font-semibold text-gray-600 ${headingFocusClass}`}>
-                {t("Virtual Keyboard")}
+                {t("common.Virtual Keyboard")}
               </p>
             </div>
 
@@ -398,14 +398,14 @@ const KeyboardModal = ({
                   handleClose();
                 }}
               >
-                {t("Submit")}
+                {t("common.Submit")}
               </button>
 
               <button
                 className={`px-6 py-3 sm:h-5 xl:h-12 2xl:h-16 w-[18%] text-white sm:text-md 2xl:text-3xl bg-gray-600 rounded-full shadow hover:bg-gray-500 transition duration-200 ${closeButtonFocusClass}`}
                 onClick={handleClose}
               >
-                {t("Close")}
+                {t("common.Close")}
               </button>
             </div>
 

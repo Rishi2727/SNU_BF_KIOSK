@@ -18,7 +18,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { useVoice } from "../../context/voiceContext";
 import { setLanguage as setLanguageAction } from "../../redux/slice/langSlice";
-
+import i18n from "../../translation/language/i18n";
 const applyContrastMode = (mode) => {
   document.documentElement.setAttribute("data-contrast", mode);
   localStorage.setItem("contrastMode", mode);
@@ -205,28 +205,28 @@ const FooterControls = ({
     stop();
 
     const speakMapWithUser = [
-      t("Logout"),
-      t("UserID"),
-      t("Volume Down"),
+      t("common.Logout"),
+      t("speech.UserID"),
+      t("common.Volume Down"),
       `${Math.round(volume * 100)} percent`,
-      t("Volume Up"),
-      t("Info"),
-      t("Zoom"),
-      t("Contrast"),
-      t("Language") + " Korean",
-      t("Language") + " English",
+      t("common.Volume Up"),
+      t("common.Info"),
+      t("common.Zoom"),
+      t("common.Contrast"),
+      t("common.Language") + " Korean",
+      t("common.Language") + " English",
     ];
 
     const speakMapWithoutUser = [
-      t("Login"),
-      t("Volume Down"),
+      t("common.Login"),
+      t("common.Volume Down"),
       `${Math.round(volume * 100)} percent`,
-      t("Volume Up"),
-      t("Info"),
-      t("Zoom"),
-      t("Contrast"),
-      t("Language") + " Korean",
-      t("Language") + " English",
+      t("common.Volume Up"),
+      t("common.Info"),
+      t("common.Zoom"),
+      t("common.Contrast"),
+      t("common.Language") + " Korean",
+      t("common.Language") + " English",
     ];
 
     const speakText = userInfo
