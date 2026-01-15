@@ -64,6 +64,7 @@ const FooterControls = ({
     if (!isFocused) return;
 
     const handleKeyDown = (e) => {
+      
       switch (e.key) {
         case "ArrowRight":
           e.preventDefault();
@@ -203,11 +204,13 @@ const FooterControls = ({
   };
 
 
-  const toggleContrast = () => {
-    const nextMode = contrastEnabled ? "normal" : "high";
-    setContrastEnabled(!contrastEnabled);
+const toggleContrast = () => {
+  setContrastEnabled((prev) => {
+    const nextMode = prev ? "normal" : "high";
     applyContrastMode(nextMode);
-  };
+    return !prev;
+  });
+};
 
   // 🔊 VOICE: speak footer item on focus change
   useEffect(() => {

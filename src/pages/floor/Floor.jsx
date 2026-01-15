@@ -716,7 +716,7 @@ const Floor = () => {
       default:
         break;
     }
-  }, [focusedRegion, speak, stop, t]);
+  }, [focusedRegion, stop, t]);
 
   useEffect(() => {
     if (focusedRegion !== FocusRegion.MAP) return;
