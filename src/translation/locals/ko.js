@@ -77,7 +77,16 @@ const koTranslations = {
     "and": "및",
     "Do you want to move to this seat?": "이 좌석으로 이동하시겠습니까?",
     "Do you want to return the seat?": "좌석을 반납하시겠습니까?",
-    "SEAT_CONFIRM_GENERIC": "좌석을 {{action}} 하시겠습니까?"
+    "SEAT_CONFIRM_GENERIC": "좌석을 {{action}} 하시겠습니까?",
+    "Seat Extension": "좌석 연장",
+    "Seat Move": "좌석 이동",
+    "Seat Return": "좌석 반납",
+    "Reservation Check": "예약 확인",
+    "Reservation Cancel": "예약 취소",
+    "Seat Assignment": "좌석 배정",
+    "Assignment Check": "배정 확인",
+    "User Information": "사용자 정보",
+    "You are now logged in. Please select the features you wish to use.": "로그인이 완료되었습니다. 사용하실 기능을 선택해 주세요."
   },
   speech: {
     "Seoul National University Library": "서울대학교 도서관",
@@ -117,10 +126,10 @@ const koTranslations = {
     "Request": "요구",
     "Name": "이름",
     "Time of use": "이용시간",
-    "Start hours": "시작 시간",
     "From": "부터",
     "To": "로.",
-    "Total": "총"
+    "Total": "총",
+
   },
   translations: {
     "Confirm": "확인",

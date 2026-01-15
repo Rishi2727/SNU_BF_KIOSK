@@ -1,14 +1,21 @@
 import { CheckCircle, CheckCircle2, Clock, LogOut, Move, User, XCircle } from "lucide-react";
 import Modal from "../../common/Modal";
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import { useVoice } from "../../../context/voiceContext";
+import { useTranslation } from "react-i18next";
 
 const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
   const [focusIndex, setFocusIndex] = useState(0);
   const [isModalFocused, setIsModalFocused] = useState(false);
+  const { speak, stop } = useVoice();
+  const { t } = useTranslation();
+  const hasSpokenIntroRef = useRef(false);
+
+ 
   const actions = [
     {
       id: 'extend',
-      title: 'Seat Extension',
+      title: t('common.Seat Extension'),
       subtitle: '좌석연장',
       icon: <Clock className="w-12 h-12" />,
       enabled: userInfo?.EXTEND_YN === 'Y',
@@ -17,7 +24,7 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
     },
     {
       id: 'move',
-      title: 'Seat Move',
+      title: t('common.Seat Move'),
       icon: <Move className="w-12 h-12" />,
       enabled: userInfo?.MOVE_YN === 'Y',
       color: 'bg-yellow-500/90',
@@ -25,7 +32,7 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
     },
     {
       id: 'return',
-      title: 'Seat Return',
+      title: t('common.Seat Return'),
       icon: <LogOut className="w-12 h-12" />,
       enabled: userInfo?.RETURN_YN === 'Y',
       color: 'bg-[#9A7D4C]',
@@ -33,7 +40,7 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
     },
     {
       id: 'check',
-      title: 'Reservation Check',
+      title: t('common.Reservation Check'),
       icon: <CheckCircle className="w-12 h-12" />,
       enabled: userInfo?.BOOKING_CHECK_YN === 'Y',
       color: 'from-green-500 to-green-600',
@@ -41,7 +48,7 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
     },
     {
       id: 'cancel',
-      title: 'Reservation Cancel',
+      title: t('common.Reservation Cancel'),
       icon: <XCircle className="w-12 h-12" />,
       enabled: userInfo?.CANCEL_YN === 'Y',
       color: 'from-red-500 to-red-600',
@@ -49,7 +56,7 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
     },
     {
       id: 'assign',
-      title: 'Seat Assignment',
+      title: t('common.Seat Assignment'),
       icon: <User className="w-12 h-12" />,
       enabled: userInfo?.ASSIGN_YN === 'Y',
       color: 'from-indigo-500 to-indigo-600',
@@ -57,26 +64,41 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
     },
     {
       id: 'assignCheck',
-      title: 'Assignment Check',
+      title: t('common.Assignment Check'),
       icon: <CheckCircle2 className="w-12 h-12" />,
       enabled: userInfo?.ASSIGN_CHECK_YN === 'Y',
       color: 'from-cyan-500 to-cyan-600',
       action: () => onAction('assignCheck', userInfo?.ASSIGN_NO)
     }
   ];
+
+
+  //To implement focus functionality 
   const focusableActions = useMemo(
     () => actions.filter(a => a.enabled),
     [actions]
   );
-  useEffect(() => {
-    if (isOpen) {
-      setIsModalFocused(true);
-      setFocusIndex(0);
-    } else {
-      setIsModalFocused(false);
-      setFocusIndex(0);
-    }
-  }, [isOpen]);
+useEffect(() => {
+  if (isOpen) {
+    setIsModalFocused(true);
+    setFocusIndex(0);
+    hasSpokenIntroRef.current = false;
+
+    stop();
+    speak(
+      `${t("common.User Information")}. ${t(
+        "common.You are now logged in. Please select the features you wish to use."
+      )}`
+    );
+  } else {
+    setIsModalFocused(false);
+    setFocusIndex(0);
+    hasSpokenIntroRef.current = false;
+    stop();
+  }
+}, [isOpen, stop, speak, t]);
+
+
   useEffect(() => {
     if (!isOpen || !isModalFocused) return;
     const handleKeyDown = (e) => {
@@ -106,18 +128,41 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
     (index) => isModalFocused && focusIndex === index,
     [isModalFocused, focusIndex]
   );
+
+
+  //Speech Functionality 
+useEffect(() => {
+  if (!isOpen || !isModalFocused) return;
+
+  // ⛔ Skip speaking focused element once (right after modal opens)
+  if (!hasSpokenIntroRef.current) {
+    hasSpokenIntroRef.current = true;
+    return;
+  }
+
+  const currentAction = focusableActions[focusIndex];
+  if (currentAction) {
+    stop();
+    speak(
+      t(`speech.${currentAction.title}`, {
+        defaultValue: currentAction.title
+      })
+    );
+  }
+}, [focusIndex, isOpen, isModalFocused, focusableActions, speak, stop, t]);
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="User Information"
+      title={t("common.User Information")}
       size="large"
-     className="h-[50vh]!"
+      className="h-[50vh]! outline-[5px] outline-[#dc2f02]!"
     >
       <div className="space-y-7">
         <div className="bg-linear-to-r from-teal-50 to-cyan-50 rounded-lg p-6 border-l-4 border-teal-500">
           <p className="text-2xl text-gray-800 font-semibold">
-            You are now logged in. Please select the features you wish to use.
+            {t("common.You are now logged in. Please select the features you wish to use.")}
           </p>
         </div>
         <div className="grid grid-cols-3 gap-4">

@@ -65,21 +65,28 @@ const enTranslations = {
     "Back": "Back",
     "Seat information": "Seat information",
     "Seat": "Seat",
-    "Booking":"Booking",
-    "Return Confirmation":"Return Confirmation",
-    "Move Confirmation":"Move Confirmation",
-    "Confirmation":"Confirmation",
-    "Select Time":"Select Time",
-    "Extension Time":"Extension Time",
-    "hours":"hours",
-    "hour":"hour",
-    "minutes":"mins",
-    "and":"and",
-    "Do you want to move to this seat?":"Do you want to move to this seat?",
-    "Do you want to return the seat?":"Do you want to return the seat?",
-"SEAT_CONFIRM_GENERIC": "Are you sure you want to {{action}} the seat?"
-
-  
+    "Booking": "Booking",
+    "Return Confirmation": "Return Confirmation",
+    "Move Confirmation": "Move Confirmation",
+    "Confirmation": "Confirmation",
+    "Select Time": "Select Time",
+    "Extension Time": "Extension Time",
+    "hours": "hours",
+    "hour": "hour",
+    "minutes": "mins",
+    "and": "and",
+    "Do you want to move to this seat?": "Do you want to move to this seat?",
+    "Do you want to return the seat?": "Do you want to return the seat?",
+    "SEAT_CONFIRM_GENERIC": "Are you sure you want to {{action}} the seat?",
+    "Seat Extension": "Seat Extension",
+    "Seat Move": "Seat Move",
+    "Seat Return": "Seat Return",
+    "Reservation Check": "Reservation Check",
+    "Reservation Cancel": "Reservation Cancel",
+    "Seat Assignment": "Seat Assignment",
+    "Assignment Check": "Assignment Check",
+    "User Information": "User Information",
+    "You are now logged in. Please select the features you wish to use.": "You are now logged in. Please select the features you wish to use.",
   },
   speech: {
     "Seoul National University Library": "Seoul National University Library",
@@ -111,11 +118,9 @@ const enTranslations = {
     "SEAT_MODAL_CONFIRM_GENERIC": "Are you sure you want to {{action}} this seat?",
     "SEAT_MODAL_SUCCESS": "Seat action completed successfully",
     "SEAT_MODAL_FAILURE": "Seat action failed",
-    "From":"From",
-    "To":"To",
-    "Total":"Total"
-
-
+    "From": "From",
+    "To": "To",
+    "Total": "Total"
   },
   translations: {
     "Confirm": "Confirm",

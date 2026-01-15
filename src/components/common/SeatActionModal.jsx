@@ -718,13 +718,11 @@ const SeatActionModal = ({
     const getSpeechForFocusedElement = useCallback(
         (element) => {
             if (!element) return "";
-
             switch (element.type) {
                 case "title":
                     return t("speech.SEAT_MODAL_TITLE", {
                         action: MODE_LABELS[mode],
                     });
-
                 case "header":
                     return t("speech.SEAT_MODAL_LOCATION_INFO");
 
@@ -733,7 +731,6 @@ const SeatActionModal = ({
                     return t("speech.SEAT_MODAL_USER_NAME", {
                         name: userInfo?.SCHOOLNO,
                     });
-
                 case "date-label":
                 case "date-value": {
                     const startStr = formatDate(startTime, DATE_FORMATS.ISO);
@@ -747,10 +744,17 @@ const SeatActionModal = ({
                         }
                     }
                     const fullSpeech = `${t("translations.Date Duration")}: ${startStr} ${t("speech.to")} ${endStr}. ${durationText ? t("speech.Total") + " " + durationText : ""}`;
-
                     return fullSpeech;
                 }
-
+                case "time-label":
+                case "time-value": {
+                    if (!seatInfo?.USESTART || !seatInfo?.USEEXPIRE) {
+                        return t("translations.Time of use");
+                    }
+                    const startStr = formatDate(seatInfo.USESTART, DATE_FORMATS.ISO);
+                    const endStr = formatDate(seatInfo.USEEXPIRE, DATE_FORMATS.ISO);
+                    return `${t("translations.Time of use")}: ${startStr} ${t("speech.to")} ${endStr}`;
+                }
                 case "start-label":
                 case "start-value": {
                     const startStr = formatDate(startTime, DATE_FORMATS.ISO);
@@ -767,25 +771,10 @@ const SeatActionModal = ({
                         }
                     }
                     const fullSpeech = `${t("translations.Start hours")}: ${startStr} ${t("speech.to")} ${endStr}. ${durationText ? t("speech.Total") + " " + durationText : ""}`;
-
                     return fullSpeech;
                 }
-
-                case "time-label":
-                case "time-value": {
-                    if (!seatInfo?.USESTART || !seatInfo?.USEEXPIRE) {
-                        return t("translations.Time of use");
-                    }
-
-                    const startStr = formatDate(seatInfo.USESTART, DATE_FORMATS.ISO);
-                    const endStr = formatDate(seatInfo.USEEXPIRE, DATE_FORMATS.ISO);
-
-                    return `${t("translations.Time of use")}: ${startStr} ${t("speech.to")} ${endStr}`;
-                }
-
                 case "action-label":
                     return t("speech.SEAT_MODAL_ACTION_SECTION");
-
                 case "time-button": {
                     const spokenTime = formatDurationLabel(element.value, t);
                     return t("speech.SEAT_MODAL_TIME_OPTION", {
