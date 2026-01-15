@@ -186,8 +186,6 @@ const SeatActionModal = ({
                     direction === "next"
                         ? (next + 1) % len
                         : (next - 1 + len) % len;
-
-                // 👇 SKIP label-only elements (they are grouped visually)
             } while (
                 ["name-label", "date-label", "start-label", "action-label"].includes(
                     items[next]?.type
@@ -234,7 +232,6 @@ const SeatActionModal = ({
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [isOpen, isModalFocused, focusIndex, getFocusableElements, showResultModal]);
-
 
     /**
      * ✅ STEP 5: Helper to check if element is focused
@@ -314,8 +311,6 @@ const SeatActionModal = ({
         isBooking, isExtension, isReturn, isMove, isAssignCheck,
         dispatch
     ]);
-
-
     /**
      * Set default time option using moment
      */
@@ -845,9 +840,6 @@ const SeatActionModal = ({
         speak,
         stop,
     ]);
-
-
-
 
     return (
         <>
