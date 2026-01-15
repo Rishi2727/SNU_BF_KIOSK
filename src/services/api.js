@@ -1,43 +1,71 @@
 import axios from "axios";
 
 /* ===============================
-   🌐 LANGUAGE HELPERS
+   🌐 RUNTIME LANGUAGE MANAGER
 ================================ */
-export const getLang = () => {
-  return localStorage.getItem("lang") || "ko"; // ko | en
+
+// 🔥 Single live source for API layer
+let runtimeLang = localStorage.getItem("lang") || "en";
+let lastSyncedLang = runtimeLang;
+
+export const setApiLang = (lang) => {
+  runtimeLang = lang;
 };
 
-export const setLang = (lang) => {
-  localStorage.setItem("lang", lang);
-};
+export const getLang = () => runtimeLang;
+
 
 /* ===============================
    🌐 BASE URLS
 ================================ */
+
+const BASE_PATH = "/NEW_SNU_BOOKING";
 export const BASE_URL_2 = "/SEATAPI";
 
 export const ImageBaseUrl =
   "http://k-rsv.snu.ac.kr:8011/NEW_SNU_BOOKING/commons/images/kiosk";
 
-const BASE_PATH = "/NEW_SNU_BOOKING";
-
 export const FloorImageUrl = "http://k-rsv.snu.ac.kr:8012";
+
+
+/* ===============================
+   🌐 SERVER LOCALE SYNC
+================================ */
+
+const syncServerLocale = async (lang) => {
+  const formData = new URLSearchParams({ locale: lang });
+
+  await axios.post(
+    "/NEW_SNU_BOOKING/json/setChangeLocale",
+    formData,
+    {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
+      },
+    }
+  );
+};
+
 
 /* ===============================
    ⚙️ COMMON HEADERS
 ================================ */
+
 const commonHeaders = () => ({
   Accept: "application/json",
   "X-Requested-With": "XMLHttpRequest",
   os_kind: "KIOSK",
-  langcode: getLang(),   // ✅ language support
-  locale: getLang(),     // ✅ matches old system
+  langcode: getLang(),
+  locale: getLang(),
   "Content-Type": "application/x-www-form-urlencoded",
 });
+
 
 /* ===============================
    ⚙️ AXIOS CLIENTS
 ================================ */
+
 const baseClient = axios.create({
   baseURL: BASE_PATH,
   withCredentials: true,
@@ -51,40 +79,52 @@ const baseClient_2 = axios.create({
   headers: commonHeaders(),
 });
 
+
 /* ===============================
-   🔁 INTERCEPTORS (AUTO LANG)
+   🔁 INTERCEPTORS
 ================================ */
-baseClient.interceptors.request.use((config) => {
-  config.headers.langcode = getLang();
-  config.headers.locale = getLang();
+
+baseClient.interceptors.request.use(async (config) => {
+  const currentLang = getLang();
+
+  if (lastSyncedLang !== currentLang) {
+    console.log("🌐 Sync backend locale →", currentLang);
+    await syncServerLocale(currentLang);
+    lastSyncedLang = currentLang;
+  }
+
+  config.headers.langcode = currentLang;
+  config.headers.locale = currentLang;
   config.headers.os_kind = "KIOSK";
+
   return config;
 });
 
 baseClient_2.interceptors.request.use((config) => {
-  config.headers.langcode = getLang();
-  config.headers.locale = getLang();
+  const currentLang = getLang();
+  config.headers.langcode = currentLang;
+  config.headers.locale = currentLang;
   config.headers.os_kind = "KIOSK";
   return config;
 });
 
+
 /* ===============================
-   PUBLIC API WRAPPER
+   📦 API WRAPPERS
 ================================ */
+
 export const publicApi = {
   get: async (url, params = {}) => {
     const res = await baseClient.get(url, { params });
     return res.data;
   },
   post: async (url, data = {}) => {
-    const res = await baseClient.post(url, data);
+    const formData = new URLSearchParams(data);
+    const res = await baseClient.post(url, formData);
     return res.data;
   },
 };
 
-/* ===============================
-   PROTECTED API WRAPPER
-================================ */
 export const protectedApi = {
   post: async (url, data = {}) => {
     const formData = new URLSearchParams(data);
@@ -97,9 +137,11 @@ export const protectedApi = {
   },
 };
 
+
 /* ===============================
-   ✅ PUBLIC FLOOR API (SEAT MAP)
+   🏢 FLOOR / SECTOR
 ================================ */
+
 export const getFloorList = async (libno) => {
   const res = await baseClient_2.get("/GetFloorUsingCount.asp", {
     params: { libno },
@@ -112,24 +154,25 @@ export const getNoticeInfo = async () => {
   return res.data;
 };
 
+export const getSectorList = ({ floor, floorno }) =>
+  publicApi.post("/json/getSectorList", { floor, floorno });
+
+
 /* ===============================
    🔐 AUTH
 ================================ */
+
 export const loginBySchoolNo = (schoolno) =>
   publicApi.get("/kiosk/login/login", { schoolno });
 
 export const getKioskUserInfo = () =>
   protectedApi.post("/json/getKioskUserInfo", {});
 
-/* ===============================
-   🏢 SECTOR LIST
-================================ */
-export const getSectorList = ({ floor, floorno }) =>
-  publicApi.post("/json/getSectorList", { floor, floorno });
 
 /* ===============================
-   💺 SEAT LIST
+   💺 SEAT
 ================================ */
+
 export const getSeatList = ({
   sectorno,
   floor,
@@ -145,57 +188,36 @@ export const getSeatList = ({
     type,
   });
 
-/* ===============================
-   ⏱️ BOOKING TIME BY SEAT
-================================ */
 export const getBookingTimeSeat = ({ seatno, assignno }) =>
   protectedApi.post("/json/getBookingTimeSeat", {
     ...(seatno && { seatno }),
     ...(assignno && { assignno }),
   });
 
+
 /* ===============================
-   ✅ SET SEAT ASSIGN (BOOK SEAT)
+   ✅ BOOKING
 ================================ */
-export const setSeatAssign = ({
-  seatno,
-  date,
-  useTime,
-  schoolno,
-  members,
-}) =>
-  protectedApi.post("/json/setSeatAssign", {
-    seatno,
-    date,
-    useTime,
-    schoolno,
-    members,
-  });
 
-export const setExtend = ({ b_SeqNo, extendM, useExpire }) =>
-  protectedApi.post("/json/setExtend", {
-    b_SeqNo,
-    extendM,
-    useExpire,
-  });
+export const setSeatAssign = (payload) =>
+  protectedApi.post("/json/setSeatAssign", payload);
 
-export const setMove = async ({ seatNo, bSeqNo }) =>
-  protectedApi.post("/json/setMove", {
-    seatNo,
-    bSeqNo,
-  });
+export const setExtend = (payload) =>
+  protectedApi.post("/json/setExtend", payload);
 
-export const setReturnSeat = ({ b_SeqNo }) =>
-  protectedApi.post("/json/setReturnSeat", {
-    b_SeqNo,
-  });
+export const setMove = (payload) =>
+  protectedApi.post("/json/setMove", payload);
 
-export const setAssignSeatInfo = ({ bseqno }) =>
-  protectedApi.post("/json/getAssignSeatInfo", {
-    bseqno,
-  });
+export const setReturnSeat = (payload) =>
+  protectedApi.post("/json/setReturnSeat", payload);
+
+export const setAssignSeatInfo = (payload) =>
+  protectedApi.post("/json/getAssignSeatInfo", payload);
+
 
 /* ===============================
    🚪 LOGOUT
 ================================ */
-export const logout = () => publicApi.get("/kiosk/login/logout");
+
+export const logout = () =>
+  publicApi.get("/kiosk/login/logout");

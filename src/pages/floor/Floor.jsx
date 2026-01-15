@@ -25,7 +25,6 @@ import { MINI_MAP_LAYOUT, MINIMAP_CONFIG } from "../../utils/constant";
 import SeatActionModal from "../../components/common/SeatActionModal";
 import { useTranslation } from "react-i18next";
 import { useVoice } from "../../context/voiceContext";
-import { clearSectors, fetchSectorList } from "../../redux/slice/sectorSlice";
 
 
 const Floor = () => {
@@ -42,11 +41,7 @@ const Floor = () => {
 
   const isMoveMode = move === "move" || location.state?.mode === "move";
 
-  const {
-    sectorList: initialSectorList,
-    floorInfo: initialFloorInfo,
-    selectedSector: stateSector,
-  } = location.state || {};
+  const { floorInfo: initialFloorInfo } = location.state || {};
 
   /* =====================================================
      FLOOR / SECTOR STATE
@@ -96,6 +91,7 @@ const Floor = () => {
   /* =====================================================
      FLOOR DATA HOOK
   ===================================================== */
+
   const {
     floors,
     currentFloor,
@@ -105,7 +101,7 @@ const Floor = () => {
     imageError,
     setImageError,
     loading,
-  } = useFloorData(floorId, initialFloorInfo, initialSectorList);
+  } = useFloorData(floorId, initialFloorInfo);
 
 
   useEffect(() => {
@@ -225,26 +221,7 @@ const Floor = () => {
       },
     });
   };
-console.log("lang", lang)
-  /* =====================================================
-     ✅ FIX: Re-fetch sectors when language changes
-  ===================================================== */
-useEffect(() => {
-  if (!currentFloor?.floor || !currentFloor?.floorno) return;
-
-  console.log("Fetching sectors for floor:", currentFloor);
-
-  dispatch(clearSectors()); // optional but recommended
-  dispatch(
-    fetchSectorList({
-      floor: currentFloor.floor,
-      floorno: currentFloor.floorno,
-      // lang: lang, // enable only if backend supports it
-    })
-  );
-}, [currentFloor, lang, dispatch]);
-
-
+  console.log("lang", lang)
   /* =====================================================
      FETCH SEATS
   ===================================================== */
@@ -273,8 +250,8 @@ useEffect(() => {
      LOAD SECTOR FROM ROUTE OR AUTO OPEN
   ===================================================== */
   useEffect(() => {
-    if (sectorNo && sectorListData?.length) {
-      const sector = sectorListData.find(
+    if (sectorNo && sectorList?.length) {
+      const sector = sectorList.find(
         (s) => String(s.SECTORNO) === String(sectorNo)
       );
 
@@ -284,8 +261,7 @@ useEffect(() => {
         fetchSeats(sector);
       }
     }
-  }, [sectorListData, sectorNo]);
-
+  }, [sectorList, sectorNo]);
   /* =====================================================
      SECTOR CLICK - PRESERVE MOVE MODE
   ===================================================== */
@@ -662,13 +638,13 @@ useEffect(() => {
   ===================================================== */
   const getSectorLabel = (sector, index = 0) => {
     if (!sector?.MAPLABEL) return "";
-    const labels = sector.MAPLABEL.split("$").map((l) => l.trim());
+    const labels = sector.ROOM_NAME.split("$").map((l) => l.trim());
     return labels[index] || labels[0];
   };
-
+  console.log("sectorList", sectorList)
 
   const displayableSectors = filterDisplayableSectors(sectorList);
-
+  console.log("displayableSectors", displayableSectors)
   // ==============Map of Image ==================
 
   useEffect(() => {
@@ -917,12 +893,7 @@ useEffect(() => {
       >
         <FooterControls
           userInfo={userInfo}
-          openKeyboard={() => { }}
           logout={handleLogout}
-          onVolumeUp={() => { }}
-          onVolumeDown={() => { }}
-          onZoom={() => { }}
-          onContrast={() => { }}
           isFocused={focusedRegion === FocusRegion.FOOTER}
         />
       </div>

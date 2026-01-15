@@ -181,15 +181,25 @@ const FooterControls = ({
     setContrastEnabled(saved === "high");
   }, []);
 
-  // ✅ Language switch
-  const handleLanguageChange = (uiLang) => {
+  const handleLanguageChange = async (uiLang) => {
     const backendLang = uiLang === "KR" ? "ko" : "en";
+
+    // UI + local
     setLanguage(uiLang);
     localStorage.setItem("lang", backendLang);
     i18n.changeLanguage(backendLang);
-    // keep redux in sync so components can react and re-fetch
+
+    // ✅ backend session locale (MOST IMPORTANT)
+    try {
+      await setChangeLocale(backendLang);
+    } catch (e) {
+      console.error("Locale sync failed", e);
+    }
+
+    // redux (to refetch floors/sectors via hooks)
     dispatch(setLanguageAction(backendLang));
   };
+
 
   const toggleContrast = () => {
     const nextMode = contrastEnabled ? "normal" : "high";

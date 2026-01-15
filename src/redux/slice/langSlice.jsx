@@ -1,15 +1,15 @@
-// redux/slice/langSlice.js
 import { createSlice } from "@reduxjs/toolkit";
+
+const initialLang = localStorage.getItem("lang") || "en";
 
 const langSlice = createSlice({
   name: "lang",
   initialState: {
-    current: localStorage.getItem("lang") || "ko",
+    current: initialLang,
   },
   reducers: {
     setLanguage: (state, action) => {
       state.current = action.payload;
-      localStorage.setItem("lang", action.payload);
     },
   },
 });

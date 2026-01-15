@@ -10,7 +10,7 @@ import SeatActionModal from "../../components/common/SeatActionModal";
 import { getKioskUserInfo, loginBySchoolNo } from "../../services/api";
 import { clearUserInfo, setUserInfo } from "../../redux/slice/userInfo";
 import { fetchBookingTime } from "../../redux/slice/bookingTimeSlice";
-import { FLOORS_CONFIG, MODAL_TYPES } from "../../utils/constant";
+import {  MODAL_TYPES } from "../../utils/constant";
 import NoticeBanner from "../../components/layout/dashboard/Notice";
 import { useVoice } from "../../context/voiceContext";
 import { useTranslation } from "react-i18next";
@@ -164,18 +164,12 @@ const Dashboard = () => {
       return;
     }
 
-    // ✅ this will trigger useFloorData effect
-    setCurrentFloor(floorObj);
-
     navigate(`/floor/${floorTitle}`, {
       state: {
         floorInfo: floorObj,
       },
     });
-  }, [floors, navigate, setCurrentFloor]);
-
-
-
+  }, [floors, navigate]);
 
   /**
    * Open keyboard modal

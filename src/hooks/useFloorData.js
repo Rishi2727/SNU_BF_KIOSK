@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FloorImageUrl } from "../services/api";
+import { FloorImageUrl, setApiLang } from "../services/api";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchFloorList } from "../redux/slice/floorSlice";
 import { clearSectors, fetchSectorList } from "../redux/slice/sectorSlice";
@@ -14,55 +14,60 @@ export const useFloorData = (floorId, initialFloorInfo) => {
   const [currentFloor, setCurrentFloor] = useState(null);
   const [floorImageUrl, setFloorImageUrl] = useState("");
   const [imageError, setImageError] = useState(false);
-
-  /* ===============================
-     Fetch floors on language change
-  ================================ */
+useEffect(() => {
+    setApiLang(lang);
+  }, [lang]);
   useEffect(() => {
-    dispatch(fetchFloorList(1)); // libno = 1
+    dispatch(fetchFloorList(1));
   }, [dispatch, lang]);
-
-  /* ===============================
-     Set current floor
-  ================================ */
   useEffect(() => {
-    if (initialFloorInfo) {
-      setCurrentFloor(initialFloorInfo);
-    } else if (floorId) {
-      const floor = floors.find((f) => f.title === floorId);
-      setCurrentFloor(floor);
-    }
-  }, [floorId, initialFloorInfo, floors]);
+    if (!floors.length) return;
 
-  /* ===============================
-     Update floor image
-  ================================ */
-  useEffect(() => {
-    if (currentFloor) {
-       dispatch(clearSectors());
-      const floorNumber = `${currentFloor.floorno}000`;
-      const imageUrl = `${FloorImageUrl}/MAP/KIOSK/floor_${floorNumber}.png`;
-      setFloorImageUrl(imageUrl);
-      setImageError(false);
-
-      // ✅ fetch sector list from redux
-      dispatch(
-        fetchSectorList({
-          floor: currentFloor.floor,
-          floorno: currentFloor.floorno,
-        })
+    // priority 1: initialFloorInfo
+    if (initialFloorInfo?.floorno) {
+      const updated = floors.find(
+        (f) => String(f.floorno) === String(initialFloorInfo.floorno)
       );
+      setCurrentFloor(updated || null);
+      return;
     }
-  }, [currentFloor, dispatch, lang]);
+
+    // priority 2: from route param
+    if (floorId) {
+      const updated = floors.find(
+        (f) => String(f.floorno) === String(floorId) || f.title === floorId
+      );
+      setCurrentFloor(updated || null);
+      return;
+    }
+  }, [floors, lang]); // 🔥 lang included
+
+  useEffect(() => {
+    console.log("🔥 Refetching sectors for lang:", lang);
+    if (!currentFloor?.floorno) return;
+
+    dispatch(clearSectors());
+
+    const floorNumber = `${currentFloor.floorno}000`;
+    setFloorImageUrl(`${FloorImageUrl}/MAP/KIOSK/floor_${floorNumber}.png`);
+    setImageError(false);
+
+    dispatch(
+      fetchSectorList({
+        floor: currentFloor.floor,
+        floorno: currentFloor.floorno,
+      })
+    );
+  }, [lang, currentFloor?.floorno, dispatch]); // ✅ depend on primitive, not object
 
   return {
     floors,
     currentFloor,
     setCurrentFloor,
-    sectorList: sectors,
+    sectorList: sectors, // ✅ ONLY source
     floorImageUrl,
     imageError,
     setImageError,
-    loading, // ✅ from redux
+    loading,
   };
 };
