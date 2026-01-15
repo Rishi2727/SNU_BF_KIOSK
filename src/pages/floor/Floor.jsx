@@ -84,7 +84,7 @@ const Floor = () => {
   const containerRef = useRef(null);
   const prevSectorNoRef = useRef(null);
   const [focusedRegion, setFocusedRegion] = useState(null);
-
+ const lang = useSelector((state) => state.lang.current);
   const FocusRegion = Object.freeze({
     FLOOR_STATS: "floor_stats",
     LEGEND: "legend",
@@ -648,6 +648,7 @@ const Floor = () => {
     return labels[index] || labels[0];
   };
 
+
   const displayableSectors = filterDisplayableSectors(sectorList);
 
   // ==============Map of Image ==================
@@ -749,6 +750,7 @@ useEffect(() => {
   speak,
   stop,
   t,
+ 
 ]);
 
 
@@ -836,6 +838,7 @@ useEffect(() => {
                   {!imageError &&
                     displayableSectors.map((sector, sectorIndex) => {
                       const mapStylesList = parseMapPoint(sector.MAPPOINT);
+console.log(displayableSectors,"ew");
 
                       return mapStylesList.map((mapStyles, idx) => (
                         <button
@@ -888,6 +891,8 @@ useEffect(() => {
         onBack={backToFloorMap}
         isFocused={focusedRegion === FocusRegion.LEGEND}
       />
+
+      
 
       <div
 
