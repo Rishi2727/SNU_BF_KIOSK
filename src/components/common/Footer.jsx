@@ -19,6 +19,7 @@ import { useTranslation } from "react-i18next";
 import { useVoice } from "../../context/voiceContext";
 import { setLanguage as setLanguageAction } from "../../redux/slice/langSlice";
 import i18n from "../../translation/language/i18n";
+import InfoModal from "./infoModal";
 const applyContrastMode = (mode) => {
   document.documentElement.setAttribute("data-contrast", mode);
   localStorage.setItem("contrastMode", mode);
@@ -34,6 +35,7 @@ const FooterControls = ({
   const dispatch = useDispatch();
   const { t } = useTranslation()
 
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
 
   const magnifierEnabled = useSelector(
     (state) => state.accessibility.magnifierEnabled
@@ -109,7 +111,7 @@ const FooterControls = ({
           dispatch(increaseVolume());
           return;
         case 5:
-          onZoom();
+          setIsInfoOpen(true);
           return;
         case 6:
           dispatch(toggleMagnifier());
@@ -138,7 +140,7 @@ const FooterControls = ({
           dispatch(increaseVolume());
           return;
         case 4:
-          onZoom();
+          setIsInfoOpen(true);
           return;
         case 5:
           dispatch(toggleMagnifier());
@@ -241,6 +243,7 @@ const FooterControls = ({
 
 
   return (
+   <>
     <div className="absolute bottom-px left-0 right-0 z-30 flex items-center justify-between px-6 py-3 bg-black/40 backdrop-blur-md ">
       {/* ✅ Footer Focus Border */}
       {isFocused && (
@@ -314,7 +317,7 @@ const FooterControls = ({
         <FooterButton
           icon={<InfoIcon size={28} />}
           label={t("common.Info")}
-          onClick={onZoom}
+          onClick={() => setIsInfoOpen(true)}
           isSelected={cursor === (userInfo ? 5 : 4)}
           isFocused={isFocused}
         />
@@ -366,6 +369,12 @@ const FooterControls = ({
         </div>
       </div>
     </div>
+       {/* ✅ Info Modal (PLACE IT HERE) */}
+    <InfoModal
+      isOpen={isInfoOpen}
+      onClose={() => setIsInfoOpen(false)}
+    />
+    </>
   );
 };
 
