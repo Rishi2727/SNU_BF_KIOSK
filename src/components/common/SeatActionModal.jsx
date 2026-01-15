@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Modal from "./Modal";
@@ -46,7 +46,7 @@ const SeatActionModal = ({
 
     const { speak, stop } = useVoice();
     const { t } = useTranslation();
-
+    const lastSpokenRef = useRef("");
     const { isBooking, isExtension, isReturn, isMove, isAssignCheck } = modeFlags;
 
     // Check seat availability
@@ -712,6 +712,7 @@ const SeatActionModal = ({
     }, [isModalFocused, focusIndex, getFocusableElements]);
 
 
+    // helper for speech 
     const getSpeechForFocusedElement = useCallback(
         (element) => {
             if (!element) return "";
@@ -727,7 +728,7 @@ const SeatActionModal = ({
 
                 case "name-label":
                 case "name-value":
-                    return t("SEAT_MODAL_USER_NAME", {
+                    return t("speech.SEAT_MODAL_USER_NAME", {
                         name: userInfo?.SCHOOLNO,
                     });
 
@@ -756,10 +757,13 @@ const SeatActionModal = ({
                 case "action-label":
                     return t("speech.SEAT_MODAL_ACTION_SECTION");
 
-                case "time-button":
+                case "time-button": {
+                    const spokenTime = formatDurationLabel(element.value, t);
                     return t("speech.SEAT_MODAL_TIME_OPTION", {
-                        time: element.label,
+                        time: spokenTime,
                     });
+                }
+
 
                 case "confirmation-message":
                     if (isMove) return t("speech.SEAT_MODAL_MOVE_CONFIRM");
@@ -793,6 +797,7 @@ const SeatActionModal = ({
         ]
     );
 
+
     useEffect(() => {
         if (!isOpen && !showResultModal) return;
         if (!isModalFocused) return;
@@ -802,13 +807,15 @@ const SeatActionModal = ({
 
         if (!currentElement) return;
 
-        stop(); // 🔇 stop previous speech
-
+        stop();
         const speechText = getSpeechForFocusedElement(currentElement);
 
-        if (speechText) {
+        // 🔒 prevent duplicate speech
+        if (speechText && speechText !== lastSpokenRef.current) {
+            lastSpokenRef.current = speechText;
             speak(speechText);
         }
+
     }, [
         isOpen,
         showResultModal,
