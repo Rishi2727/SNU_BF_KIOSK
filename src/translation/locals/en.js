@@ -102,7 +102,7 @@ const enTranslations = {
     "SEAT_MODAL_TITLE": "Seat {{action}}",
     "SEAT_MODAL_LOCATION_INFO": "Seat location information",
     "SEAT_MODAL_USER_NAME": "User name {{name}}",
-    "SEAT_MODAL_DATE_DURATION": "Seat usage duration",
+    "SEAT_MODAL_DATE_DURATION": "Date duration",
     "SEAT_MODAL_START_TIME": "Seat start time",
     "SEAT_MODAL_ACTION_SECTION": "Action section",
     "SEAT_MODAL_TIME_OPTION": "Select Time {{time}}",
@@ -111,6 +111,9 @@ const enTranslations = {
     "SEAT_MODAL_CONFIRM_GENERIC": "Are you sure you want to {{action}} this seat?",
     "SEAT_MODAL_SUCCESS": "Seat action completed successfully",
     "SEAT_MODAL_FAILURE": "Seat action failed",
+    "From":"From",
+    "To":"To",
+    "Total":"Total"
 
 
   },

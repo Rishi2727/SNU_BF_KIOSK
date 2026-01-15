@@ -518,6 +518,8 @@ const SeatActionModal = ({
         setSelectedIndex(index);
         const endMoment = addMinutes(value);
         setEndTime(endMoment.toDate());
+        // Clear ref so the speech logic detects a "new" state even if the focus index stayed the same
+        lastSpokenRef.current = "";
     }, []);
 
     /**
@@ -734,25 +736,52 @@ const SeatActionModal = ({
 
                 case "date-label":
                 case "date-value": {
+                    const startStr = formatDate(startTime, DATE_FORMATS.ISO);
+                    const endStr = endTime ? formatDate(endTime, DATE_FORMATS.ISO) : "";
                     let durationText = "";
-
                     if (startTime && endTime) {
-                        const diffMs = endTime - startTime;
+                        const diffMs = endTime.getTime() - startTime.getTime();
                         if (diffMs > 0) {
                             const minutes = Math.floor(diffMs / 60000);
                             durationText = formatDurationLabel(minutes, t);
                         }
                     }
+                    const fullSpeech = `${t("translations.Date Duration")}: ${startStr} ${t("speech.to")} ${endStr}. ${durationText ? t("speech.Total") + " " + durationText : ""}`;
 
-                    return durationText
-                        ? `${t("speech.SEAT_MODAL_DATE_DURATION")}. ${durationText}`
-                        : t("speech.SEAT_MODAL_DATE_DURATION");
+                    return fullSpeech;
                 }
 
-
                 case "start-label":
-                case "start-value":
-                    return t("speech.SEAT_MODAL_START_TIME");
+                case "start-value": {
+                    const startStr = formatDate(startTime, DATE_FORMATS.ISO);
+                    const endStr = bookingSeatInfo?.USEEXPIRE
+                        ? formatDate(bookingSeatInfo.USEEXPIRE, DATE_FORMATS.ISO)
+                        : "";
+                    let durationText = "";
+                    if (startTime && bookingSeatInfo?.USEEXPIRE) {
+                        const expireDate = new Date(bookingSeatInfo.USEEXPIRE);
+                        const diffMs = expireDate.getTime() - startTime.getTime();
+                        if (diffMs > 0) {
+                            const minutes = Math.floor(diffMs / 60000);
+                            durationText = formatDurationLabel(minutes, t);
+                        }
+                    }
+                    const fullSpeech = `${t("translations.Start hours")}: ${startStr} ${t("speech.to")} ${endStr}. ${durationText ? t("speech.Total") + " " + durationText : ""}`;
+
+                    return fullSpeech;
+                }
+
+                case "time-label":
+                case "time-value": {
+                    if (!seatInfo?.USESTART || !seatInfo?.USEEXPIRE) {
+                        return t("translations.Time of use");
+                    }
+
+                    const startStr = formatDate(seatInfo.USESTART, DATE_FORMATS.ISO);
+                    const endStr = formatDate(seatInfo.USEEXPIRE, DATE_FORMATS.ISO);
+
+                    return `${t("translations.Time of use")}: ${startStr} ${t("speech.to")} ${endStr}`;
+                }
 
                 case "action-label":
                     return t("speech.SEAT_MODAL_ACTION_SECTION");
@@ -763,8 +792,6 @@ const SeatActionModal = ({
                         time: spokenTime,
                     });
                 }
-
-
                 case "confirmation-message":
                     if (isMove) return t("speech.SEAT_MODAL_MOVE_CONFIRM");
                     if (isReturn) return t("speech.SEAT_MODAL_RETURN_CONFIRM");
@@ -794,6 +821,9 @@ const SeatActionModal = ({
             isMove,
             isReturn,
             actionResult,
+            startTime,
+            endTime,
+            bookingSeatInfo
         ]
     );
 

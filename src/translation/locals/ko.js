@@ -65,19 +65,19 @@ const koTranslations = {
     "Back": "뒤쪽에",
     "Seat": "좌석",
     "Seat information": "좌석정보",
-    "Booking":"예약",
-       "Return Confirmation":"반품 확인",
-    "Move Confirmation":"이동 확인",
-    "Confirmation":"확인",
-    "Select Time":"시간 선택",
-    "Extension Time":"연장 시간",
+    "Booking": "예약",
+    "Return Confirmation": "반품 확인",
+    "Move Confirmation": "이동 확인",
+    "Confirmation": "확인",
+    "Select Time": "시간 선택",
+    "Extension Time": "연장 시간",
     "hours": "시간",
     "hour": "시간",
     "minutes": "분",
     "and": "및",
     "Do you want to move to this seat?": "이 좌석으로 이동하시겠습니까?",
     "Do you want to return the seat?": "좌석을 반납하시겠습니까?",
-"SEAT_CONFIRM_GENERIC": "좌석을 {{action}} 하시겠습니까?"
+    "SEAT_CONFIRM_GENERIC": "좌석을 {{action}} 하시겠습니까?"
   },
   speech: {
     "Seoul National University Library": "서울대학교 도서관",
@@ -100,7 +100,7 @@ const koTranslations = {
     "SEAT_MODAL_TITLE": "좌석 {{action}}",
     "SEAT_MODAL_LOCATION_INFO": "좌석 위치 정보",
     "SEAT_MODAL_USER_NAME": "사용자 이름 {{name}}",
-    "SEAT_MODAL_DATE_DURATION": "좌석 이용 기간",
+    "SEAT_MODAL_DATE_DURATION": "이용 기간",
     "SEAT_MODAL_START_TIME": "좌석 시작 시간",
     "SEAT_MODAL_ACTION_SECTION": "동작 선택 영역",
     "SEAT_MODAL_TIME_OPTION": "시간 선택 {{time}}",
@@ -117,8 +117,10 @@ const koTranslations = {
     "Request": "요구",
     "Name": "이름",
     "Time of use": "이용시간",
-    "Date Duration": "날짜 기간",
-    "Start hours": "시작 시간"
+    "Start hours": "시작 시간",
+    "From": "부터",
+    "To": "로.",
+    "Total": "총"
   },
   translations: {
     "Confirm": "확인",
