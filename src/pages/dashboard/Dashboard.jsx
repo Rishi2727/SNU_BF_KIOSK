@@ -7,14 +7,15 @@ import KeyboardModal from "../../components/layout/keyBoardModal/KeyboardModal";
 import FooterControls from "../../components/common/Footer";
 import UserInfoModal from "../../components/layout/dashboard/useInfoModal";
 import SeatActionModal from "../../components/common/SeatActionModal";
-import { getKioskUserInfo, getSectorList, loginBySchoolNo } from "../../services/api";
+import { getKioskUserInfo, loginBySchoolNo } from "../../services/api";
 import { clearUserInfo, setUserInfo } from "../../redux/slice/userInfo";
-import { setSectorList, setCurrentFloor, setSectorLoading, setSectorError } from "../../redux/slice/sectorSlice";
 import { fetchBookingTime } from "../../redux/slice/bookingTimeSlice";
 import { FLOORS_CONFIG, MODAL_TYPES } from "../../utils/constant";
 import NoticeBanner from "../../components/layout/dashboard/Notice";
 import { useVoice } from "../../context/voiceContext";
 import { useTranslation } from "react-i18next";
+import { useFloorData } from "../../hooks/useFloorData";
+import { fetchFloorList } from "../../redux/slice/floorSlice";
 
 
 const Dashboard = () => {
@@ -23,6 +24,7 @@ const Dashboard = () => {
   const [isUserInfoModalOpen, setIsUserInfoModalOpen] = useState(false);
   const [selectedFloor, setSelectedFloor] = useState(null);
   const { speak, stop } = useVoice();
+  const { setCurrentFloor } = useFloorData(null, null);
   const lang = useSelector((state) => state.lang.current);
   const [modalStates, setModalStates] = useState({
     [MODAL_TYPES.EXTENSION]: false,
@@ -42,7 +44,7 @@ const Dashboard = () => {
   // Redux selectors
   const { userInfo, isAuthenticated } = useSelector((state) => state.userInfo);
   const { bookingSeatInfo } = useSelector((state) => state.bookingTime);
-
+  const { floors, loading, error } = useSelector((state) => state.floor);
   // ✅ Define focus regions (Logo → MainSection → Notice → Footer)
   const FocusRegion = Object.freeze({
     LOGO: "logo",
@@ -57,8 +59,10 @@ const Dashboard = () => {
   });
 
 
-
-
+  useEffect(() => {
+    dispatch(fetchFloorList(1)); // libno = 1
+  }, [dispatch, lang]);
+  console.log("lang", lang)
   // ✅ Focus cycling with '*' key
   useEffect(() => {
     const onKeyDown = (e) => {
@@ -152,35 +156,23 @@ const Dashboard = () => {
   /**
    * Navigate to floor page with sector data
    */
-  const navigateToFloor = useCallback(async (floorTitle) => {
-    try {
-      dispatch(setSectorLoading(true));
+  const navigateToFloor = useCallback((floorTitle) => {
+    const floorObj = floors.find(f => f.title === floorTitle);
 
-      const floorObj = FLOORS_CONFIG.find(f => f.title === floorTitle);
-      if (!floorObj) {
-        console.error("Floor not found:", floorTitle);
-        return;
-      }
-
-      const sectorListData = await getSectorList({
-        floor: floorObj.floor,
-        floorno: floorObj.floorno,
-      });
-
-      dispatch(setSectorList(sectorListData));
-      dispatch(setCurrentFloor(floorObj));
-
-      navigate(`/floor/${floorTitle}`, {
-        state: {
-          sectorList: sectorListData,
-          floorInfo: floorObj,
-        },
-      });
-    } catch (error) {
-      console.error("Sector API failed:", error);
-      dispatch(setSectorError(error.message));
+    if (!floorObj) {
+      console.error("Floor not found:", floorTitle);
+      return;
     }
-  }, [dispatch, navigate, lang]);
+
+    // ✅ this will trigger useFloorData effect
+    setCurrentFloor(floorObj);
+
+    navigate(`/floor/${floorTitle}`, {
+      state: {
+        floorInfo: floorObj,
+      },
+    });
+  }, [floors, navigate, setCurrentFloor]);
 
 
 
@@ -248,57 +240,49 @@ const Dashboard = () => {
    * Handle move action
    */
   const handleMoveAction = useCallback(async (assignNo) => {
-    if (userInfo?.MOVE_YN !== 'Y') return;
+    if (userInfo?.MOVE_YN !== "Y") return;
 
     try {
       let bookingData = bookingSeatInfo;
 
       if (!bookingData) {
-        const result = await dispatch(fetchBookingTime({
-          assignno: assignNo,
-          seatno: userInfo.SEATNO
-        })).unwrap();
+        const result = await dispatch(
+          fetchBookingTime({
+            assignno: assignNo,
+            seatno: userInfo.SEATNO,
+          })
+        ).unwrap();
+
         bookingData = result.bookingSeatInfo;
       }
 
       if (!bookingData) return;
 
       const { FLOOR, SECTORNO, FLOORNO } = bookingData;
-      const sectorListData = await getSectorList({
+
+      // ✅ build floor object
+      const floorInfo = {
+        id: FLOORNO,
+        title: `${FLOOR}F`,
         floor: FLOOR,
         floorno: FLOORNO,
-      });
+      };
 
-      dispatch(setSectorList(sectorListData));
+      // ✅ trigger hook (will clear + fetch sectors)
+      setCurrentFloor(floorInfo);
 
-      const matchedSector = sectorListData?.SectorList?.find(
-        (item) => item.SECTORNO === SECTORNO
-      );
-
-      let floorInfo = null;
-      if (matchedSector) {
-        floorInfo = {
-          id: matchedSector.FLOORNO,
-          title: `${matchedSector.FLOOR}F`,
-          floor: matchedSector.FLOOR,
-          floorno: matchedSector.FLOORNO,
-          total: matchedSector.SEAT_QTY ?? 0,
-          occupied: matchedSector.USE_QTY ?? 0
-        };
-      }
-
+      // ✅ navigate (sector list will come from redux via hook)
       navigate(`/floor/${FLOOR}/${SECTORNO}/move`, {
         state: {
           mode: "move",
-          sectorList: sectorListData || [],
-          selectedSector: matchedSector,
-          floorInfo: floorInfo
-        }
+          floorInfo: floorInfo,
+          selectedSectorNo: SECTORNO, // pass only id, not whole list
+        },
       });
     } catch (error) {
-      console.error('Error fetching booking info:', error);
+      console.error("Error fetching booking info:", error);
     }
-  }, [userInfo, bookingSeatInfo, dispatch, navigate, lang]);
+  }, [userInfo, bookingSeatInfo, dispatch, navigate, setCurrentFloor]);
 
   /**
    * Handle actions from UserInfoModal

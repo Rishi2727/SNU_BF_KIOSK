@@ -1,47 +1,55 @@
-// redux/slice/sectorInfo.js
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { getSectorList } from "../../services/api";
 
-const initialState = {
-  sectorList: [],
-  currentFloor: null,
-  loading: false,
-  error: null,
-};
+/* ===============================
+   Thunk: Fetch Sector List
+================================ */
+export const fetchSectorList = createAsyncThunk(
+  "sector/fetchSectorList",
+  async ({ floor, floorno }, { rejectWithValue }) => {
+    try {
+      const response = await getSectorList({ floor, floorno });
+      return response?.SectorList || response;
+    } catch (error) {
+      return rejectWithValue(
+        error?.response?.data || "Failed to fetch sector list"
+      );
+    }
+  }
+);
 
-const sectorInfoSlice = createSlice({
-  name: 'sectorInfo',
-  initialState,
+/* ===============================
+   Slice
+================================ */
+const sectorSlice = createSlice({
+  name: "sector",
+  initialState: {
+    sectors: [],
+    loading: false,
+    error: null,
+  },
   reducers: {
-    setSectorList: (state, action) => {
-      state.sectorList = action.payload;
-      state.loading = false;
-      state.error = null;
-    },
-    setCurrentFloor: (state, action) => {
-      state.currentFloor = action.payload;
-    },
-    setSectorLoading: (state, action) => {
-      state.loading = action.payload;
-    },
-    setSectorError: (state, action) => {
-      state.error = action.payload;
-      state.loading = false;
-    },
-    clearSectorInfo: (state) => {
-      state.sectorList = [];
-      state.currentFloor = null;
-      state.loading = false;
+    clearSectors: (state) => {
+      state.sectors = [];
       state.error = null;
     },
   },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchSectorList.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchSectorList.fulfilled, (state, action) => {
+        state.loading = false;
+        state.sectors = action.payload;
+      })
+      .addCase(fetchSectorList.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
+  },
 });
 
-export const {
-  setSectorList,
-  setCurrentFloor,
-  setSectorLoading,
-  setSectorError,
-  clearSectorInfo,
-} = sectorInfoSlice.actions;
-
-export default sectorInfoSlice.reducer;
+export const { clearSectors } = sectorSlice.actions;
+export default sectorSlice.reducer;

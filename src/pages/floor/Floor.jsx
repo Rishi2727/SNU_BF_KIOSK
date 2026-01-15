@@ -25,6 +25,7 @@ import { MINI_MAP_LAYOUT, MINIMAP_CONFIG } from "../../utils/constant";
 import SeatActionModal from "../../components/common/SeatActionModal";
 import { useTranslation } from "react-i18next";
 import { useVoice } from "../../context/voiceContext";
+import { clearSectors, fetchSectorList } from "../../redux/slice/sectorSlice";
 
 
 const Floor = () => {
@@ -84,7 +85,7 @@ const Floor = () => {
   const containerRef = useRef(null);
   const prevSectorNoRef = useRef(null);
   const [focusedRegion, setFocusedRegion] = useState(null);
- const lang = useSelector((state) => state.lang.current);
+  const lang = useSelector((state) => state.lang.current);
   const FocusRegion = Object.freeze({
     FLOOR_STATS: "floor_stats",
     LEGEND: "legend",
@@ -104,7 +105,6 @@ const Floor = () => {
     imageError,
     setImageError,
     loading,
-    fetchSectorList,
   } = useFloorData(floorId, initialFloorInfo, initialSectorList);
 
 
@@ -125,8 +125,8 @@ const Floor = () => {
     : null;
   const miniMapUrl = miniMapFile ? `${ImageBaseUrl}/${miniMapFile}` : null;
   const seatFontScale = layout?.seatFontScale ?? 1; // Keep font size constant
-  const sectorListData = sectorList?.SectorList;
-
+  const sectorListData = sectorList;
+  console.log("first", sectorListData)
   /* =====================================================
      BUILD URL PATH WITH MOVE MODE
   ===================================================== */
@@ -206,26 +206,44 @@ const Floor = () => {
   /* =====================================================
      FLOOR CHANGE - PRESERVE MOVE MODE
   ===================================================== */
-  const handleFloorClick = async (floor) => {
+  const handleFloorClick = (floor) => {
     if (currentFloor?.id === floor.id) return;
 
+    // change floor (this will trigger redux sector fetch in useFloorData)
     setCurrentFloor(floor);
+
+    // reset UI states
     setSelectedSector(null);
     setShowRoomView(false);
 
-    const newSectorList = await fetchSectorList(floor);
-
-    if (newSectorList) {
-      navigate(buildFloorPath(floor.title), {
-        replace: true,
-        state: {
-          sectorList: newSectorList,
-          floorInfo: floor,
-          mode: isMoveMode ? "move" : undefined,
-        },
-      });
-    }
+    // navigate (no waiting for API)
+    navigate(buildFloorPath(floor.title), {
+      replace: true,
+      state: {
+        floorInfo: floor,
+        mode: isMoveMode ? "move" : undefined,
+      },
+    });
   };
+console.log("lang", lang)
+  /* =====================================================
+     ✅ FIX: Re-fetch sectors when language changes
+  ===================================================== */
+useEffect(() => {
+  if (!currentFloor?.floor || !currentFloor?.floorno) return;
+
+  console.log("Fetching sectors for floor:", currentFloor);
+
+  dispatch(clearSectors()); // optional but recommended
+  dispatch(
+    fetchSectorList({
+      floor: currentFloor.floor,
+      floorno: currentFloor.floorno,
+      // lang: lang, // enable only if backend supports it
+    })
+  );
+}, [currentFloor, lang, dispatch]);
+
 
   /* =====================================================
      FETCH SEATS
@@ -697,61 +715,61 @@ const Floor = () => {
 
 
   // 🔊 VOICE: speak when floor focus section changes (Dashboard-style)
-useEffect(() => {
-  if (!focusedRegion) return;
+  useEffect(() => {
+    if (!focusedRegion) return;
 
-  stop(); // stop previous section speech
+    stop(); // stop previous section speech
 
-  switch (focusedRegion) {
-    case FocusRegion.FLOOR_STATS:
-      speak(t("speech.Floor header section"));
-      break;
+    switch (focusedRegion) {
+      case FocusRegion.FLOOR_STATS:
+        speak(t("speech.Floor header section"));
+        break;
 
-    case FocusRegion.LEGEND:
-      speak(t("speech.Floor information"));
-      break;
+      case FocusRegion.LEGEND:
+        speak(t("speech.Floor information"));
+        break;
 
-    case FocusRegion.MAP:
-      speak(t("speech.Floor map section"));
-      break;
+      case FocusRegion.MAP:
+        speak(t("speech.Floor map section"));
+        break;
 
-    case FocusRegion.FOOTER:
-      speak(t("speech.Footer controls"));
-      break;
+      case FocusRegion.FOOTER:
+        speak(t("speech.Footer controls"));
+        break;
 
-    default:
-      break;
-  }
-}, [focusedRegion, speak, stop, t]);
+      default:
+        break;
+    }
+  }, [focusedRegion, speak, stop, t]);
 
-useEffect(() => {
-  if (focusedRegion !== FocusRegion.MAP) return;
-  if (mapCursor === null) return;
-  if (!displayableSectors?.length) return;
+  useEffect(() => {
+    if (focusedRegion !== FocusRegion.MAP) return;
+    if (mapCursor === null) return;
+    if (!displayableSectors?.length) return;
 
-  const sector = displayableSectors[mapCursor];
-  if (!sector) return;
+    const sector = displayableSectors[mapCursor];
+    if (!sector) return;
 
-  stop();
+    stop();
 
-  const label = getSectorLabel(sector);
+    const label = getSectorLabel(sector);
 
-  // Basic speech (safe)
-  speak(
-    t("speech.MAP_SECTOR_INFO", {
-      sector: label,
-    })
-  );
+    // Basic speech (safe)
+    speak(
+      t("speech.MAP_SECTOR_INFO", {
+        sector: label,
+      })
+    );
 
-}, [
-  focusedRegion,
-  mapCursor,
-  displayableSectors,
-  speak,
-  stop,
-  t,
- 
-]);
+  }, [
+    focusedRegion,
+    mapCursor,
+    displayableSectors,
+    speak,
+    stop,
+    t,
+
+  ]);
 
 
   /* =====================================================
@@ -838,7 +856,7 @@ useEffect(() => {
                   {!imageError &&
                     displayableSectors.map((sector, sectorIndex) => {
                       const mapStylesList = parseMapPoint(sector.MAPPOINT);
-console.log(displayableSectors,"ew");
+                      console.log(displayableSectors, "ew");
 
                       return mapStylesList.map((mapStyles, idx) => (
                         <button
@@ -868,7 +886,7 @@ console.log(displayableSectors,"ew");
                            opacity-0 group-hover:opacity-100 transition-all duration-200" />
                           <div className="absolute -top-15 left-1/2 -translate-x-1/2 pointer-events-none">
                             <span className="bg-[#9A7D4C] text-white px-4 py-1.5 rounded-md text-[30px] font-bold shadow-lg whitespace-nowrap">
-                           {t(`${getSectorLabel(sector, idx)}`)}
+                              {t(`${getSectorLabel(sector, idx)}`)}
                             </span>
                           </div>
                         </button>
@@ -892,7 +910,7 @@ console.log(displayableSectors,"ew");
         isFocused={focusedRegion === FocusRegion.LEGEND}
       />
 
-      
+
 
       <div
 
