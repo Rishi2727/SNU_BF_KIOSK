@@ -394,7 +394,6 @@ const Dashboard = () => {
         alt="Background"
         className="absolute inset-0 h-full w-full object-cover"
       />
-
       {/* ✅ Pass focus states to MainSection */}
       <MainSection
         openKeyboard={openKeyboard}
