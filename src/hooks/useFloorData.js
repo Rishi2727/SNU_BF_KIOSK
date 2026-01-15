@@ -1,20 +1,30 @@
 import { useState, useEffect } from "react";
-import { getSectorList, FloorImageUrl } from "../services/api";
+import { FloorImageUrl } from "../services/api";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchFloorList } from "../redux/slice/floorSlice";
+import { clearSectors, fetchSectorList } from "../redux/slice/sectorSlice";
 
-export const useFloorData = (floorId, initialFloorInfo, initialSectorList) => {
+export const useFloorData = (floorId, initialFloorInfo) => {
   const dispatch = useDispatch();
-  const { floors, error } = useSelector((state) => state.floor);
+
+  const { floors } = useSelector((state) => state.floor);
+  const { sectors, loading } = useSelector((state) => state.sector);
   const lang = useSelector((state) => state.lang.current);
+
   const [currentFloor, setCurrentFloor] = useState(null);
-  const [sectorList, setSectorList] = useState(initialSectorList);
   const [floorImageUrl, setFloorImageUrl] = useState("");
   const [imageError, setImageError] = useState(false);
-  const [loading, setLoading] = useState(false);
+
+  /* ===============================
+     Fetch floors on language change
+  ================================ */
   useEffect(() => {
     dispatch(fetchFloorList(1)); // libno = 1
   }, [dispatch, lang]);
+
+  /* ===============================
+     Set current floor
+  ================================ */
   useEffect(() => {
     if (initialFloorInfo) {
       setCurrentFloor(initialFloorInfo);
@@ -22,49 +32,37 @@ export const useFloorData = (floorId, initialFloorInfo, initialSectorList) => {
       const floor = floors.find((f) => f.title === floorId);
       setCurrentFloor(floor);
     }
-  }, [floorId, initialFloorInfo]);
+  }, [floorId, initialFloorInfo, floors]);
 
+  /* ===============================
+     Update floor image
+  ================================ */
   useEffect(() => {
     if (currentFloor) {
+       dispatch(clearSectors());
       const floorNumber = `${currentFloor.floorno}000`;
       const imageUrl = `${FloorImageUrl}/MAP/KIOSK/floor_${floorNumber}.png`;
       setFloorImageUrl(imageUrl);
       setImageError(false);
-    }
-  }, [currentFloor]);
 
-  const fetchSectorList = async (floor) => {
-    setLoading(true);
-    try {
-      const response = await getSectorList({
-        floor: floor.floor,
-        floorno: floor.floorno,
-      });
-      const newSectorList = response?.SectorList || response;
-      setSectorList(newSectorList);
-      return newSectorList;
-    } catch (error) {
-      console.error(
-        "Failed to fetch sector list for floor:",
-        floor.title,
-        error
+      // ✅ fetch sector list from redux
+      dispatch(
+        fetchSectorList({
+          floor: currentFloor.floor,
+          floorno: currentFloor.floorno,
+        })
       );
-      return null;
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [currentFloor, dispatch, lang]);
 
   return {
     floors,
     currentFloor,
     setCurrentFloor,
-    sectorList,
-    setSectorList,
+    sectorList: sectors,
     floorImageUrl,
     imageError,
     setImageError,
-    loading,
-    fetchSectorList,
+    loading, // ✅ from redux
   };
 };
