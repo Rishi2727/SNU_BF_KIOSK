@@ -24,25 +24,16 @@ const RoomView = ({
   mainImageRef,
   containerRef,
   isZoomed,
-  isPanning,
   onMiniSectorClick,
   onMainImageClick,
   onSeatClick,
   onImageLoad,
   onMiniMapError,
-  onMouseDown,
-  onMouseMove,
-  onMouseUp,
-  onTouchStart,
-  onTouchMove,
-  onTouchEnd,
   miniMapCursor,
   focusStage,
   seatCursor,
   
 }) => {
-
-  
 
   /* ===================================================== 
      PARSE SEAT POSITION 
@@ -80,8 +71,6 @@ const RoomView = ({
       height: `${seat.POSH * scaleY}px`,
     };
   };
-
-
   /* ===================================================== 
      RENDER 
   ===================================================== */
@@ -126,8 +115,7 @@ const RoomView = ({
 
         ${isFocused ? "border-red-500 scale-105 border-2" : "border-white/20"}
 
-        ${isSelected ? " bg-blue-500/40" : " hover:bg-white/20"}
-      `}
+        ${isSelected ? " bg-blue-500/40" : " hover:bg-white/20"}`}
                     />
                   );
                 })}
@@ -140,17 +128,10 @@ const RoomView = ({
       {/* ================= MAIN IMAGE WITH SEATS ================= */}
       <div
         ref={containerRef}
-        className="w-full h-full flex items-center justify-center overflow-hidden relative"
-        onMouseMove={onMouseMove}
-        onMouseUp={onMouseUp}
-        onMouseLeave={onMouseUp}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-      >
+        className="w-full h-full flex items-center justify-center overflow-hidden relative">
         {selectedSector?.SECTOR_IMAGE ? (
           <div
-            className={`relative border transition-transform ease-out ${isPanning ? 'duration-0 cursor-grabbing' : 'duration-500 cursor-pointer'
-              } ${isZoomed && !isPanning ? 'cursor-grab' : ''}`}
+            className="relative border transition-transform ease-out duration-500 cursor-pointer"
             style={{
               transform: `translate(${imageTransform.x}%, ${imageTransform.y}%) scale(${imageTransform.scale})`,
               transformOrigin: "center center",
@@ -172,12 +153,8 @@ const RoomView = ({
               alignItems: 'center',
               justifyContent: 'center',
             }}
-            onMouseDown={onMouseDown}
-            onTouchStart={onTouchStart}
           >
             <div className="relative w-full h-full flex items-center justify-center">
-
-
               <img
                 key={selectedSector?.SECTOR_IMAGE}
                 ref={mainImageRef}
@@ -186,16 +163,13 @@ const RoomView = ({
                 className="select-none max-w-full max-h-full object-contain"
                 onLoad={onImageLoad}
                 draggable={false}
-                onClick={(e) => {
-                  if (!isPanning) onMainImageClick(e);
-                }}
               />
 
               {/* Seat Markers */}
               {seats.map((seat) => {
                 const isFocusedSeat =
-  focusStage === "seats" &&
-  focusableSeats?.[seatCursor]?.SEATNO === seat.SEATNO;
+             focusStage === "seats" &&
+             focusableSeats?.[seatCursor]?.SEATNO === seat.SEATNO;
                 const position = parseSeatPosition(seat);
                 if (!position) return null;
 
@@ -209,8 +183,7 @@ const RoomView = ({
                     <div
                       key={seat.SEATNO}
                       className={`absolute pointer-events-auto cursor-pointer transition-all
-    ${isFocusedSeat ? "ring-4 ring-red-500 scale-110 z-40" : "hover:opacity-80"}
-  `}
+                       ${isFocusedSeat ? "ring-4 ring-red-500 scale-110 z-40" : "hover:opacity-80"}`}
 
                       style={{
                         left: position.left,
