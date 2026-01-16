@@ -150,7 +150,7 @@ const FloorLegendBar = ({
 
       {/* LEFT */}
       <div className="flex items-center gap-4">
-        {/* {showBack && (
+        {showBack && (
           <button
             onClick={onBack}
             className={`
@@ -165,16 +165,16 @@ const FloorLegendBar = ({
             <ArrowLeft className="w-6 h-6" />
             {t("common.Back")}
           </button>
-        )} */}
+        )}
 
         <div className={`flex items-center gap-2 ${isFocusedAt(showBack ? 1 : 0) ? focusRing : ""}`}
           aria-selected={isFocusedAt(showBack ? 1 : 0)}>
               <img
         src={logo}
         alt="logo"
-        className=" w-[38%]"
+        className=" w-[38%] -ml-2!"
       />
-          <Home className="w-8 h-8 -ml-18!" />
+          <Home className="w-8 h-8 -ml-17!" />
           <span className="text-[28px] font-semibold text-nowrap">
             {buildingName && `${t(`translations.${buildingName}`)} `}
             {floorName && `( ${t(`common.${floorName}`)} `}
