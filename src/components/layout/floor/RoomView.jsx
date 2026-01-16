@@ -1,5 +1,8 @@
+import { useEffect } from "react";
 import { ImageBaseUrl } from "../../../services/api";
 import LoadingSpinner from "../../common/LoadingSpinner";
+import { useVoice } from "../../../context/voiceContext";
+import { useTranslation } from "react-i18next";
 
 const getRSeatImage = (seat) => {
   if (seat.ICONTYPE < 2 || seat.ICONTYPE > 7) return null;
@@ -42,7 +45,27 @@ const RoomView = ({
   
 }) => {
 
+    const { speak, stop } = useVoice();
+    const { t } = useTranslation();
   
+  //Speak on screen 
+    useEffect(() => {
+      const onKeyDown = (e) => {
+        const isHash =
+          e.key === "#" ||
+          e.code === "NumpadHash" ||
+          (e.keyCode === 51 && e.shiftKey);
+  
+        if (!isHash) return;
+        if (e.repeat) return;
+  
+        stop();
+        speak(t("speech.This screen is the Seat selection screen."));
+      };
+  
+      window.addEventListener("keydown", onKeyDown);
+      return () => window.removeEventListener("keydown", onKeyDown);
+    }, [speak, stop, t]);
 
   /* ===================================================== 
      PARSE SEAT POSITION 

@@ -231,7 +231,7 @@ const SeatActionModal = ({
 
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [isOpen, isModalFocused, focusIndex, getFocusableElements, showResultModal]);
+    }, [isOpen, isModalFocused, focusIndex, getFocusableElements, showResultModal,]);
 
     /**
      * ✅ STEP 5: Helper to check if element is focused
@@ -810,6 +810,16 @@ const SeatActionModal = ({
             bookingSeatInfo
         ]
     );
+
+
+    //to stop the speech 
+    useEffect(() => {
+    // When both modals are closed → stop speech immediately
+    if (!isOpen && !showResultModal) {
+        stop();
+        lastSpokenRef.current = "";
+    }
+}, [isOpen, showResultModal, stop]);
 
 
     useEffect(() => {
