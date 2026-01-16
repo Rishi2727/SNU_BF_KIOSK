@@ -51,7 +51,7 @@ const FooterControls = ({
   const { speak, stop } = useVoice();
 
 
-  const FOOTER_BUTTON_COUNT = userInfo ? 10 : 9;
+  const FOOTER_BUTTON_COUNT = userInfo ? 11 : 10;
 
   // ✅ Load saved language
   useEffect(() => {
@@ -64,7 +64,7 @@ const FooterControls = ({
     if (!isFocused) return;
 
     const handleKeyDown = (e) => {
-      
+
       switch (e.key) {
         case "ArrowRight":
           e.preventDefault();
@@ -96,70 +96,98 @@ const FooterControls = ({
   }, [isFocused, cursor, FOOTER_BUTTON_COUNT]);
 
   // ✅ Footer Enter handler
-  const handleFooterEnter = (index) => {
-    if (userInfo) {
-      switch (index) {
-        case 0:
-          logout();
-          return;
-        case 1:
-          openKeyboard();
-          return;
-        case 2:
-          dispatch(decreaseVolume());
-          return;
-        case 4:
-          dispatch(increaseVolume());
-          return;
-        case 5:
-          setIsInfoOpen(true);
-          return;
-        case 6:
-          dispatch(toggleMagnifier());
-          return;
-        case 7:
-          toggleContrast();
-          return;
-        case 8:
-          handleLanguageChange("KR");
-          return;
-        case 9:
-          handleLanguageChange("EN");
-          return;
-        default:
-          return;
-      }
-    } else {
-      switch (index) {
-        case 0:
-          openKeyboard();
-          return;
-        case 1:
-          dispatch(decreaseVolume());
-          return;
-        case 3:
-          dispatch(increaseVolume());
-          return;
-        case 4:
-          setIsInfoOpen(true);
-          return;
-        case 5:
-          dispatch(toggleMagnifier());
-          return;
-        case 6:
-          toggleContrast();
-          return;
-        case 7:
-          handleLanguageChange("KR");
-          return;
-        case 8:
-          handleLanguageChange("EN");
-          return;
-        default:
-          return;
-      }
+const handleFooterEnter = (index) => {
+  if (userInfo) {
+    switch (index) {
+      case 0:
+        return;
+      case 1:
+        // Logout
+        logout();
+        return;
+      case 2:
+        // User ID → no action
+        return;
+      case 3:
+        // KR
+        handleLanguageChange("KR");
+        return;
+      case 4:
+        // EN
+        handleLanguageChange("EN");
+        return;
+      case 5:
+        // Volume Down
+        dispatch(decreaseVolume());
+        return;
+      case 6:
+        // Volume % → no action
+        return;
+      case 7:
+        // Volume Up
+        dispatch(increaseVolume());
+        return;
+      case 8:
+        // Info
+        setIsInfoOpen(true);
+        return;
+      case 9:
+        // Zoom
+        dispatch(toggleMagnifier());
+        return;
+      case 10:
+        // Contrast
+        toggleContrast();
+        return;
+      default:
+        return;
     }
-  };
+  }
+
+  // ------------------ NOT LOGGED IN ------------------
+  switch (index) {
+    case 0:
+      return;
+    case 1:
+      // Login
+      openKeyboard();
+      return;
+    case 2:
+      // KR
+      handleLanguageChange("KR");
+      return;
+    case 3:
+      // EN
+      handleLanguageChange("EN");
+      return;
+    case 4:
+      // Volume Down
+      dispatch(decreaseVolume());
+      return;
+    case 5:
+      // Volume %
+      return;
+    case 6:
+      // Volume Up
+      dispatch(increaseVolume());
+      return;
+    case 7:
+      // Info
+      setIsInfoOpen(true);
+      return;
+    case 8:
+      // Zoom
+      dispatch(toggleMagnifier());
+      return;
+    case 9:
+      // Contrast
+      toggleContrast();
+      return;
+    default:
+      return;
+  }
+};
+
 
   // ✅ Clock
   useEffect(() => {
@@ -204,49 +232,107 @@ const FooterControls = ({
   };
 
 
-const toggleContrast = () => {
-  setContrastEnabled((prev) => {
-    const nextMode = prev ? "normal" : "high";
-    applyContrastMode(nextMode);
-    return !prev;
-  });
-};
+  const toggleContrast = () => {
+    setContrastEnabled((prev) => {
+      const nextMode = prev ? "normal" : "high";
+      applyContrastMode(nextMode);
+      return !prev;
+    });
+  };
 
-  // 🔊 VOICE: speak footer item on focus change
+
+  // 🔊 VOICE: speak footer item on focus change (ALIGNED WITH UI)
   useEffect(() => {
     if (!isFocused) return;
     if (cursor === null) return;
+ 
 
     stop();
 
-    const speakMapWithUser = [
-      t("common.Logout"),
-      t("speech.UserID"),
-      t("common.Volume Down"),
-      `${Math.round(volume * 100)} percent`,
-      t("common.Volume Up"),
-      t("common.Info"),
-      t("common.Zoom"),
-      t("common.Contrast"),
-      t("common.Language") + " Korean",
-      t("common.Language") + " English",
-    ];
+    let speakText = "";
 
-    const speakMapWithoutUser = [
-      t("common.Login"),
-      t("common.Volume Down"),
-      `${Math.round(volume * 100)} percent`,
-      t("common.Volume Up"),
-      t("common.Info"),
-      t("common.Zoom"),
-      t("common.Contrast"),
-      t("common.Language") + " Korean",
-      t("common.Language") + " English",
-    ];
-
-    const speakText = userInfo
-      ? speakMapWithUser[cursor]
-      : speakMapWithoutUser[cursor];
+    if (userInfo) {
+      switch (cursor) {
+        case 0:
+           speakText = `${t("speech.Current Time")} ${new Date().toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+             hour12: true,
+          })}`;
+          break;
+        case 1:
+          speakText = t("common.Logout");
+          break;
+        case 2:
+          speakText = t("speech.UserID");
+          break;
+        case 3:
+          speakText = t("common.Language") + " Korean";
+          break;
+        case 4:
+          speakText = t("common.Language") + " English";
+          break;
+        case 5:
+          speakText = t("common.Volume Down");
+          break;
+        case 6:
+          speakText = `${Math.round(volume * 100)} percent`;
+          break;
+        case 7:
+          speakText = t("common.Volume Up");
+          break;
+        case 8:
+          speakText = t("common.Info");
+          break;
+        case 9:
+          speakText = t("common.Zoom");
+          break;
+        case 10:
+          speakText = t("common.Contrast");
+          break;
+        default:
+          break;
+      }
+    } else {
+      switch (cursor) {
+      case 0:
+           speakText = `${t("speech.Current Time")} ${new Date().toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
+             hour12: true,
+          })}`;
+          break;
+        case 1:
+          speakText = t("common.Login");
+          break;
+        case 2:
+          speakText = t("common.Language") + " Korean";
+          break;
+        case 3:
+          speakText = t("common.Language") + " English";
+          break;
+        case 4:
+          speakText = t("common.Volume Down");
+          break;
+        case 5:
+          speakText = `${Math.round(volume * 100)} percent`;
+          break;
+        case 6:
+          speakText = t("common.Volume Up");
+          break;
+        case 7:
+          speakText = t("common.Info");
+          break;
+        case 8:
+          speakText = t("common.Zoom");
+          break;
+        case 9:
+          speakText = t("common.Contrast");
+          break;
+        default:
+          break;
+      }
+    }
 
     if (speakText) {
       speak(speakText);
@@ -255,138 +341,134 @@ const toggleContrast = () => {
 
 
 
+
   return (
-   <>
-    <div className="absolute bottom-px left-0 right-0 z-30 flex items-center justify-between px-6 py-3 bg-black/40 backdrop-blur-md ">
-      {/* ✅ Footer Focus Border */}
-      {isFocused && (
-        <div className="pointer-events-none absolute inset-0 border-[6px] border-[#dc2f02]" />
-      )}
-
-      {/* 👤 LEFT */}
-      <div className="flex items-center gap-4">
-        {userInfo ? (
-          <>
-            <button
-              onClick={logout}
-              className={`flex items-center gap-2 bg-red-500 px-5 py-2 rounded-full text-white text-[26px]
-              ${cursor === 0 && isFocused
-                  ? "outline-[6px] outline-[#dc2f02]"
-                  : ""
-                }`}
-            >
-              <LogOut className="w-7 h-7" />
-              {t("common.Logout")}
-            </button>
-
-            <div
-              className={`flex items-center gap-2 bg-white text-black px-5 py-2 rounded-lg text-[26px]
-              ${cursor === 1 && isFocused
-                  ? "outline-[6px] outline-[#dc2f02]"
-                  : ""
-                }`}
-            >
-              <User className="w-7 h-7" />
-              {userInfo.SCHOOLNO}
-            </div>
-          </>
-        ) : (
-          <button
-            onClick={openKeyboard}
-            className={`px-7 py-2.5 rounded-full bg-[#D7D8D2] text-white text-[28px]
-            ${cursor === 0 && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""
-              }`}
-          >
-            {t("common.Login")}
-          </button>
+    <>
+      <div className="absolute bottom-px left-0 right-0 z-30 flex items-center justify-between px-7 py-3 bg-black/40 backdrop-blur-md">
+        {/* ✅ Footer Focus Border */}
+        {isFocused && (
+          <div className="pointer-events-none absolute inset-0 border-[6px] border-[#dc2f02]" />
         )}
-      </div>
 
-      {/* 🎛 CENTER */}
-      <div className="flex items-center gap-2">
-        <FooterButton
-          icon={<Volume1 size={28} />}
-          label={t("common.Volume Down")}
-          onClick={() => dispatch(decreaseVolume())}
-          isSelected={cursor === (userInfo ? 2 : 1)}
-          isFocused={isFocused}
-        />
 
-        <FooterButton
-          label={`${Math.round(volume * 100)}%`}
-          onClick={() => { }}
-          isSelected={cursor === (userInfo ? 3 : 2)}
-          isFocused={isFocused}
-        />
 
-        <FooterButton
-          icon={<Volume2 size={28} />}
-          label={t("common.Volume Up")}
-          onClick={() => dispatch(increaseVolume())}
-          isSelected={cursor === (userInfo ? 4 : 3)}
-          isFocused={isFocused}
-        />
+        <div className="flex items-center gap-5">
+          {/* ⏰ TIME */}
+          {/* ⏰ TIME */}
+          <div
+            className={`flex items-center gap-3 text-white px-3 py-2 rounded-lg
+  ${cursor === 0 && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}`}
+          >
+            <Clock className="w-8 h-8" />
+            <span className="text-[32px] font-semibold">{time}</span>
+          </div>
 
-        <FooterButton
-          icon={<InfoIcon size={28} />}
-          label={t("common.Info")}
-          onClick={() => setIsInfoOpen(true)}
-          isSelected={cursor === (userInfo ? 5 : 4)}
-          isFocused={isFocused}
-        />
+          {/* 👤 LOGIN / LOGOUT / USER INFO */}
+          <div className="flex items-center gap-4">
+            {userInfo ? (
+              <>
+                <button
+                  onClick={logout}
+                  className={`flex items-center gap-2 bg-red-500 px-5 py-2 rounded-full text-white text-[26px]
+          ${cursor === 1 && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}`}
+                >
+                  <LogOut className="w-7 h-7" />
+                  {t("common.Logout")}
+                </button>
 
-        <FooterButton
-          icon={<ZoomIn size={28} />}
-          label={t("common.Zoom")}
-          active={magnifierEnabled}
-          onClick={() => dispatch(toggleMagnifier())}
-          isSelected={cursor === (userInfo ? 6 : 5)}
-          isFocused={isFocused}
-        />
+                <div
+                  className={`flex items-center gap-2 bg-white text-black px-5 py-2 rounded-lg text-[26px]
+          ${cursor === 2 && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}`}
+                >
+                  <User className="w-7 h-7" />
+                  {userInfo.SCHOOLNO}
+                </div>
+              </>
+            ) : (
+              <button
+                onClick={openKeyboard}
+                className={`px-6 py-2 rounded-full bg-[#D7D8D2] text-white text-[28px]
+        ${cursor === 1 && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}`}
+              >
+                {t("common.Login")}
+              </button>
+            )}
+          </div>
 
-        <FooterButton
-          icon={<Contrast size={28} />}
-          label={t("common.Contrast")}
-          onClick={toggleContrast}
-          active={contrastEnabled}
-          isSelected={cursor === (userInfo ? 7 : 6)}
-          isFocused={isFocused}
-        />
-      </div>
-
-      {/* ⏰ RIGHT */}
-      <div className="flex items-center gap-6">
-        <div className="flex items-center gap-3 text-white">
-          <Clock className="w-8 h-8" />
-          <span className="text-[32px] font-semibold">{time}</span>
+          {/* 🌐 LANGUAGE */}
+          <div className="flex rounded-xl border-2 border-white">
+            {["KR", "EN"].map((lang, i) => (
+              <button
+                key={lang}
+                onClick={() => handleLanguageChange(lang)}
+                className={`min-w-20 h-14 text-[28px] font-bold
+        ${language === lang ? "bg-[#FFCA08] rounded-lg text-white" : "bg-white text-black"}
+        ${cursor === (userInfo ? 3 + i : 2 + i) && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}`}
+              >
+                {lang}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="flex rounded-xl border-2 border-white">
-          {["KR", "EN"].map((lang, i) => (
-            <button
-              key={lang}
-              onClick={() => handleLanguageChange(lang)}
-              className={`min-w-20 h-14 text-[28px] font-bold
-              ${language === lang
-                  ? "bg-[#FFCA08] rounded-lg text-white"
-                  : "bg-white text-black"
-                }
-              ${cursor === (userInfo ? 8 + i : 7 + i) && isFocused
-                  ? "outline-[6px] outline-[#dc2f02]"
-                  : ""
-                }`}
-            >
-              {lang}
-            </button>
-          ))}
+        {/* 🎛 REST OF BUTTONS */}
+        <div className="flex items-center gap-2">
+          <FooterButton
+            icon={<Volume1 size={28} />}
+            label={t("common.Volume Down")}
+            onClick={() => dispatch(decreaseVolume())}
+            isSelected={cursor === (userInfo ? 5 : 4)}
+            isFocused={isFocused}
+          />
+
+          <FooterButton
+            label={`${Math.round(volume * 100)}%`}
+            onClick={() => { }}
+            isSelected={cursor === (userInfo ? 6 : 5)}
+            isFocused={isFocused}
+          />
+
+          <FooterButton
+            icon={<Volume2 size={28} />}
+            label={t("common.Volume Up")}
+            onClick={() => dispatch(increaseVolume())}
+            isSelected={cursor === (userInfo ? 7 : 6)}
+            isFocused={isFocused}
+          />
+
+          <FooterButton
+            icon={<InfoIcon size={28} />}
+            label={t("common.Info")}
+            onClick={() => setIsInfoOpen(true)}
+            isSelected={cursor === (userInfo ? 8 : 7)}
+            isFocused={isFocused}
+          />
+
+          <FooterButton
+            icon={<ZoomIn size={28} />}
+            label={t("common.Zoom")}
+            active={magnifierEnabled}
+            onClick={() => dispatch(toggleMagnifier())}
+            isSelected={cursor === (userInfo ? 9 : 8)}
+            isFocused={isFocused}
+          />
+
+          <FooterButton
+            icon={<Contrast size={28} />}
+            label={t("common.Contrast")}
+            onClick={toggleContrast}
+            active={contrastEnabled}
+            isSelected={cursor === (userInfo ? 10 : 9)}
+            isFocused={isFocused}
+          />
         </div>
       </div>
-    </div>
-       {/* ✅ Info Modal (PLACE IT HERE) */}
-    <InfoModal
-      isOpen={isInfoOpen}
-      onClose={() => setIsInfoOpen(false)}
-    />
+
+      {/* ✅ Info Modal (PLACE IT HERE) */}
+      <InfoModal
+        isOpen={isInfoOpen}
+        onClose={() => setIsInfoOpen(false)}
+      />
     </>
   );
 };

@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import BgMainImage from "../../assets/images/BgMain.jpg";
 import logo from "../../assets/images/logo.png";
 
-import { clearUserInfo } from "../../redux/slice/userInfo";
+import { clearUserInfo, setUserInfo } from "../../redux/slice/userInfo";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 
 import {
@@ -20,7 +20,7 @@ import FloorStatsBar from "../../components/layout/floor/FloorStatsBar";
 import FloorLegendBar from "../../components/layout/floor/FloorLegendBar";
 import FooterControls from "../../components/common/Footer";
 
-import { BASE_URL_2, FloorImageUrl, getSeatList, ImageBaseUrl } from "../../services/api";
+import { BASE_URL_2, FloorImageUrl, getKioskUserInfo, getSeatList, ImageBaseUrl } from "../../services/api";
 import { MINI_MAP_LAYOUT, MINIMAP_CONFIG } from "../../utils/constant";
 import SeatActionModal from "../../components/common/SeatActionModal";
 import { useTranslation } from "react-i18next";
@@ -82,12 +82,31 @@ const Floor = () => {
   const [focusedRegion, setFocusedRegion] = useState(null);
   const lang = useSelector((state) => state.lang.current);
   const FocusRegion = Object.freeze({
-    FLOOR_STATS: "floor_stats",
     LEGEND: "legend",
     MAP: "map",
+    FLOOR_STATS: "floor_stats",
     FOOTER: "footer",
   });
+  /**
+   * Initialize authenticated user on mount
+   */
+  useEffect(() => {
+    const initializeUser = async () => {
+      const isAuth = localStorage.getItem("authenticated");
+      if (isAuth !== "true") return;
 
+      try {
+        const info = await getKioskUserInfo();
+        if (info?.successYN === "Y") {
+          dispatch(setUserInfo(info.bookingInfo));
+        }
+      } catch (error) {
+        console.error("Failed to fetch kiosk user info:", error);
+      }
+    };
+
+    initializeUser();
+  }, [dispatch]);
   /* =====================================================
      FLOOR DATA HOOK
   ===================================================== */
@@ -109,7 +128,7 @@ const Floor = () => {
   }, [selectedSector]);
 
 
-//Speak on screen 
+  //Speak on screen 
   useEffect(() => {
     const onKeyDown = (e) => {
       const isHash =
@@ -394,13 +413,14 @@ const Floor = () => {
       e.stopPropagation();
 
       setFocusedRegion((prev) => {
-        if (prev === null) return FocusRegion.FLOOR_STATS;
-        if (prev === FocusRegion.FLOOR_STATS) return FocusRegion.LEGEND;
-        if (prev === FocusRegion.LEGEND) return FocusRegion.MAP;
-        if (prev === FocusRegion.MAP) return FocusRegion.FOOTER;
-        if (prev === FocusRegion.FOOTER) return FocusRegion.FLOOR_STATS;
 
-        return FocusRegion.FLOOR_STATS;
+        // ====================================
+        if (prev === null) return FocusRegion.LEGEND;
+        if (prev === FocusRegion.LEGEND) return FocusRegion.MAP;
+        if (prev === FocusRegion.MAP) return FocusRegion.FLOOR_STATS;
+        if (prev === FocusRegion.FLOOR_STATS) return FocusRegion.FOOTER;
+        if (prev === FocusRegion.FOOTER) return FocusRegion.LEGEND;
+        return FocusRegion.LEGEND;
       });
     };
 
@@ -716,11 +736,12 @@ const Floor = () => {
 
     switch (focusedRegion) {
       case FocusRegion.FLOOR_STATS:
-        speak(t("speech.Floor header section"));
+         speak(t("speech.Floors information"));
+       
         break;
 
       case FocusRegion.LEGEND:
-        speak(t("speech.Floor information"));
+         speak(t("speech.Floor header section"));
         break;
 
       case FocusRegion.MAP:

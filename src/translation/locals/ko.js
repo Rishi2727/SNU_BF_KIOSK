@@ -123,7 +123,7 @@ const koTranslations = {
     "No notices available.": "공지 사항이 없습니다.",
     "UserID": "사용자ID",
     "Floor header section": "바닥 헤더 섹션",
-    "Floor information": "층별 정보",
+    "Floors information": "층별 정보",
     "Floor map section": "층 지도 영역",
     "Back to floor map": "층별 지도로 돌아가기",
     "Floor legend location": "{{building}}, {{floor}}, {{room}}",

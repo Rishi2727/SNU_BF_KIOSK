@@ -142,14 +142,14 @@ const FloorLegendBar = ({
         absolute  left-0 right-0 w-full
         bg-[#b8975e] py-1 px-4 top-0.5
         flex items-center justify-between
-        text-white shadow-lg z-20
+        text-white shadow-lg z-20 
         ${isFocused ? focusRing : ""}
       `}>
 
     
 
       {/* LEFT */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-5">
         {showBack && (
           <button
             onClick={onBack}
@@ -174,7 +174,7 @@ const FloorLegendBar = ({
         alt="logo"
         className=" w-[38%] -ml-2!"
       />
-          <Home className="w-8 h-8 -ml-17!" />
+          <Home className="w-8 h-8 -ml-16!" />
           <span className="text-[28px] font-semibold text-nowrap">
             {buildingName && `${t(`translations.${buildingName}`)} `}
             {floorName && `( ${t(`common.${floorName}`)} `}

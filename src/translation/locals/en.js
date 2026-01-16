@@ -121,7 +121,7 @@ const enTranslations = {
     "No notices available.": "No notices available.",
     "UserID": "UserID",
     "Floor header section": "Floor header section",
-    "Floor information": "Floor information",
+    "Floors information": "Floors information",
     "Floor map section": "Floor map section",
     "Back to floor map": "Back to floor map",
     "Floor legend location": "{{building}}, {{floor}}, {{room}}",
