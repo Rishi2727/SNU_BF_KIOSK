@@ -59,10 +59,32 @@ const Dashboard = () => {
   });
 
 
+// Speak on main Screen
+  const speakMainScreen = () => {
+    stop(); 
+    speak(t("speech.This screen is the main screen."));
+  };
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      const isHash =
+        e.key === "#" ||
+        e.code === "NumpadHash" ||
+        (e.keyCode === 51 && e.shiftKey);
+
+      if (!isHash) return;
+      if (e.repeat) return; 
+
+      speakMainScreen(); // ✅ unified call
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [t,speak]); // t is enough, speak/stop are stable in your hook
+
   useEffect(() => {
     dispatch(fetchFloorList(1)); // libno = 1
   }, [dispatch, lang]);
-  console.log("lang", lang)
+
   // ✅ Focus cycling with '*' key
   useEffect(() => {
     const onKeyDown = (e) => {
@@ -203,9 +225,7 @@ const Dashboard = () => {
       if (info?.successYN === "Y") {
         dispatch(setUserInfo(info.bookingInfo));
         localStorage.setItem("authenticated", "true");
-
         const showModal = shouldShowModal(info.bookingInfo);
-
         if (selectedFloor) {
           if (showModal) {
             setIsUserInfoModalOpen(true);

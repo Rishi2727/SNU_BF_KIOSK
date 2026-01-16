@@ -106,10 +106,11 @@ const koTranslations = {
     "GROUP_ROOM_BOOKING_DESC": "그룹 예약 시 모든 구성원이 RFID 또는 QR 코드를 스캔하여 확인해야 합니다.",
     "MULTIPLE_BOOKING": "다중 예약 처리",
     "MULTIPLE_BOOKING_DESC": "여러 예약이 있는 경우 ‘아니오’ 버튼을 누르면 모든 팝업이 표시될 때까지 다음 팝업으로 이동합니다.",
-  "Next": "다음",
-  "Close": "닫기",
-  "INFORMATION": "정보",
-  "Previous":"이전의"
+    "Next": "다음",
+    "Close": "닫기",
+    "INFORMATION": "정보",
+    "Previous": "이전의",
+
 
   },
   speech: {
@@ -153,7 +154,9 @@ const koTranslations = {
     "From": "부터",
     "To": "로.",
     "Total": "총",
-
+    "This screen is the floor or reading room selection screen.": "이 화면은 층 또는 열람실 선택 화면입니다.",
+    "This screen is the main screen.": "이 화면은 메인 화면입니다.",
+      "This screen is the Seat selection screen.": "이 화면은 좌석 선택 화면입니다."
   },
   translations: {
     "Confirm": "확인",
