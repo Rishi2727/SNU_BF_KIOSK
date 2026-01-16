@@ -61,6 +61,8 @@ const Floor = () => {
     scale: 1,
   });
   const [isZoomed, setIsZoomed] = useState(false); // Track zoom state
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
   const [seats, setSeats] = useState([]);
   const [loadingSeats, setLoadingSeats] = useState(false);
   const [imageDimensions, setImageDimensions] = useState({
@@ -73,6 +75,7 @@ const Floor = () => {
   });
   const [selectedSeat, setSelectedSeat] = useState(null);
   const [showSeatModal, setShowSeatModal] = useState(false);
+  const [hasPanned, setHasPanned] = useState(false);
   const mainImageRef = useRef(null);
   const containerRef = useRef(null);
   const prevSectorNoRef = useRef(null);
@@ -458,6 +461,135 @@ const Floor = () => {
       }
     }
   };
+
+  /* =====================================================
+     PAN HANDLERS - Mouse & Touch
+  ===================================================== */
+  const handlePanStart = (clientX, clientY) => {
+    if (!isZoomed) return;
+    setIsPanning(true);
+    setHasPanned(false); // Reset the pan tracking
+    // Store the starting mouse position and current transform
+    setPanStart({
+      mouseX: clientX,
+      mouseY: clientY,
+      transformX: imageTransform.x,
+      transformY: imageTransform.y,
+    });
+  };
+  const handlePanMove = (clientX, clientY) => {
+    if (
+      !isPanning ||
+      !isZoomed ||
+      !containerRef.current ||
+      !imageDimensions.width
+    )
+      return;
+
+    // Calculate the distance moved in pixels
+    const deltaX = clientX - panStart.mouseX;
+    const deltaY = clientY - panStart.mouseY;
+
+    // Mark that user has actually moved (threshold of 5px to distinguish from accidental movement)
+    if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+      setHasPanned(true);
+    }
+
+    // Convert pixel movement to percentage based on container size
+    const containerWidth = containerRef.current.offsetWidth;
+    const containerHeight = containerRef.current.offsetHeight;
+
+    const percentX = (deltaX / containerWidth) * 100 * 0.5; // 0.5 = sensitivity factor
+    const percentY = (deltaY / containerHeight) * 100 * 0.5;
+
+    const newX = panStart.transformX + percentX;
+    const newY = panStart.transformY + percentY;
+
+    // Calculate dynamic limits based on zoom scale and image dimensions
+    const scale = imageTransform.scale;
+
+    const imageWidthScaled = imageDimensions.width * scale;
+    const imageHeightScaled = imageDimensions.height * scale;
+
+    const maxPanX =
+      (((imageWidthScaled - containerWidth) / containerWidth) * 50) / scale;
+    const maxPanY =
+      (((imageHeightScaled - containerHeight) / containerHeight) * 50) / scale;
+
+    // Ensure we don't pan beyond the image edges
+    const limitedX = Math.max(
+      -Math.abs(maxPanX),
+      Math.min(Math.abs(maxPanX), newX)
+    );
+    const limitedY = Math.max(
+      -Math.abs(maxPanY),
+      Math.min(Math.abs(maxPanY), newY)
+    );
+
+    setImageTransform((prev) => ({
+      ...prev,
+      x: limitedX,
+      y: limitedY,
+    }));
+  };
+
+  // ========================================
+  // CHANGED: handlePanEnd
+  // ========================================
+  const handlePanEnd = () => {
+    const wasPanning = isPanning && hasPanned;
+    setIsPanning(false);
+    // Reset hasPanned after a short delay to allow click event to check it
+    if (!wasPanning) {
+      // If it was just a click (no actual panning), reset immediately
+      setHasPanned(false);
+    } else {
+      // If we were actually panning, delay the reset
+      setTimeout(() => setHasPanned(false), 150);
+    }
+  };
+
+  const handleMouseDown = (e) => {
+    if (e.button !== 0) return; // Only left click
+    e.preventDefault(); // Prevent default behavior
+    handlePanStart(e.clientX, e.clientY);
+  };
+
+  const handleMouseMove = (e) => {
+    if (isPanning) {
+      e.preventDefault(); // Prevent selection while dragging
+    }
+    handlePanMove(e.clientX, e.clientY);
+  };
+
+  const handleMouseUp = (e) => {
+    if (isPanning && hasPanned) {
+      e.preventDefault(); // Prevent click event if we were panning
+      e.stopPropagation(); // Stop event from bubbling to click handler
+    }
+    handlePanEnd();
+  };
+  // Touch events
+  const handleTouchStart = (e) => {
+    if (e.touches.length === 1) {
+      handlePanStart(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (e.touches.length === 1) {
+      e.preventDefault(); // Prevent scrolling
+      handlePanMove(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    handlePanEnd();
+  };
+
+  /* =====================================================
+     IMAGE LOAD HANDLER
+  ===================================================== */
   const handleImageLoad = (e) => {
     const img = e.target;
 
@@ -465,7 +597,7 @@ const Floor = () => {
     setImageTransform({ x: 0, y: 0, scale: 1 });
     setIsZoomed(false);
     setSelectedMiniSector(null);
-    // setHasPanned(false);
+    setHasPanned(false);
     setIsPanning(false);
 
     // ✅ store REAL rendered size
@@ -584,7 +716,7 @@ const Floor = () => {
       default:
         break;
     }
-  }, [focusedRegion, speak, stop, t]);
+  }, [focusedRegion, stop, t]);
 
   useEffect(() => {
     if (focusedRegion !== FocusRegion.MAP) return;
@@ -670,11 +802,18 @@ const Floor = () => {
                 mainImageRef={mainImageRef}
                 containerRef={containerRef}
                 isZoomed={isZoomed}
+                isPanning={isPanning}
                 onMiniSectorClick={handleMiniSectorClick}
                 onMainImageClick={handleMainImageClick}
                 onSeatClick={handleSeatClick}
                 onImageLoad={handleImageLoad}
                 onMiniMapError={() => setMiniMapError(true)}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
                 miniMapCursor={miniMapCursor}
               />
             ) : (

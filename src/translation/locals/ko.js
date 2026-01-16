@@ -167,7 +167,7 @@ const koTranslations = {
     "Booked": "예약됨",
     "Disabled": "비활성화됨",
     "Central Library, Gwanjeong Building": "중앙도서관, 관정빌딩",
-    "Available seats": "이용 가능한 좌석",
+    "Available": "이용 가능한 좌석",
   }
 }
 export default koTranslations;
