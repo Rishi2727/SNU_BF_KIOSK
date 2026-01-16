@@ -171,7 +171,7 @@ const RoomView = ({
         {selectedSector?.SECTOR_IMAGE ? (
           <div
             className={`relative border transition-transform ease-out ${isPanning ? 'duration-0 cursor-grabbing' : 'duration-500 cursor-pointer'
-              } ${isZoomed && !isPanning ? 'cursor-grab' : ''}`}
+              } `}
             style={{
               transform: `translate(${imageTransform.x}%, ${imageTransform.y}%) scale(${imageTransform.scale})`,
               transformOrigin: "center center",
@@ -207,9 +207,9 @@ const RoomView = ({
                 className="select-none max-w-full max-h-full object-contain"
                 onLoad={onImageLoad}
                 draggable={false}
-                onClick={(e) => {
-                  if (!isPanning) onMainImageClick(e);
-                }}
+                // onClick={(e) => {
+                //   if (!isPanning) onMainImageClick(e);
+                // }}
               />
 
               {/* Seat Markers */}

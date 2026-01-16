@@ -682,7 +682,7 @@ const Floor = () => {
   console.log("sectorList", sectorList)
 
   const displayableSectors = filterDisplayableSectors(sectorList);
-  console.log("displayableSectors", displayableSectors)
+
   // ==============Map of Image ==================
 
   useEffect(() => {
@@ -811,9 +811,9 @@ const Floor = () => {
       {/* ================= MAIN CONTENT ================= */}
       <div className="absolute inset-0 flex items-center justify-center z-0 -top-27 mx-[11px]">
         {currentFloor && (
-          <div className={`relative h-[805px] bg-white/10 backdrop-blur-sm rounded-lg  shadow-2xl ${focusedRegion === FocusRegion.MAP
-            ? " outline-[6px] outline-[#dc2f02]"
-            : " outline-[6px] outline-transparent"
+          <div className={`relative h-[830px] bg-white/10 backdrop-blur-sm rounded-lg  shadow-2xl ${focusedRegion === FocusRegion.MAP
+            ? "border-[5px] border-[#dc2f02] box-border"
+            : "border-[5px] border-transparent box-border"
             }`}>
             {loading ? (
               <LoadingSpinner />
