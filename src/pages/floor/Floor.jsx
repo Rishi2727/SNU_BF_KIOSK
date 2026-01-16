@@ -776,28 +776,21 @@ const Floor = () => {
         className="absolute inset-0 h-full w-full object-cover"
         alt="background"
       />
-
-      <img
-        src={logo}
-        alt="logo"
-        className="absolute top-4 left-0 w-[21%] ml-6 z-10"
+      {/* ================= LEGEND + FOOTER ================= */}
+      <FloorLegendBar
+        buildingName="Central Library, Gwanjeong Building"
+        floorName={currentFloor?.title}
+        roomName={selectedSector?.MAPLABEL}
+        showBack={showRoomView}
+        onBack={backToFloorMap}
+        isFocused={focusedRegion === FocusRegion.LEGEND}
       />
 
-      {/* ================= FLOOR STATS ================= */}
-      <div className="absolute top-[110px] left-0 right-0 z-20 px-4">
-        <FloorStatsBar
-          floors={floors}
-          currentFloor={currentFloor}
-          onFloorClick={handleFloorClick}
-          loading={loading}
-          isFocused={focusedRegion === FocusRegion.FLOOR_STATS}
-        />
-      </div>
 
       {/* ================= MAIN CONTENT ================= */}
-      <div className="absolute inset-0 flex items-center justify-center z-0 mb-[-78px] mx-[11px]">
+      <div className="absolute inset-0 flex items-center justify-center z-0 -top-27 mx-[11px]">
         {currentFloor && (
-          <div className={`relative h-[820px] bg-white/10 backdrop-blur-sm rounded-lg  shadow-2xl ${focusedRegion === FocusRegion.MAP
+          <div className={`relative h-[805px] bg-white/10 backdrop-blur-sm rounded-lg  shadow-2xl ${focusedRegion === FocusRegion.MAP
             ? " outline-[6px] outline-[#dc2f02]"
             : " outline-[6px] outline-transparent"
             }`}>
@@ -835,7 +828,7 @@ const Floor = () => {
                 miniMapCursor={miniMapCursor}
               />
             ) : (
-              <div className="relative w-full h-full p-5">
+              <div className="relative w-full h-full p-5 ">
                 <div
                   className={`relative w-full h-full`}
                 >
@@ -894,18 +887,20 @@ const Floor = () => {
         )}
       </div>
 
-      {/* ================= LEGEND + FOOTER ================= */}
-      <FloorLegendBar
-        buildingName="Central Library, Gwanjeong Building"
-        floorName={currentFloor?.title}
-        roomName={selectedSector?.MAPLABEL}
-        showBack={showRoomView}
-        onBack={backToFloorMap}
-        isFocused={focusedRegion === FocusRegion.LEGEND}
-      />
 
 
 
+
+      {/* ================= FLOOR STATS ================= */}
+      <div className="absolute bottom-20 left-0 right-0 z-20 px-4">
+        <FloorStatsBar
+          floors={floors}
+          currentFloor={currentFloor}
+          onFloorClick={handleFloorClick}
+          loading={loading}
+          isFocused={focusedRegion === FocusRegion.FLOOR_STATS}
+        />
+      </div>
       <div
 
       >

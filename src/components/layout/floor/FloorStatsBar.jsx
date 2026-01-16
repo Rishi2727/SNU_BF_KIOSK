@@ -92,10 +92,10 @@ const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused 
   return (
     <div
       className={`
-    w-[80%]
+    w-full
     absolute bottom-2 right-[5px] z-30
     flex items-center justify-between gap-5
-    px-6 py-2
+    px-5   py-2
     bg-white/90 backdrop-blur-md
     rounded-tl-2xl shadow-xl
     ${isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}
@@ -107,7 +107,7 @@ const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused 
           onClick={() => onFloorClick(item)}
           disabled={loading}
           className={`w-[35%] flex items-center rounded-xl overflow-hidden 
-            transition-all duration-200 cursor-pointer
+            transition-all duration-200  cursor-pointer
             hover:scale-[1.02] hover:shadow-lg 
             disabled:opacity-50 disabled:cursor-not-allowed
             ${currentFloor?.id === item.id
@@ -130,7 +130,7 @@ const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused 
               }`}
           >
             <span
-              className={`text-[32px] font-bold tracking-wide ${currentFloor?.id === item.id
+              className={`text-[30px] font-bold tracking-wide ${currentFloor?.id === item.id
                 ? "text-white"
                 : "text-[#9A7D4C]"
                 }`}
@@ -142,7 +142,7 @@ const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused 
           {/* Stats */}
           <div className="flex-1 px-4 py-2 relative">
             {/* Percentage badge */}
-            <div className="absolute top-7 left-4 bg-[#9A7D4C] text-white font-bold px-3 py-0 rounded-md text-[30px] shadow-md">
+            <div className="absolute top-7 left-4 bg-[#9A7D4C] text-white font-bold px-3 py-0 rounded-md text-[28px] shadow-md">
               {item.occupied}
             </div>
 
