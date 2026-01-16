@@ -147,8 +147,6 @@ const RoomView = ({
                       onClick={() => onMiniSectorClick(sector)}
                       className={`border transition-all duration-200
 
-        ${isFocused ? "border-red-500 scale-105 border-2" : "border-white/20"}
-
         ${isSelected ? " bg-blue-500/40" : " hover:bg-white/20"}
       `}
                     />

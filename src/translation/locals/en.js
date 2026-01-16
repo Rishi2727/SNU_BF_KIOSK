@@ -157,7 +157,7 @@ const enTranslations = {
     "Time of use": "Time of use",
     "Date Duration": "Date Duration",
     "Start hours": "Start hours",
-    "Available seats": "Available seats",
+    "Available": "Available",
     "Booked": "Booked",
     "Disabled": "Disabled",
     "Central Library, Gwanjeong Building": "Central Library, Gwanjeong Building",

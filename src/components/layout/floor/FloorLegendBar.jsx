@@ -190,7 +190,7 @@ const FloorLegendBar = ({
         <div className={`flex items-center gap-2 ${isFocusedAt(showBack ? 2 : 1) ? focusRing : ""}`}
           aria-selected={isFocusedAt(showBack ? 2 : 1)}>
           <div className="w-8 h-8 bg-[#FFCA08] rounded"></div>
-          <span className="text-[28px]">{t("translations.Available seats")}</span>
+          <span className="text-[30px]">{t("translations.Available")}</span>
         </div>
 
         <div className={`flex items-center gap-2 ${isFocusedAt(showBack ? 3 : 2) ? focusRing : ""}`}
