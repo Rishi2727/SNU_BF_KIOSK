@@ -93,7 +93,7 @@ const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused 
     <div
       className={`
     w-full
-    absolute bottom-2 right-[5px] z-30
+    absolute bottom-2.5 right-[5px] z-30
     flex items-center justify-between gap-5
     px-5   py-1
     bg-white/90 backdrop-blur-md

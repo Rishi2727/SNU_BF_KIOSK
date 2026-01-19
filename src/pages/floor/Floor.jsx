@@ -32,7 +32,7 @@ const Floor = () => {
   // For speak and translations 
   const { speak, stop } = useVoice();
   const { t } = useTranslation();
-const [isAnyModalOpen, setIsAnyModalOpen] = useState(false);
+  const [isAnyModalOpen, setIsAnyModalOpen] = useState(false);
 
   const isMoveMode = move === "move" || location.state?.mode === "move";
 
@@ -67,11 +67,13 @@ const [isAnyModalOpen, setIsAnyModalOpen] = useState(false);
   const [focusedRegion, setFocusedRegion] = useState(null);
   const lang = useSelector((state) => state.lang.current);
   const FocusRegion = Object.freeze({
+    FLOOR_STATS: "floor_stats",
     LEGEND: "legend",
     MAP: "map",
-    FLOOR_STATS: "floor_stats",
     FOOTER: "footer",
   });
+ 
+
   /**
    * Initialize authenticated user on mount
    */
@@ -396,14 +398,13 @@ const [isAnyModalOpen, setIsAnyModalOpen] = useState(false);
       e.stopPropagation();
 
       setFocusedRegion((prev) => {
-
-        // ====================================
-        if (prev === null) return FocusRegion.LEGEND;
+        if (prev === null) return FocusRegion.FLOOR_STATS;
+        if (prev === FocusRegion.FLOOR_STATS) return FocusRegion.LEGEND;
         if (prev === FocusRegion.LEGEND) return FocusRegion.MAP;
-        if (prev === FocusRegion.MAP) return FocusRegion.FLOOR_STATS;
-        if (prev === FocusRegion.FLOOR_STATS) return FocusRegion.FOOTER;
-        if (prev === FocusRegion.FOOTER) return FocusRegion.LEGEND;
-        return FocusRegion.LEGEND;
+        if (prev === FocusRegion.MAP) return FocusRegion.FOOTER;
+        if (prev === FocusRegion.FOOTER) return FocusRegion.FLOOR_STATS
+        // ====================================
+
       });
     };
 
@@ -459,7 +460,7 @@ const [isAnyModalOpen, setIsAnyModalOpen] = useState(false);
 
     setSelectedSeat(seat);
     setShowSeatModal(true);
-      setIsAnyModalOpen(true);
+    setIsAnyModalOpen(true);
   };
 
   /* =====================================================
@@ -492,7 +493,7 @@ const [isAnyModalOpen, setIsAnyModalOpen] = useState(false);
 
   useEffect(() => {
     if (focusedRegion !== FocusRegion.MAP) return;
-      if (isAnyModalOpen) return;
+    if (isAnyModalOpen) return;
     if (!displayableSectors?.length) return;
 
     const SECTION_COUNT = displayableSectors.length;
@@ -501,7 +502,7 @@ const [isAnyModalOpen, setIsAnyModalOpen] = useState(false);
       // 🚫 never consume focus toggle key
       if (e.key === "*" || e.code === "NumpadMultiply" || e.keyCode === 106) {
         if (!isAsterisk) return;
-    if (showSeatModal || isAnyModalOpen) return;
+        if (showSeatModal || isAnyModalOpen) return;
 
       }
 
@@ -530,11 +531,11 @@ const [isAnyModalOpen, setIsAnyModalOpen] = useState(false);
   }, [focusedRegion, mapCursor, displayableSectors]);
 
   useEffect(() => {
-  if (isAnyModalOpen) {
-    stop();          // 🔇 stop header/footer speech
-    setFocusedRegion(null); // ❌ clear background focus
-  }
-}, [isAnyModalOpen, stop]);
+    if (isAnyModalOpen) {
+      stop();          // 🔇 stop header/footer speech
+      setFocusedRegion(null); // ❌ clear background focus
+    }
+  }, [isAnyModalOpen, stop]);
 
 
   useEffect(() => {
@@ -566,43 +567,43 @@ const [isAnyModalOpen, setIsAnyModalOpen] = useState(false);
 
   ]);
 
-useEffect(() => {
-  setMiniMapCursor(-1);
-}, [selectedSector]);
+  useEffect(() => {
+    setMiniMapCursor(-1);
+  }, [selectedSector]);
 
 
-// 2. REPLACE the "RESET ON SECTOR CHANGE" useEffect with this:
-useEffect(() => {
-  if (!selectedSector) return;
-  if (prevSectorNoRef.current === selectedSector.SECTORNO) return;
-  prevSectorNoRef.current = selectedSector.SECTORNO;
+  // 2. REPLACE the "RESET ON SECTOR CHANGE" useEffect with this:
+  useEffect(() => {
+    if (!selectedSector) return;
+    if (prevSectorNoRef.current === selectedSector.SECTORNO) return;
+    prevSectorNoRef.current = selectedSector.SECTORNO;
 
-  // Only reset these specific states
-  setMiniMapError(false);
-  setSelectedSeat(null);
-  setShowSeatModal(false);
-  
-  // Don't reset: miniMapCursor, selectedMiniSector, imageTransform, isZoomed
-}, [selectedSector]);
+    // Only reset these specific states
+    setMiniMapError(false);
+    setSelectedSeat(null);
+    setShowSeatModal(false);
 
-// 3. REPLACE the "AUTO SELECT DEFAULT MINI MAP SECTOR" useEffect with this:
-useEffect(() => {
-  if (!layout?.sectors?.length || !showRoomView) return;
-  
-  // Small delay to ensure layout is ready
-  const timer = setTimeout(() => {
-    const firstSector = layout.sectors[0];
-    if (firstSector) {
-      console.log('Auto-selecting first sector:', firstSector.id);
-      setMiniMapCursor(0);
-      setSelectedMiniSector(firstSector);
-      setImageTransform(firstSector.transform);
-      setIsZoomed(true);
-    }
-  }, 100);
-  
-  return () => clearTimeout(timer);
-}, [layout, showRoomView, selectedSector?.SECTORNO]);
+    // Don't reset: miniMapCursor, selectedMiniSector, imageTransform, isZoomed
+  }, [selectedSector]);
+
+  // 3. REPLACE the "AUTO SELECT DEFAULT MINI MAP SECTOR" useEffect with this:
+  useEffect(() => {
+    if (!layout?.sectors?.length || !showRoomView) return;
+
+    // Small delay to ensure layout is ready
+    const timer = setTimeout(() => {
+      const firstSector = layout.sectors[0];
+      if (firstSector) {
+        console.log('Auto-selecting first sector:', firstSector.id);
+        setMiniMapCursor(0);
+        setSelectedMiniSector(firstSector);
+        setImageTransform(firstSector.transform);
+        setIsZoomed(true);
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [layout, showRoomView, selectedSector?.SECTORNO]);
   /* =====================================================
      RENDER
   ===================================================== */
@@ -675,7 +676,7 @@ useEffect(() => {
                   {!imageError &&
                     displayableSectors.map((sector, sectorIndex) => {
                       const mapStylesList = parseMapPoint(sector.MAPPOINT);
-                    
+
 
                       return mapStylesList.map((mapStyles, idx) => (
                         <button
@@ -727,7 +728,7 @@ useEffect(() => {
           onFloorClick={handleFloorClick}
           loading={loading}
           isFocused={focusedRegion === FocusRegion.FLOOR_STATS}
-            isAnyModalOpen={isAnyModalOpen}
+          isAnyModalOpen={isAnyModalOpen}
         />
       </div>
       <div
@@ -737,7 +738,7 @@ useEffect(() => {
           userInfo={userInfo}
           logout={handleLogout}
           isFocused={focusedRegion === FocusRegion.FOOTER}
-            isAnyModalOpen={isAnyModalOpen}
+          isAnyModalOpen={isAnyModalOpen}
         />
       </div>
 

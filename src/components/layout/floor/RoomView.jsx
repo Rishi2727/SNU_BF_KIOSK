@@ -112,12 +112,14 @@ const RoomView = ({
             <div className="relative rounded shadow-2xl bg-black/20 p-1">
               <img
                 src={miniMapUrl}
+                
                 alt="Mini Map"
                 className="w-80 rounded opacity-90"
                 onError={onMiniMapError}
               />
               <div
                 className="absolute inset-0 p-1"
+                
                 style={{
                   display: "grid",
                   gridTemplateRows: `repeat(${layout.rows}, 1fr)`,
