@@ -29,16 +29,9 @@ const RoomView = ({
   isZoomed,
   isPanning,
   onMiniSectorClick,
-  onMainImageClick,
   onSeatClick,
   onImageLoad,
   onMiniMapError,
-  onMouseDown,
-  onMouseMove,
-  onMouseUp,
-  onTouchStart,
-  onTouchMove,
-  onTouchEnd,
   miniMapCursor,
   focusStage,
   seatCursor,
@@ -128,9 +121,7 @@ const RoomView = ({
                 style={{
                   display: "grid",
                   gridTemplateRows: `repeat(${layout.rows}, 1fr)`,
-                  gridTemplateColumns: selectedSector?.SECTORNO === 16301
-                    ? "1fr 1.2fr"
-                    : `repeat(${layout.cols}, 1fr)`,
+                  gridTemplateColumns:  `repeat(${layout.cols}, 1fr)`,
                 }}
               >
                 {layout.sectors.map((sector, index) => {
@@ -162,11 +153,6 @@ const RoomView = ({
       <div
         ref={containerRef}
         className="w-full h-full flex items-center justify-center overflow-hidden relative"
-        onMouseMove={onMouseMove}
-        onMouseUp={onMouseUp}
-        onMouseLeave={onMouseUp}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
       >
         {selectedSector?.SECTOR_IMAGE ? (
           <div
@@ -175,30 +161,12 @@ const RoomView = ({
             style={{
               transform: `translate(${imageTransform.x}%, ${imageTransform.y}%) scale(${imageTransform.scale})`,
               transformOrigin: "center center",
-              ...(isZoomed
-                ? {
-                  // ✅ ZOOM MODE → real size (allow width to grow)
-                  width: "auto",
-                  height: "auto",
-                  maxWidth: "none",
-                  maxHeight: "none",
-                }
-                : {
-                  // ✅ NORMAL MODE → fit container
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "contain",
-                }),
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }}
-            onMouseDown={onMouseDown}
-            onTouchStart={onTouchStart}
           >
             <div className="relative w-full h-full flex items-center justify-center">
-
-
               <img
                 key={selectedSector?.SECTOR_IMAGE}
                 ref={mainImageRef}
@@ -207,16 +175,13 @@ const RoomView = ({
                 className="select-none max-w-full max-h-full object-contain"
                 onLoad={onImageLoad}
                 draggable={false}
-                // onClick={(e) => {
-                //   if (!isPanning) onMainImageClick(e);
-                // }}
               />
 
               {/* Seat Markers */}
               {seats.map((seat) => {
                 const isFocusedSeat =
-  focusStage === "seats" &&
-  focusableSeats?.[seatCursor]?.SEATNO === seat.SEATNO;
+                  focusStage === "seats" &&
+                  focusableSeats?.[seatCursor]?.SEATNO === seat.SEATNO;
                 const position = parseSeatPosition(seat);
                 if (!position) return null;
 
@@ -248,7 +213,7 @@ const RoomView = ({
                     >
                       <img src={src} className="w-full h-full" alt="" />
                       <span
-                        style={{ fontSize: `${5 * seatFontScale}px` }}
+                        style={{ fontSize: `${6 * seatFontScale}px` }}
                         className="absolute inset-0 flex items-center justify-center font-normal text-black drop-shadow pointer-events-none"
                       >
                         {seat.VNAME}

@@ -1,26 +1,20 @@
 import { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-
 import BgMainImage from "../../assets/images/BgMain.jpg";
-import logo from "../../assets/images/logo.png";
-
 import { clearUserInfo, setUserInfo } from "../../redux/slice/userInfo";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
-
 import {
   filterDisplayableSectors,
   parseMapPoint,
 } from "../../utils/mapPointParser";
 import { useFloorData } from "../../hooks/useFloorData";
-
 import RoomView from "../../components/layout/floor/RoomView";
 import FloorMapImage from "../../components/layout/floor/FloorMapImage";
 import FloorStatsBar from "../../components/layout/floor/FloorStatsBar";
 import FloorLegendBar from "../../components/layout/floor/FloorLegendBar";
 import FooterControls from "../../components/common/Footer";
-
-import { BASE_URL_2, FloorImageUrl, getKioskUserInfo, getSeatList, ImageBaseUrl } from "../../services/api";
+import { FloorImageUrl, getKioskUserInfo, getSeatList, ImageBaseUrl } from "../../services/api";
 import { MINI_MAP_LAYOUT, MINIMAP_CONFIG } from "../../utils/constant";
 import SeatActionModal from "../../components/common/SeatActionModal";
 import { useTranslation } from "react-i18next";
@@ -42,17 +36,8 @@ const Floor = () => {
   const isMoveMode = move === "move" || location.state?.mode === "move";
 
   const { floorInfo: initialFloorInfo } = location.state || {};
-
-  /* =====================================================
-     FLOOR / SECTOR STATE
-  ===================================================== */
   const [selectedSector, setSelectedSector] = useState(null);
   const [showRoomView, setShowRoomView] = useState(false);
-
-
-  /* =====================================================
-     ROOM VIEW STATE - UPDATED FOR PAN/ZOOM
-  ===================================================== */
   const [miniMapError, setMiniMapError] = useState(false);
   const [selectedMiniSector, setSelectedMiniSector] = useState(null);
   const [imageTransform, setImageTransform] = useState({
@@ -62,7 +47,6 @@ const Floor = () => {
   });
   const [isZoomed, setIsZoomed] = useState(false); // Track zoom state
   const [isPanning, setIsPanning] = useState(false);
-  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
   const [seats, setSeats] = useState([]);
   const [loadingSeats, setLoadingSeats] = useState(false);
   const [imageDimensions, setImageDimensions] = useState({
@@ -227,7 +211,6 @@ const Floor = () => {
     dispatch(clearUserInfo());
     navigate("/");
   };
-  console.log("url", floorImageUrl)
   /* =====================================================
      FLOOR IMAGE ERROR
   ===================================================== */
@@ -258,7 +241,6 @@ const Floor = () => {
       },
     });
   };
-  console.log("lang", lang)
   /* =====================================================
      FETCH SEATS
   ===================================================== */
@@ -440,191 +422,6 @@ const Floor = () => {
     setIsZoomed(true);
   };
 
-
-
-  /* =====================================================
-     MAIN IMAGE CLICK - ZOOM TO CLICKED POINT
-  ===================================================== */
-  const handleMainImageClick = (e) => {
-    if (!mainImageRef.current) return;
-
-    // Don't trigger zoom if user was panning/dragging
-    if (hasPanned) {
-      return;
-    }
-
-    // If already zoomed, zoom out
-    if (isZoomed) {
-      setSelectedMiniSector(null);
-      setImageTransform({ x: 0, y: 0, scale: 1 });
-      setIsZoomed(false);
-      return;
-    }
-
-    // Calculate click position relative to image
-    const rect = mainImageRef.current.getBoundingClientRect();
-    const clickX = (e.clientX - rect.left) / rect.width;
-    const clickY = (e.clientY - rect.top) / rect.height;
-
-    // Calculate translation to center clicked point
-    const xPercent = (0.5 - clickX) * 100;
-    const yPercent = (0.5 - clickY) * 100;
-    const clickScale = layout?.defaultScale ?? 3;
-    // Zoom to 4x scale at clicked point
-    setImageTransform({
-      x: xPercent,
-      y: yPercent,
-      scale: clickScale,
-    });
-    setIsZoomed(true);
-
-    // If layout exists, try to match closest sector
-    if (layout) {
-      let closestSector = null;
-      let minDistance = Infinity;
-
-      layout.sectors.forEach((sec) => {
-        const dx = xPercent - sec.transform.x;
-        const dy = yPercent - sec.transform.y;
-        const dist = Math.hypot(dx, dy);
-
-        if (dist < minDistance) {
-          minDistance = dist;
-          closestSector = sec;
-        }
-      });
-
-      if (closestSector) {
-        setSelectedMiniSector(closestSector);
-      }
-    }
-  };
-
-  /* =====================================================
-     PAN HANDLERS - Mouse & Touch
-  ===================================================== */
-  const handlePanStart = (clientX, clientY) => {
-    if (!isZoomed) return;
-    setIsPanning(true);
-    setHasPanned(false); // Reset the pan tracking
-    // Store the starting mouse position and current transform
-    setPanStart({
-      mouseX: clientX,
-      mouseY: clientY,
-      transformX: imageTransform.x,
-      transformY: imageTransform.y,
-    });
-  };
-  const handlePanMove = (clientX, clientY) => {
-    if (
-      !isPanning ||
-      !isZoomed ||
-      !containerRef.current ||
-      !imageDimensions.width
-    )
-      return;
-
-    // Calculate the distance moved in pixels
-    const deltaX = clientX - panStart.mouseX;
-    const deltaY = clientY - panStart.mouseY;
-
-    // Mark that user has actually moved (threshold of 5px to distinguish from accidental movement)
-    if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
-      setHasPanned(true);
-    }
-
-    // Convert pixel movement to percentage based on container size
-    const containerWidth = containerRef.current.offsetWidth;
-    const containerHeight = containerRef.current.offsetHeight;
-
-    const percentX = (deltaX / containerWidth) * 100 * 0.5; // 0.5 = sensitivity factor
-    const percentY = (deltaY / containerHeight) * 100 * 0.5;
-
-    const newX = panStart.transformX + percentX;
-    const newY = panStart.transformY + percentY;
-
-    // Calculate dynamic limits based on zoom scale and image dimensions
-    const scale = imageTransform.scale;
-
-    const imageWidthScaled = imageDimensions.width * scale;
-    const imageHeightScaled = imageDimensions.height * scale;
-
-    const maxPanX =
-      (((imageWidthScaled - containerWidth) / containerWidth) * 50) / scale;
-    const maxPanY =
-      (((imageHeightScaled - containerHeight) / containerHeight) * 50) / scale;
-
-    // Ensure we don't pan beyond the image edges
-    const limitedX = Math.max(
-      -Math.abs(maxPanX),
-      Math.min(Math.abs(maxPanX), newX)
-    );
-    const limitedY = Math.max(
-      -Math.abs(maxPanY),
-      Math.min(Math.abs(maxPanY), newY)
-    );
-
-    setImageTransform((prev) => ({
-      ...prev,
-      x: limitedX,
-      y: limitedY,
-    }));
-  };
-
-  // ========================================
-  // CHANGED: handlePanEnd
-  // ========================================
-  const handlePanEnd = () => {
-    const wasPanning = isPanning && hasPanned;
-    setIsPanning(false);
-    // Reset hasPanned after a short delay to allow click event to check it
-    if (!wasPanning) {
-      // If it was just a click (no actual panning), reset immediately
-      setHasPanned(false);
-    } else {
-      // If we were actually panning, delay the reset
-      setTimeout(() => setHasPanned(false), 150);
-    }
-  };
-
-  const handleMouseDown = (e) => {
-    if (e.button !== 0) return; // Only left click
-    e.preventDefault(); // Prevent default behavior
-    handlePanStart(e.clientX, e.clientY);
-  };
-
-  const handleMouseMove = (e) => {
-    if (isPanning) {
-      e.preventDefault(); // Prevent selection while dragging
-    }
-    handlePanMove(e.clientX, e.clientY);
-  };
-
-  const handleMouseUp = (e) => {
-    if (isPanning && hasPanned) {
-      e.preventDefault(); // Prevent click event if we were panning
-      e.stopPropagation(); // Stop event from bubbling to click handler
-    }
-    handlePanEnd();
-  };
-  // Touch events
-  const handleTouchStart = (e) => {
-    if (e.touches.length === 1) {
-      handlePanStart(e.touches[0].clientX, e.touches[0].clientY);
-    }
-  };
-
-  const handleTouchMove = (e) => {
-    if (e.touches.length === 1) {
-      e.preventDefault(); // Prevent scrolling
-      handlePanMove(e.touches[0].clientX, e.touches[0].clientY);
-    }
-  };
-
-  const handleTouchEnd = () => {
-    handlePanEnd();
-  };
-
   /* =====================================================
      IMAGE LOAD HANDLER
   ===================================================== */
@@ -679,7 +476,6 @@ const Floor = () => {
     const labels = sector.ROOM_NAME.split("$").map((l) => l.trim());
     return labels[index] || labels[0];
   };
-  console.log("sectorList", sectorList)
 
   const displayableSectors = filterDisplayableSectors(sectorList);
 
@@ -728,35 +524,6 @@ const Floor = () => {
   }, [focusedRegion, mapCursor, displayableSectors]);
 
 
-  // 🔊 VOICE: speak when floor focus section changes (Dashboard-style)
-  useEffect(() => {
-    if (!focusedRegion) return;
-
-    stop(); // stop previous section speech
-
-    switch (focusedRegion) {
-      case FocusRegion.FLOOR_STATS:
-        //  speak(t("speech.Floors information"));
-       
-        break;
-
-      case FocusRegion.LEGEND:
-        //  speak(t("speech.Floor header section"));
-        break;
-
-      case FocusRegion.MAP:
-        // speak(t("speech.Floor map section"));
-        break;
-
-      case FocusRegion.FOOTER:
-        // speak(t("speech.Footer controls"));
-        break;
-
-      default:
-        break;
-    }
-  }, [focusedRegion, stop, t]);
-
   useEffect(() => {
     if (focusedRegion !== FocusRegion.MAP) return;
     if (mapCursor === null) return;
@@ -786,7 +553,43 @@ const Floor = () => {
 
   ]);
 
+useEffect(() => {
+  setMiniMapCursor(-1);
+}, [selectedSector]);
 
+
+// 2. REPLACE the "RESET ON SECTOR CHANGE" useEffect with this:
+useEffect(() => {
+  if (!selectedSector) return;
+  if (prevSectorNoRef.current === selectedSector.SECTORNO) return;
+  prevSectorNoRef.current = selectedSector.SECTORNO;
+
+  // Only reset these specific states
+  setMiniMapError(false);
+  setSelectedSeat(null);
+  setShowSeatModal(false);
+  
+  // Don't reset: miniMapCursor, selectedMiniSector, imageTransform, isZoomed
+}, [selectedSector]);
+
+// 3. REPLACE the "AUTO SELECT DEFAULT MINI MAP SECTOR" useEffect with this:
+useEffect(() => {
+  if (!layout?.sectors?.length || !showRoomView) return;
+  
+  // Small delay to ensure layout is ready
+  const timer = setTimeout(() => {
+    const firstSector = layout.sectors[0];
+    if (firstSector) {
+      console.log('Auto-selecting first sector:', firstSector.id);
+      setMiniMapCursor(0);
+      setSelectedMiniSector(firstSector);
+      setImageTransform(firstSector.transform);
+      setIsZoomed(true);
+    }
+  }, 100);
+  
+  return () => clearTimeout(timer);
+}, [layout, showRoomView, selectedSector?.SECTORNO]);
   /* =====================================================
      RENDER
   ===================================================== */
@@ -836,16 +639,9 @@ const Floor = () => {
                 isZoomed={isZoomed}
                 isPanning={isPanning}
                 onMiniSectorClick={handleMiniSectorClick}
-                onMainImageClick={handleMainImageClick}
                 onSeatClick={handleSeatClick}
                 onImageLoad={handleImageLoad}
                 onMiniMapError={() => setMiniMapError(true)}
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
                 miniMapCursor={miniMapCursor}
               />
             ) : (
@@ -907,10 +703,6 @@ const Floor = () => {
           </div>
         )}
       </div>
-
-
-
-
 
       {/* ================= FLOOR STATS ================= */}
       <div className="absolute bottom-20 left-0 right-0 z-20 px-4">
