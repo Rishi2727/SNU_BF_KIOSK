@@ -107,8 +107,8 @@ const enTranslations = {
     "GROUP_ROOM_BOOKING_DESC": "Group bookings require all members to scan their RFID or QR codes for confirmation.",
     "MULTIPLE_BOOKING": "Multiple Booking Handling",
     "MULTIPLE_BOOKING_DESC": "When multiple bookings exist, the 'No' button moves to the next popup until all are displayed.",
-    "Extension":"Extension",
-        "Central Library": "Central Library",
+    "Extension": "Extension",
+    "Central Library": "Central Library",
   },
   translations: {
     "Confirm": "Confirm",
@@ -167,7 +167,7 @@ const enTranslations = {
     "You are now logged in. Please select the features you wish to use.": "You are now logged in. Please select the features you wish to use.",
     "Next": "Next",
     "Previous": "Previous",
-    "Extension":"Extension"
+    "Extension": "Extension"
   }
 
 }

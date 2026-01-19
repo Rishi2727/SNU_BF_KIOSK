@@ -38,6 +38,7 @@ const Floor = () => {
   // For speak and translations 
   const { speak, stop } = useVoice();
   const { t } = useTranslation();
+const [isAnyModalOpen, setIsAnyModalOpen] = useState(false);
 
   const isMoveMode = move === "move" || location.state?.mode === "move";
 
@@ -661,6 +662,7 @@ const Floor = () => {
 
     setSelectedSeat(seat);
     setShowSeatModal(true);
+      setIsAnyModalOpen(true);
   };
 
   /* =====================================================
@@ -669,6 +671,7 @@ const Floor = () => {
   const handleCloseModal = () => {
     setShowSeatModal(false);
     setSelectedSeat(null);
+    setIsAnyModalOpen(false);
   };
 
   /* =====================================================
@@ -693,6 +696,7 @@ const Floor = () => {
 
   useEffect(() => {
     if (focusedRegion !== FocusRegion.MAP) return;
+      if (isAnyModalOpen) return;
     if (!displayableSectors?.length) return;
 
     const SECTION_COUNT = displayableSectors.length;
@@ -700,7 +704,9 @@ const Floor = () => {
     const onKeyDown = (e) => {
       // 🚫 never consume focus toggle key
       if (e.key === "*" || e.code === "NumpadMultiply" || e.keyCode === 106) {
-        return;
+        if (!isAsterisk) return;
+    if (showSeatModal || isAnyModalOpen) return;
+
       }
 
       if (e.key === "ArrowRight") {
@@ -726,6 +732,13 @@ const Floor = () => {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [focusedRegion, mapCursor, displayableSectors]);
+
+  useEffect(() => {
+  if (isAnyModalOpen) {
+    stop();          // 🔇 stop header/footer speech
+    setFocusedRegion(null); // ❌ clear background focus
+  }
+}, [isAnyModalOpen, stop]);
 
 
   // 🔊 VOICE: speak when floor focus section changes (Dashboard-style)
@@ -805,6 +818,8 @@ const Floor = () => {
         showBack={showRoomView}
         onBack={backToFloorMap}
         isFocused={focusedRegion === FocusRegion.LEGEND}
+        isAnyModalOpen={isAnyModalOpen}
+
       />
 
 
@@ -920,6 +935,7 @@ const Floor = () => {
           onFloorClick={handleFloorClick}
           loading={loading}
           isFocused={focusedRegion === FocusRegion.FLOOR_STATS}
+            isAnyModalOpen={isAnyModalOpen}
         />
       </div>
       <div
@@ -929,6 +945,7 @@ const Floor = () => {
           userInfo={userInfo}
           logout={handleLogout}
           isFocused={focusedRegion === FocusRegion.FOOTER}
+            isAnyModalOpen={isAnyModalOpen}
         />
       </div>
 

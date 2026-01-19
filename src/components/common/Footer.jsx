@@ -31,6 +31,7 @@ const FooterControls = ({
   logout,
   onZoom,
   isFocused,
+  isAnyModalOpen
 }) => {
   const dispatch = useDispatch();
   const { t } = useTranslation()
@@ -61,7 +62,7 @@ const FooterControls = ({
 
   // ✅ Keyboard navigation
   useEffect(() => {
-    if (!isFocused) return;
+    if (!isFocused || isAnyModalOpen) return;
 
     const handleKeyDown = (e) => {
 

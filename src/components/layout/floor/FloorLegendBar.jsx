@@ -11,7 +11,8 @@ const FloorLegendBar = ({
   roomName,
   showBack,
   onBack,
-  isFocused
+  isFocused,
+  isAnyModalOpen
 }) => {
 
   const BASE_OFFSET = showBack ? 0 : -1;
@@ -34,7 +35,7 @@ const FloorLegendBar = ({
   // KEYBOARD NAVIGATION
   // --------------------------
   useEffect(() => {
-    if (!isFocused) return;
+    if (!isFocused || isAnyModalOpen) return;
 
     const onKeyDown = (e) => {
       // Never consume focus toggle key

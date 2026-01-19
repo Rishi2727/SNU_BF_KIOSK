@@ -115,8 +115,8 @@ const koTranslations = {
     "GROUP_ROOM_BOOKING_DESC": "그룹 예약 시 모든 구성원이 RFID 또는 QR 코드를 스캔하여 확인해야 합니다.",
     "MULTIPLE_BOOKING": "다중 예약 처리",
     "MULTIPLE_BOOKING_DESC": "여러 예약이 있는 경우 ‘아니오’ 버튼을 누르면 모든 팝업이 표시될 때까지 다음 팝업으로 이동합니다.",
-     "Extension":"확대",
-         "Central Library": "중앙도서관",
+    "Extension": "확대",
+    "Central Library": "중앙도서관",
   },
   translations: {
     "Confirm": "확인",
@@ -175,7 +175,7 @@ const koTranslations = {
     "You are now logged in. Please select the features you wish to use.": "로그인이 완료되었습니다. 사용하실 기능을 선택해 주세요.",
     "Next": "다음",
     "Previous": "이전의",
-    "Extension":"확대"
+    "Extension": "확대"
   }
 }
 export default koTranslations;
