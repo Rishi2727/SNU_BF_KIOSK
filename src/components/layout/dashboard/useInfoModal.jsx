@@ -15,7 +15,7 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
   const actions = [
     {
       id: 'extend',
-      title: t('common.Seat Extension'),
+      title: t('translations.Seat Extension'),
       subtitle: '좌석연장',
       icon: <Clock className="w-12 h-12" />,
       enabled: userInfo?.EXTEND_YN === 'Y',
@@ -24,7 +24,7 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
     },
     {
       id: 'move',
-      title: t('common.Seat Move'),
+      title: t('translations.Seat Move'),
       icon: <Move className="w-12 h-12" />,
       enabled: userInfo?.MOVE_YN === 'Y',
       color: 'bg-yellow-500/90',
@@ -32,7 +32,7 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
     },
     {
       id: 'return',
-      title: t('common.Seat Return'),
+      title: t('translations.Seat Return'),
       icon: <LogOut className="w-12 h-12" />,
       enabled: userInfo?.RETURN_YN === 'Y',
       color: 'bg-[#9A7D4C]',
@@ -40,7 +40,7 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
     },
     {
       id: 'check',
-      title: t('common.Reservation Check'),
+      title: t('translations.Reservation Check'),
       icon: <CheckCircle className="w-12 h-12" />,
       enabled: userInfo?.BOOKING_CHECK_YN === 'Y',
       color: 'from-green-500 to-green-600',
@@ -48,7 +48,7 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
     },
     {
       id: 'cancel',
-      title: t('common.Reservation Cancel'),
+      title: t('translations.Reservation Cancel'),
       icon: <XCircle className="w-12 h-12" />,
       enabled: userInfo?.CANCEL_YN === 'Y',
       color: 'from-red-500 to-red-600',
@@ -56,7 +56,7 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
     },
     {
       id: 'assign',
-      title: t('common.Seat Assignment'),
+      title: t('translations.Seat Assignment'),
       icon: <User className="w-12 h-12" />,
       enabled: userInfo?.ASSIGN_YN === 'Y',
       color: 'from-indigo-500 to-indigo-600',
@@ -64,7 +64,7 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
     },
     {
       id: 'assignCheck',
-      title: t('common.Assignment Check'),
+      title: t('translations.Assignment Check'),
       icon: <CheckCircle2 className="w-12 h-12" />,
       enabled: userInfo?.ASSIGN_CHECK_YN === 'Y',
       color: 'from-cyan-500 to-cyan-600',
@@ -86,8 +86,8 @@ useEffect(() => {
 
     stop();
     speak(
-      `${t("common.User Information")}. ${t(
-        "common.You are now logged in. Please select the features you wish to use."
+      `${t("speech.User Information")}. ${t(
+        "speech.You are now logged in. Please select the features you wish to use."
       )}`
     );
   } else {
@@ -155,14 +155,14 @@ useEffect(() => {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={t("common.User Information")}
+      title={t("translations.User Information")}
       size="large"
       className="h-[50vh]! outline-[5px] outline-[#dc2f02]!"
     >
       <div className="space-y-7">
         <div className="bg-linear-to-r from-teal-50 to-cyan-50 rounded-lg p-6 border-l-4 border-teal-500">
           <p className="text-2xl text-gray-800 font-semibold">
-            {t("common.You are now logged in. Please select the features you wish to use.")}
+            {t("translations.You are now logged in. Please select the features you wish to use.")}
           </p>
         </div>
         <div className="grid grid-cols-3 gap-4">
