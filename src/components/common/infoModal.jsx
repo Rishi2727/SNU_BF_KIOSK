@@ -101,7 +101,7 @@ export default function InfoModal({ isOpen = true, onClose = () => { } }) {
 
             // Proper speech for close button (instead of "✕")
             if (currentEl === closeBtn) {
-                txt = t("common.Close");
+                txt = t("speech.Close");
             }
 
             speakSafe(txt);

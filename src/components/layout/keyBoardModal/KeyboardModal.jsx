@@ -66,38 +66,38 @@ const KeyboardModal = ({
   };
   // ⭐ FIX — Speech name for special characters
   const specialKeySpeech = {
-    "`": t("common.BACKTICK"),
-    "~": t("common.TILDE"),
-    "!": t("common.EXCLAMATION"),
-    "@": t("common.AT"),
-    "#": t("common.HASH"),
-    "$": t("common.DOLLAR"),
-    "%": t("common.PERCENT"),
-    "^": t("common.CARET"),
-    "&": t("common.AMPERSAND"),
-    "*": t("common.ASTERISK"),
-    "(": t("common.LEFT PARENTHESIS"),
-    ")": t("common.RIGHT PARENTHESIS"),
-    "_": t("common.UNDERSCORE"),
-    "+": t("common.PLUS"),
-    "[": t("common.LEFT BRACKET"),
-    "]": t("common.RIGHT BRACKET"),
-    "{": t("common.LEFT BRACE"),
-    "}": t("common.RIGHT BRACE"),
-    ";": t("common.SEMICOLON"),
-    ":": t("common.COLON"),
-    "'": t("common.APOSTROPHE"),
-    "\"": t("common.QUOTE"),
-    ",": t("common.COMMA"),
-    "<": t("common.LESS THAN"),
-    ".": t("common.DOT"),
-    ">": t("common.GREATER THAN"),
-    "/": t("common.SLASH"),
-    "?": t("common.QUESTION"),
-    "\\": t("common.BACKSLASH"),
-    "|": t("common.PIPE"),
-    "-": t("common.HYPHEN"),
-    "=": t("common.EQUALS"),
+    "`": t("speech.BACKTICK"),
+    "~": t("speech.TILDE"),
+    "!": t("speech.EXCLAMATION"),
+    "@": t("speech.AT"),
+    "#": t("speech.HASH"),
+    "$": t("speech.DOLLAR"),
+    "%": t("speech.PERCENT"),
+    "^": t("speech.CARET"),
+    "&": t("speech.AMPERSAND"),
+    "*": t("speech.ASTERISK"),
+    "(": t("speech.LEFT PARENTHESIS"),
+    ")": t("speech.RIGHT PARENTHESIS"),
+    "_": t("speech.UNDERSCORE"),
+    "+": t("speech.PLUS"),
+    "[": t("speech.LEFT BRACKET"),
+    "]": t("speech.RIGHT BRACKET"),
+    "{": t("speech.LEFT BRACE"),
+    "}": t("speech.RIGHT BRACE"),
+    ";": t("speech.SEMICOLON"),
+    ":": t("speech.COLON"),
+    "'": t("speech.APOSTROPHE"),
+    "\"": t("speech.QUOTE"),
+    ",": t("speech.COMMA"),
+    "<": t("speech.LESS THAN"),
+    ".": t("speech.DOT"),
+    ">": t("speech.GREATER THAN"),
+    "/": t("speech.SLASH"),
+    "?": t("speech.QUESTION"),
+    "\\": t("speech.BACKSLASH"),
+    "|": t("speech.PIPE"),
+    "-": t("speech.HYPHEN"),
+    "=": t("speech.EQUALS"),
   };
 
 
@@ -108,12 +108,12 @@ const KeyboardModal = ({
     if (!isFocused) return;
 
     if (kbFocus === KBFocus.HEADING) {
-      speak(t("common.Virtual Keyboard"));
+      speak(t("speech.Virtual Keyboard"));
       return;
     }
 
     if (kbFocus === KBFocus.INPUT) {
-      speak(t("common.Type here"));
+      speak(t("speech.Type here"));
       return;
     }
 
@@ -132,8 +132,8 @@ const KeyboardModal = ({
     }
 
     if (kbFocus === KBFocus.BUTTONS) {
-      if (buttonCursor === 0) speak(t("common.Submit"));
-      if (buttonCursor === 1) speak(t("common.Close"));
+      if (buttonCursor === 0) speak(t("speech.Submit"));
+      if (buttonCursor === 1) speak(t("speech.Close"));
     }
   }, [kbFocus, keyCursor, buttonCursor, isFocused]);
 
@@ -341,7 +341,7 @@ const KeyboardModal = ({
             {/* HEADING */}
             <div className={`flex items-center gap-5 p-2 justify-center`}>
               <p className={`sm:text-xl xl:text-3xl 2xl:text-4xl font-semibold text-gray-600 ${headingFocusClass}`}>
-                {t("common.Virtual Keyboard")}
+                {t("translations.Virtual Keyboard")}
               </p>
             </div>
 
@@ -351,7 +351,7 @@ const KeyboardModal = ({
                 <input
                   ref={inputRef}
                   className={`w-full sm:h-5 xl:h-12 2xl:h-16 px-4 sm:text-md 2xl:text-[35px] border border-gray-300 rounded-lg focus:outline-none transition duration-200 text-gray-400`}
-                  placeholder={t("Type here")}
+                  placeholder={t("translations.Type here")}
                   value={input}
                   onChange={(e) => {
                     setInput(e.target.value);
@@ -398,14 +398,14 @@ const KeyboardModal = ({
                   handleClose();
                 }}
               >
-                {t("common.Submit")}
+                {t("translations.Submit")}
               </button>
 
               <button
                 className={`px-6 py-3 sm:h-5 xl:h-12 2xl:h-16 w-[18%] text-white sm:text-md 2xl:text-3xl bg-gray-600 rounded-full shadow hover:bg-gray-500 transition duration-200 ${closeButtonFocusClass}`}
                 onClick={handleClose}
               >
-                {t("common.Close")}
+                {t("translations.Close")}
               </button>
             </div>
 

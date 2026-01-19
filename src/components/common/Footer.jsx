@@ -261,34 +261,34 @@ const handleFooterEnter = (index) => {
           })}`;
           break;
         case 1:
-          speakText = t("common.Logout");
+          speakText = t("speech.Logout");
           break;
         case 2:
           speakText = t("speech.UserID");
           break;
         case 3:
-          speakText = t("common.Language") + " Korean";
+          speakText = t("speech.Language") + " Korean";
           break;
         case 4:
-          speakText = t("common.Language") + " English";
+          speakText = t("speech.Language") + " English";
           break;
         case 5:
-          speakText = t("common.Volume Down");
+          speakText = t("speech.Volume Down");
           break;
         case 6:
           speakText = `${Math.round(volume * 100)} percent`;
           break;
         case 7:
-          speakText = t("common.Volume Up");
+          speakText = t("speech.Volume Up");
           break;
         case 8:
-          speakText = t("common.Info");
+          speakText = t("speech.Info");
           break;
         case 9:
-          speakText = t("common.Zoom");
+          speakText = t("speech.Zoom");
           break;
         case 10:
-          speakText = t("common.Contrast");
+          speakText = t("speech.Contrast");
           break;
         default:
           break;
@@ -303,31 +303,31 @@ const handleFooterEnter = (index) => {
           })}`;
           break;
         case 1:
-          speakText = t("common.Login");
+          speakText = t("speech.Login");
           break;
         case 2:
-          speakText = t("common.Language") + " Korean";
+          speakText = t("speech.Language") + " Korean";
           break;
         case 3:
-          speakText = t("common.Language") + " English";
+          speakText = t("speech.Language") + " English";
           break;
         case 4:
-          speakText = t("common.Volume Down");
+          speakText = t("speech.Volume Down");
           break;
         case 5:
           speakText = `${Math.round(volume * 100)} percent`;
           break;
         case 6:
-          speakText = t("common.Volume Up");
+          speakText = t("speech.Volume Up");
           break;
         case 7:
-          speakText = t("common.Info");
+          speakText = t("speech.Info");
           break;
         case 8:
-          speakText = t("common.Zoom");
+          speakText = t("speech.Zoom");
           break;
         case 9:
-          speakText = t("common.Contrast");
+          speakText = t("speech.Contrast");
           break;
         default:
           break;
@@ -354,7 +354,6 @@ const handleFooterEnter = (index) => {
 
         <div className="flex items-center gap-5">
           {/* ⏰ TIME */}
-          {/* ⏰ TIME */}
           <div
             className={`flex items-center gap-3 text-white px-3 py-2 rounded-lg
   ${cursor === 0 && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}`}
@@ -373,7 +372,7 @@ const handleFooterEnter = (index) => {
           ${cursor === 1 && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}`}
                 >
                   <LogOut className="w-7 h-7" />
-                  {t("common.Logout")}
+                  {t("translations.Logout")}
                 </button>
 
                 <div
@@ -390,7 +389,7 @@ const handleFooterEnter = (index) => {
                 className={`px-6 py-2 rounded-full bg-[#D7D8D2] text-white text-[28px]
         ${cursor === 1 && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}`}
               >
-                {t("common.Login")}
+                {t("translations.Login")}
               </button>
             )}
           </div>
@@ -415,7 +414,7 @@ const handleFooterEnter = (index) => {
         <div className="flex items-center gap-2">
           <FooterButton
             icon={<Volume1 size={28} />}
-            label={t("common.Volume Down")}
+            label={t("translations.Volume Down")}
             onClick={() => dispatch(decreaseVolume())}
             isSelected={cursor === (userInfo ? 5 : 4)}
             isFocused={isFocused}
@@ -430,7 +429,7 @@ const handleFooterEnter = (index) => {
 
           <FooterButton
             icon={<Volume2 size={28} />}
-            label={t("common.Volume Up")}
+            label={t("translations.Volume Up")}
             onClick={() => dispatch(increaseVolume())}
             isSelected={cursor === (userInfo ? 7 : 6)}
             isFocused={isFocused}
@@ -438,7 +437,7 @@ const handleFooterEnter = (index) => {
 
           <FooterButton
             icon={<InfoIcon size={28} />}
-            label={t("common.Info")}
+            label={t("translations.Info")}
             onClick={() => setIsInfoOpen(true)}
             isSelected={cursor === (userInfo ? 8 : 7)}
             isFocused={isFocused}
@@ -446,7 +445,7 @@ const handleFooterEnter = (index) => {
 
           <FooterButton
             icon={<ZoomIn size={28} />}
-            label={t("common.Zoom")}
+            label={t("translations.Zoom")}
             active={magnifierEnabled}
             onClick={() => dispatch(toggleMagnifier())}
             isSelected={cursor === (userInfo ? 9 : 8)}
@@ -455,7 +454,7 @@ const handleFooterEnter = (index) => {
 
           <FooterButton
             icon={<Contrast size={28} />}
-            label={t("common.Contrast")}
+            label={t("translations.Contrast")}
             onClick={toggleContrast}
             active={contrastEnabled}
             isSelected={cursor === (userInfo ? 10 : 9)}

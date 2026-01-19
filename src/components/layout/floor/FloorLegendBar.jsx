@@ -163,7 +163,7 @@ const FloorLegendBar = ({
             aria-selected={isFocusedAt(0)}
           >
             <ArrowLeft className="w-6 h-6" />
-            {t("common.Back")}
+            {t("translations.Back")}
           </button>
         )}
 
