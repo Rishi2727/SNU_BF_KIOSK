@@ -221,12 +221,12 @@ const handleFooterEnter = (index) => {
     localStorage.setItem("lang", backendLang);
     i18n.changeLanguage(backendLang);
 
-    // ✅ backend session locale (MOST IMPORTANT)
-    try {
-      await setChangeLocale(backendLang);
-    } catch (e) {
-      console.error("Locale sync failed", e);
-    }
+    // // ✅ backend session locale (MOST IMPORTANT)
+    // try {
+    //   await setChangeLocale(backendLang);
+    // } catch (e) {
+    //   console.error("Locale sync failed", e);
+    // }
 
     // redux (to refetch floors/sectors via hooks)
     dispatch(setLanguageAction(backendLang));

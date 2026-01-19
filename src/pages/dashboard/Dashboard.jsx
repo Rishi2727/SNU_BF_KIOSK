@@ -16,6 +16,7 @@ import { useVoice } from "../../context/voiceContext";
 import { useTranslation } from "react-i18next";
 import { useFloorData } from "../../hooks/useFloorData";
 import { fetchFloorList } from "../../redux/slice/floorSlice";
+import { clearHeadphoneFocus } from "../../redux/slice/headphoneSlice";
 
 
 const Dashboard = () => {
@@ -40,7 +41,9 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   const { t } = useTranslation()
-
+  const {  earphoneInjected } = useSelector(
+    (state) => state.headphone
+  );
   // Redux selectors
   const { userInfo, isAuthenticated } = useSelector((state) => state.userInfo);
   const { bookingSeatInfo } = useSelector((state) => state.bookingTime);
@@ -84,6 +87,27 @@ const Dashboard = () => {
   useEffect(() => {
     dispatch(fetchFloorList(1)); // libno = 1
   }, [dispatch, lang]);
+
+
+//headphones func
+useEffect(() => {
+  if (!earphoneInjected) return;
+
+  // 🔴 FORCE LOGOUT on headphone removal
+  localStorage.removeItem("authenticated");
+  dispatch(clearUserInfo());
+
+  // ❌ reset focus
+  setFocused(null);
+
+  // 🔊 speak main screen
+  speakMainScreen();
+
+  // 🧹 reset headphone flag
+  dispatch(clearHeadphoneFocus());
+}, [earphoneInjected, dispatch]);
+
+
 
   // ✅ Focus cycling with '*' key
   useEffect(() => {

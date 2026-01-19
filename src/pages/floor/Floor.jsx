@@ -160,7 +160,7 @@ const [isAnyModalOpen, setIsAnyModalOpen] = useState(false);
   const miniMapUrl = miniMapFile ? `${ImageBaseUrl}/${miniMapFile}` : null;
   const seatFontScale = layout?.seatFontScale ?? 1; // Keep font size constant
   const sectorListData = sectorList;
-  console.log("first", sectorListData)
+
   /* =====================================================
      BUILD URL PATH WITH MOVE MODE
   ===================================================== */
@@ -228,7 +228,7 @@ const [isAnyModalOpen, setIsAnyModalOpen] = useState(false);
     dispatch(clearUserInfo());
     navigate("/");
   };
-  console.log("url", floorImageUrl)
+ 
   /* =====================================================
      FLOOR IMAGE ERROR
   ===================================================== */
@@ -259,7 +259,7 @@ const [isAnyModalOpen, setIsAnyModalOpen] = useState(false);
       },
     });
   };
-  console.log("lang", lang)
+
   /* =====================================================
      FETCH SEATS
   ===================================================== */
@@ -682,7 +682,7 @@ const [isAnyModalOpen, setIsAnyModalOpen] = useState(false);
     const labels = sector.ROOM_NAME.split("$").map((l) => l.trim());
     return labels[index] || labels[0];
   };
-  console.log("sectorList", sectorList)
+  
 
   const displayableSectors = filterDisplayableSectors(sectorList);
 
@@ -879,7 +879,7 @@ const [isAnyModalOpen, setIsAnyModalOpen] = useState(false);
                   {!imageError &&
                     displayableSectors.map((sector, sectorIndex) => {
                       const mapStylesList = parseMapPoint(sector.MAPPOINT);
-                      console.log(displayableSectors, "ew");
+                    
 
                       return mapStylesList.map((mapStyles, idx) => (
                         <button

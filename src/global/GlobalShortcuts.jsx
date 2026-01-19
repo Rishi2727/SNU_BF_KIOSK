@@ -5,26 +5,32 @@ import {
   decreaseVolume,
   toggleMagnifier,
 } from "../redux/slice/accessibilitySlice";
-
+import Swal from "sweetalert2";
 import { useTranslation } from "react-i18next";
 import { useVoice } from "../context/voiceContext";
+import { disableNextFocus } from "../redux/slice/headphoneSlice";
+import { clearLoginSession } from "../utils/clearLoginSession";
+import { clearUserInfo } from "../redux/slice/userInfo";
+import { useNavigateContext } from "../context/NavigateContext";
+import { useLocation } from "react-router-dom";
 
 export default function GlobalShortcuts() {
   const dispatch = useDispatch();
   const { volume } = useSelector((state) => state.accessibility);
-
+  const navigate = useNavigateContext();
   const { t } = useTranslation();
   const { speak } = useVoice();
-
   const [showManagerModal, setShowManagerModal] = useState(false);
-
   const yesBtnRef = useRef(null);
-
+  const location = useLocation();
   /* ===============================
      Manager message (stable refs)
   =============================== */
   const sendingRef = useRef(false);
   const messageRef = useRef("관리자 호출");
+
+
+ const isDashboard = location.pathname === "/";
 
   /* ===============================
      Send API to Manager
@@ -85,12 +91,42 @@ export default function GlobalShortcuts() {
     }
   }, [showManagerModal]);
 
+
+
+
+  /** ===============================
+   *  Handle Earphone Injection
+   ================================ */
+  const handleEarphoneInjection = useCallback(() => {
+    if (Swal.isVisible()) Swal.close();
+
+    // 🔥 stop any auto focus after navigation
+    dispatch(disableNextFocus());
+
+    if (!isDashboard) {
+      clearLoginSession();
+      dispatch(clearUserInfo());
+      navigate("/");
+    }
+    // stays on dashboard without focusing anything
+  }, [isDashboard, dispatch, navigate]);
+
+
   /* ===============================
      Global Key Handler
   =============================== */
   useEffect(() => {
     const onKeyDown = (e) => {
       if (e.repeat || e.isComposing) return;
+
+
+         /** Insert / End → Earphone injection */
+      if (e.key === "Insert" || e.code === "End") {
+        e.preventDefault();
+        e.stopPropagation();
+        handleEarphoneInjection();
+        return;
+      }
 
       /* ? or Shift + / → Call Manager */
       const isQuestion = e.key === "?" || (e.key === "/" && e.shiftKey);
@@ -138,7 +174,16 @@ export default function GlobalShortcuts() {
     closeManagerModal,
     openManagerModal,
     showManagerModal,
+    handleEarphoneInjection,
+    speak,
+    stop,
+    t,
+    volume
   ]);
+
+
+
+
 
   return (
     <>
