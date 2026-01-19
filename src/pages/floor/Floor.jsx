@@ -736,20 +736,20 @@ const Floor = () => {
 
     switch (focusedRegion) {
       case FocusRegion.FLOOR_STATS:
-         speak(t("speech.Floors information"));
+        //  speak(t("speech.Floors information"));
        
         break;
 
       case FocusRegion.LEGEND:
-         speak(t("speech.Floor header section"));
+        //  speak(t("speech.Floor header section"));
         break;
 
       case FocusRegion.MAP:
-        speak(t("speech.Floor map section"));
+        // speak(t("speech.Floor map section"));
         break;
 
       case FocusRegion.FOOTER:
-        speak(t("speech.Footer controls"));
+        // speak(t("speech.Footer controls"));
         break;
 
       default:

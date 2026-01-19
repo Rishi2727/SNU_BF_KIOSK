@@ -367,9 +367,8 @@ const Dashboard = () => {
       case FocusRegion.LOGO:
         speak(t("speech.Seoul National University Library"));
         break;
-
       case FocusRegion.MAIN_SECTION:
-        speak(t("speech.Floor Selection Section"));
+        // speak(t("speech.Floor Selection Section"));
         break;
 
       case FocusRegion.NOTICE_BANNER:
@@ -377,7 +376,7 @@ const Dashboard = () => {
         break;
 
       case FocusRegion.FOOTER:
-        speak(t("speech.Footer controls"));
+        // speak(t("speech.Footer controls"));
         break;
 
       default:
