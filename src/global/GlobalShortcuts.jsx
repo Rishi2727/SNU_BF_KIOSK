@@ -5,7 +5,6 @@ import {
   decreaseVolume,
   toggleMagnifier,
 } from "../redux/slice/accessibilitySlice";
-import Swal from "sweetalert2";
 import { useTranslation } from "react-i18next";
 import { useVoice } from "../context/voiceContext";
 import { disableNextFocus } from "../redux/slice/headphoneSlice";
@@ -98,8 +97,6 @@ export default function GlobalShortcuts() {
    *  Handle Earphone Injection
    ================================ */
   const handleEarphoneInjection = useCallback(() => {
-    if (Swal.isVisible()) Swal.close();
-
     // 🔥 stop any auto focus after navigation
     dispatch(disableNextFocus());
 
