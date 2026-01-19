@@ -6,6 +6,8 @@ import { store } from "./redux/store";
 import Magnifier from "./components/common/Magnifier";
 import GlobalShortcuts from "./global/GlobalShortcuts";
 import { VoiceProvider } from "./context/voiceContext";
+import { NavigateProvider } from "./context/NavigateContext";
+import GlobalHeadphoneMonitor from "./components/GlobalHeadphoneMonitor";
 
 
 
@@ -14,13 +16,16 @@ function App() {
 
   return (
     <BrowserRouter>
-        <Provider store={store}>     
-          <Magnifier />
-           <VoiceProvider>
-          <GlobalShortcuts />
-          <AppRoutes />  
-          </VoiceProvider>   
-        </Provider>
+      <Provider store={store}>
+        <Magnifier />
+        <VoiceProvider>
+          <NavigateProvider>
+            <GlobalShortcuts />
+            <GlobalHeadphoneMonitor/>
+            <AppRoutes />
+          </NavigateProvider>
+        </VoiceProvider>
+      </Provider>
     </BrowserRouter>
   );
 }

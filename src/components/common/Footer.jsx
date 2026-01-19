@@ -31,6 +31,7 @@ const FooterControls = ({
   logout,
   onZoom,
   isFocused,
+  isAnyModalOpen
 }) => {
   const dispatch = useDispatch();
   const { t } = useTranslation()
@@ -61,7 +62,7 @@ const FooterControls = ({
 
   // ✅ Keyboard navigation
   useEffect(() => {
-    if (!isFocused) return;
+    if (!isFocused || isAnyModalOpen) return;
 
     const handleKeyDown = (e) => {
 
@@ -220,12 +221,12 @@ const handleFooterEnter = (index) => {
     localStorage.setItem("lang", backendLang);
     i18n.changeLanguage(backendLang);
 
-    // ✅ backend session locale (MOST IMPORTANT)
-    try {
-      await setChangeLocale(backendLang);
-    } catch (e) {
-      console.error("Locale sync failed", e);
-    }
+    // // ✅ backend session locale (MOST IMPORTANT)
+    // try {
+    //   await setChangeLocale(backendLang);
+    // } catch (e) {
+    //   console.error("Locale sync failed", e);
+    // }
 
     // redux (to refetch floors/sectors via hooks)
     dispatch(setLanguageAction(backendLang));

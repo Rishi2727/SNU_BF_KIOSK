@@ -268,7 +268,7 @@ export default function InfoModal({ isOpen = true, onClose = () => { } }) {
                         onClick={goPrev}
                         className="info-prev-btn px-10 py-4 bg-[#EFB637] text-[30px] font-bold text-white rounded-2xl hover:bg-[#9A7D4C] transition-colors"
                     >
-                        {t("common.Previous")}
+                        {t("translations.Previous")}
                     </button>
 
                     <div className="text-[32px] font-bold text-[#EFB637]">
@@ -279,7 +279,7 @@ export default function InfoModal({ isOpen = true, onClose = () => { } }) {
                         onClick={goNext}
                         className="info-next-btn px-10 py-4 bg-[#EFB637] text-[30px] font-bold text-white rounded-2xl hover:bg-[#9A7D4C] transition-colors"
                     >
-                        {t("common.Next")}
+                        {t("translations.Next")}
                     </button>
                 </div>
 

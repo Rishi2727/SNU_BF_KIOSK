@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { formatFloorForSpeech } from "../../../utils/speechFormatter";
 import { useDispatch, useSelector } from "react-redux";
 
-const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused }) => {
+const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused ,isAnyModalOpen}) => {
   const calculatePercentage = (occupied, total) => {
     return (occupied / total) * 100;
   };
@@ -28,7 +28,7 @@ const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused 
      KEYBOARD NAVIGATION
   ---------------------------*/
   useEffect(() => {
-    if (!isFocused) return;
+    if (!isFocused || isAnyModalOpen) return;
 
     const onKeyDown = (e) => {
       // 🚫 never handle focus-switch key here

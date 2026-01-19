@@ -425,16 +425,16 @@ const SeatActionModal = ({
         const mins = minutes % 60;
 
         // English
-        if (t("common.hour") === "hour") {
-            if (hrs && mins) return `${hrs} ${t("common.hour")}${hrs > 1 ? "s" : ""} ${mins} ${t("common.minutes")}`;
-            if (hrs) return `${hrs} ${t("common.hour")}${hrs > 1 ? "s" : ""}`;
-            return `${mins} ${t("common.minutes")}`;
+        if (t("translations.hour") === "hour") {
+            if (hrs && mins) return `${hrs} ${t("translations.hour")}${hrs > 1 ? "s" : ""} ${mins} ${t("translations.minutes")}`;
+            if (hrs) return `${hrs} ${t("translations.hour")}${hrs > 1 ? "s" : ""}`;
+            return `${mins} ${t("translations.minutes")}`;
         }
 
         // Korean
-        if (hrs && mins) return `${hrs}${t("common.hour")} ${mins}${t("common.minutes")}`;
-        if (hrs) return `${hrs}${t("common.hour")}`;
-        return `${mins}${t("common.minutes")}`;
+        if (hrs && mins) return `${hrs}${t("translations.hour")} ${mins}${t("translations.minutes")}`;
+        if (hrs) return `${hrs}${t("translations.hour")}`;
+        return `${mins}${t("translations.minutes")}`;
     };
 
 
@@ -529,7 +529,7 @@ const SeatActionModal = ({
             return (
                 <div className={headerClass}>
                     <p className={textClass}>
-                        {t("Central Library")} → {seatInfo.FLOOR_NAME} → {seatInfo.SECTOR_NAME} →
+                        {t("translations.Central Library")} → {seatInfo.FLOOR_NAME} → {seatInfo.SECTOR_NAME} →
                         <span className="text-red-600 font-extrabold ml-3">
                             {seatInfo.SEAT_VNAME}
                         </span>
@@ -600,11 +600,11 @@ const SeatActionModal = ({
         return (
             <p className="text-red-600 font-extrabold text-[30px]">
                 {isMove
-                    ? t('common.Do you want to move to this seat?')
+                    ? t('translations.Do you want to move to this seat?')
                     : isReturn
-                        ? t('common.Do you want to return the seat?')
-                        : t("common.SEAT_CONFIRM_GENERIC", {
-                            action: t(`common.${MODE_LABELS[mode]}`)
+                        ? t('translations.Do you want to return the seat?')
+                        : t("translations.SEAT_CONFIRM_GENERIC", {
+                            action: t(`translations.${MODE_LABELS[mode]}`)
                         })}
             </p>
         );
@@ -628,7 +628,7 @@ const SeatActionModal = ({
                         className={`px-12 py-4 bg-linear-to-r from-[#FFCB35] to-[#cf9e0b] hover:from-[#fccc3b] hover:to-[#c79706] text-white rounded-lg font-bold text-lg ${isFocused('confirm-button') ? 'outline-[6px] outline-[#dc2f02]' : ''
                             }`}
                     >
-                        {t("Confirm")}
+                        {t("translations.Confirm")}
                     </button>
                 </div>
             );
@@ -691,7 +691,7 @@ const SeatActionModal = ({
                 className={`px-12 py-4 bg-linear-to-r from-[#FFCB35] to-[#cf9e0b] hover:from-[#fccc3b] hover:to-[#c79706] text-white rounded-lg font-bold text-lg ${isFocused('confirm-button') ? 'outline-[6px] outline-[#dc2f02]' : ''
                     }`}
             >
-                {t("Confirm")}
+                {t("translations.Confirm")}
             </button>
         </div>
     ), [handleResultModalClose, isFocused]);
@@ -814,12 +814,12 @@ const SeatActionModal = ({
 
     //to stop the speech 
     useEffect(() => {
-    // When both modals are closed → stop speech immediately
-    if (!isOpen && !showResultModal) {
-        stop();
-        lastSpokenRef.current = "";
-    }
-}, [isOpen, showResultModal, stop]);
+        // When both modals are closed → stop speech immediately
+        if (!isOpen && !showResultModal) {
+            stop();
+            lastSpokenRef.current = "";
+        }
+    }, [isOpen, showResultModal, stop]);
 
 
     useEffect(() => {
@@ -866,8 +866,8 @@ const SeatActionModal = ({
                 <h2 className={`text-[36px] font-extrabold text-center text-[#f7c224] mb-8 tracking-wide ${isFocused('title') ? 'outline-[6px] outline-[#dc2f02] rounded-lg' : ''
                     }`}>
                     {isAssignCheck
-                        ? t("common.Seat information")
-                        : `${t("common.Seat")} ${t(`common.${MODE_LABELS[mode]}`)}`
+                        ? t("translations.Seat information")
+                        : `${t("translations.Seat")} ${t(`translations.${MODE_LABELS[mode]}`)}`
                     }
 
                 </h2>
@@ -997,14 +997,14 @@ const SeatActionModal = ({
                             >
                                 <span className="text-gray-700 font-bold">
                                     {isReturn
-                                        ? t('common.Return Confirmation')
+                                        ? t('translations.Return Confirmation')
                                         : isMove
-                                            ? t('common.Move Confirmation')
+                                            ? t('translations.Move Confirmation')
                                             : confirmStep
-                                                ? t('common.Confirmation')
+                                                ? t('translations.Confirmation')
                                                 : isBooking
-                                                    ? t('common.Select Time')
-                                                    : t('common.Extension Time')}
+                                                    ? t('translations.Select Time')
+                                                    : t('translations.Extension Time')}
                                 </span>
 
                                 <span className="text-gray-700 font-bold">:</span>

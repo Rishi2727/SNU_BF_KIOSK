@@ -43,7 +43,6 @@ useEffect(() => {
   }, [floors, lang]); // 🔥 lang included
 
   useEffect(() => {
-    console.log("🔥 Refetching sectors for lang:", lang);
     if (!currentFloor?.floorno) return;
 
     dispatch(clearSectors());

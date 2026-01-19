@@ -51,7 +51,7 @@ const bookingTimeSlice = createSlice({
   state.loading = false;
   state.info = action.payload.seatTimeInfo; // Also access the nested property
    state.bookingSeatInfo = action.payload.bookingSeatInfo;
-  console.log("REDUX PAYLOAD --->", action.payload);
+
   
   const info = action.payload.seatTimeInfo; // Remove the 'x' and access seatTimeInfo
   if (!info) return;

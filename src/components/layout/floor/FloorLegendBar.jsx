@@ -11,7 +11,8 @@ const FloorLegendBar = ({
   roomName,
   showBack,
   onBack,
-  isFocused
+  isFocused,
+  isAnyModalOpen
 }) => {
 
   const BASE_OFFSET = showBack ? 0 : -1;
@@ -34,7 +35,7 @@ const FloorLegendBar = ({
   // KEYBOARD NAVIGATION
   // --------------------------
   useEffect(() => {
-    if (!isFocused) return;
+    if (!isFocused || isAnyModalOpen) return;
 
     const onKeyDown = (e) => {
       // Never consume focus toggle key
@@ -177,7 +178,7 @@ const FloorLegendBar = ({
           <Home className="w-8 h-8 -ml-16!" />
           <span className="text-[28px] font-semibold text-nowrap">
             {buildingName && `${t(`translations.${buildingName}`)} `}
-            {floorName && `( ${t(`common.${floorName}`)} `}
+            {floorName && `( ${t(`translations.${floorName}`)} `}
             {roomName && `: ${roomName} `}
             {(floorName || roomName) && ')'}
           </span>
