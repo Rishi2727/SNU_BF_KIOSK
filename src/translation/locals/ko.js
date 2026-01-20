@@ -117,6 +117,7 @@ const koTranslations = {
     "MULTIPLE_BOOKING_DESC": "여러 예약이 있는 경우 ‘아니오’ 버튼을 누르면 모든 팝업이 표시될 때까지 다음 팝업으로 이동합니다.",
     "Extension": "확대",
     "Central Library": "중앙도서관",
+    "Current Time":"현재 시간"
   },
   translations: {
     "Confirm": "확인",
