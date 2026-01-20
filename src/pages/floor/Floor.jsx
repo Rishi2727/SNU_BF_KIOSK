@@ -69,10 +69,11 @@ const Floor = () => {
   const FocusRegion = Object.freeze({
     FLOOR_STATS: "floor_stats",
     LEGEND: "legend",
-    MAP: "map",
+    MINI_MAP: "mini_map",
+    ROOM: "room",
     FOOTER: "footer",
   });
- 
+
 
   /**
    * Initialize authenticated user on mount
@@ -161,9 +162,51 @@ const Floor = () => {
     return path;
   };
 
+  const getFocusOrder = () => {
+    if (showRoomView) {
+      return [
+        FocusRegion.FLOOR_STATS,
+        FocusRegion.LEGEND,
+        FocusRegion.MINI_MAP,
+        FocusRegion.ROOM,
+        FocusRegion.FOOTER,
+      ];
+    }
+    return [
+      FocusRegion.FLOOR_STATS,
+      FocusRegion.LEGEND,
+      FocusRegion.ROOM,
+      FocusRegion.FOOTER,
+    ];
+  };
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      const isAsterisk =
+        e.key === "*" || e.code === "NumpadMultiply" || e.keyCode === 106;
+
+      if (!isAsterisk || e.repeat) return;
+      if (showSeatModal || isAnyModalOpen) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      const ORDER = getFocusOrder();
+
+      setFocusedRegion((prev) => {
+        if (!prev) return ORDER[0];
+
+        const currentIndex = ORDER.indexOf(prev);
+        const nextIndex = (currentIndex + 1) % ORDER.length;
+        return ORDER[nextIndex];
+      });
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [showSeatModal, isAnyModalOpen, showRoomView]);
 
   useEffect(() => {
-    if (focusedRegion !== FocusRegion.MAP) return;
+    if (focusedRegion !== FocusRegion.MINI_MAP) return;
     if (!showRoomView) return;
     if (!layout?.sectors?.length) return;
 
@@ -342,88 +385,59 @@ const Floor = () => {
   /* =====================================================
      AUTO SELECT DEFAULT MINI MAP SECTOR (DISABLED)
   ===================================================== */
-  useEffect(() => {
-    if (!layout || !showRoomView) return;
-    // Don't auto-select, start at actual size
-    setSelectedMiniSector(null);
-    setImageTransform({ x: 0, y: 0, scale: 1 });
-    setIsZoomed(false);
-  }, [layout, showRoomView]);
+  // useEffect(() => {
+  //   if (!layout || !showRoomView) return;
+  //   // Don't auto-select, start at actual size
+  //   setSelectedMiniSector(null);
+  //   setImageTransform({ x: 0, y: 0, scale: 1 });
+  //   setIsZoomed(false);
+  // }, [layout, showRoomView]);
 
   /* =====================================================
      TRACK IMAGE DIMENSIONS
   ===================================================== */
-  useEffect(() => {
-    const updateDimensions = () => {
-      if (mainImageRef.current && containerRef.current) {
-        const img = mainImageRef.current;
-        const container = containerRef.current;
-        const containerRect = container.getBoundingClientRect();
-        const imgRect = img.getBoundingClientRect();
+  // useEffect(() => {
+  //   const updateDimensions = () => {
+  //     if (mainImageRef.current && containerRef.current) {
+  //       const img = mainImageRef.current;
+  //       const container = containerRef.current;
+  //       const containerRect = container.getBoundingClientRect();
+  //       const imgRect = img.getBoundingClientRect();
 
-        setImageDimensions({
-          width: imgRect.width,
-          height: imgRect.height,
-          naturalWidth: img.naturalWidth,
-          naturalHeight: img.naturalHeight,
-          offsetX: imgRect.left - containerRect.left,
-          offsetY: imgRect.top - containerRect.top,
-        });
-      }
-    };
+  //       setImageDimensions({
+  //         width: imgRect.width,
+  //         height: imgRect.height,
+  //         naturalWidth: img.naturalWidth,
+  //         naturalHeight: img.naturalHeight,
+  //         offsetX: imgRect.left - containerRect.left,
+  //         offsetY: imgRect.top - containerRect.top,
+  //       });
+  //     }
+  //   };
 
-    if (showRoomView) {
-      updateDimensions();
-      window.addEventListener("resize", updateDimensions);
+  //   if (showRoomView) {
+  //     updateDimensions();
+  //     window.addEventListener("resize", updateDimensions);
 
-      const timer = setTimeout(updateDimensions, 550);
+  //     const timer = setTimeout(updateDimensions, 550);
 
-      return () => {
-        window.removeEventListener("resize", updateDimensions);
-        clearTimeout(timer);
-      };
-    }
-  }, [imageTransform, selectedSector, showRoomView]);
-
-  // --------------------- FOCUS TOGGLE WITH '*' ---------------------
-  useEffect(() => {
-    const onKeyDown = (e) => {
-      const isAsterisk =
-        e.key === "*" || e.code === "NumpadMultiply" || e.keyCode === 106;
-
-      if (!isAsterisk) return;
-      if (showSeatModal) return;
-
-      e.preventDefault();
-      e.stopPropagation();
-
-      setFocusedRegion((prev) => {
-        if (prev === null) return FocusRegion.FLOOR_STATS;
-        if (prev === FocusRegion.FLOOR_STATS) return FocusRegion.LEGEND;
-        if (prev === FocusRegion.LEGEND) return FocusRegion.MAP;
-        if (prev === FocusRegion.MAP) return FocusRegion.FOOTER;
-        if (prev === FocusRegion.FOOTER) return FocusRegion.FLOOR_STATS
-        // ====================================
-
-      });
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [showSeatModal]);
+  //     return () => {
+  //       window.removeEventListener("resize", updateDimensions);
+  //       clearTimeout(timer);
+  //     };
+  //   }
+  // }, [imageTransform, selectedSector, showRoomView]);
 
   /* =====================================================
      MINI MAP CLICK
   ===================================================== */
-  const handleMiniSectorClick = (sector) => {
-    const index = layout.sectors.findIndex((s) => s.id === sector.id);
-
-    setMiniMapCursor(index);              // focus moves
-    setSelectedMiniSector(sector);        // selection
-    setImageTransform(sector.transform);  // zoom
-    setIsZoomed(true);
-  };
-
+const handleMiniSectorClick = (sector) => {
+  setImageTransform(prev => ({
+    ...prev,
+    x: -sector.x1,
+    y: -sector.y1
+  }));
+};
   /* =====================================================
      IMAGE LOAD HANDLER
   ===================================================== */
@@ -587,26 +601,26 @@ const Floor = () => {
   }, [selectedSector]);
 
   // 3. REPLACE the "AUTO SELECT DEFAULT MINI MAP SECTOR" useEffect with this:
-  useEffect(() => {
-    if (!layout?.sectors?.length || !showRoomView) return;
+  // useEffect(() => {
+  //   if (!layout?.sectors?.length || !showRoomView) return;
 
-    // Small delay to ensure layout is ready
-    const timer = setTimeout(() => {
-      const firstSector = layout.sectors[0];
-      if (firstSector) {
-        console.log('Auto-selecting first sector:', firstSector.id);
-        setMiniMapCursor(0);
-        setSelectedMiniSector(firstSector);
-        setImageTransform(firstSector.transform);
-        setIsZoomed(true);
-      }
-    }, 100);
+  //   // Small delay to ensure layout is ready
+  //   const timer = setTimeout(() => {
+  //     const firstSector = layout.sectors[0];
+  //     if (firstSector) {
+  //       console.log('Auto-selecting first sector:', firstSector.id);
+  //       setMiniMapCursor(0);
+  //       setSelectedMiniSector(firstSector);
+  //       setImageTransform(firstSector.transform);
+  //       setIsZoomed(true);
+  //     }
+  //   }, 100);
 
-    return () => clearTimeout(timer);
-  }, [layout, showRoomView, selectedSector?.SECTORNO]);
-  /* =====================================================
-     RENDER
-  ===================================================== */
+  //   return () => clearTimeout(timer);
+  // }, [layout, showRoomView, selectedSector?.SECTORNO]);
+  // /* =====================================================
+    //  RENDER
+  // ===================================================== */
   return (
     <div className="relative h-screen w-screen overflow-hidden font-bold text-white">
       <img
@@ -630,7 +644,7 @@ const Floor = () => {
       {/* ================= MAIN CONTENT ================= */}
       <div className="absolute inset-0 flex items-center justify-center z-0 -top-27 mx-[11px]">
         {currentFloor && (
-          <div className={`relative h-[830px] bg-white/10 backdrop-blur-sm rounded-lg  shadow-2xl ${focusedRegion === FocusRegion.MAP
+          <div className={`relative h-[830px] bg-white/10 backdrop-blur-sm rounded-lg  shadow-2xl ${focusedRegion === FocusRegion.ROOM
             ? "border-[5px] border-[#dc2f02] box-border"
             : "border-[5px] border-transparent box-border"
             }`}>
@@ -659,6 +673,8 @@ const Floor = () => {
                 onImageLoad={handleImageLoad}
                 onMiniMapError={() => setMiniMapError(true)}
                 miniMapCursor={miniMapCursor}
+                focusedRegion={focusedRegion}
+
               />
             ) : (
               <div className="relative w-full h-full p-5 ">
