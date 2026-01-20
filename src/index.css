@@ -94,3 +94,8 @@ button.bg-\[\#FFCA08\] span {
 button.bg-\[\#C4B483\] span {
   color: #ffffff !important;
 }
+
+:root[data-contrast="high"] button.floor-legend-bar {
+ /* button bg */
+  color: #1b1b1b !important;           /* text color */
+}

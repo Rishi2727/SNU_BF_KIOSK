@@ -155,6 +155,7 @@ const FloorLegendBar = ({
           <button
             onClick={onBack}
             className={`
+              floor-legend-bar
               flex items-center gap-2
               bg-[#FFCA08] text-[#9A7D4C]
               px-4 py-1 rounded-lg
