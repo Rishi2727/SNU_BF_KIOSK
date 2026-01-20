@@ -461,7 +461,7 @@ const Dashboard = () => {
       <img
         src={BgMainImage}
         alt="Background"
-        className="absolute inset-0 h-full w-full object-cover"
+        className="absolute inset-0 h-full w-full object-cover "
       />
       {/* ✅ Pass focus states to MainSection */}
       <MainSection

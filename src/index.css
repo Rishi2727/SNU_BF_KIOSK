@@ -11,60 +11,86 @@
   color: black !important;
 }
 
+
 :root[data-contrast="high"] {
-  background-color: #ffffff !important;
-  color: #000000 !important;
-
-  /* Small enhancement only */
-  filter: contrast(1.15);
+  filter: invert(1) !important;
+  background-color: white !important;
+  color: black !important;
 }
 
-/* -------- SEATS -------- */
-:root[data-contrast="high"] .seat {
-  background-color: #f59e0b !important; /* WCAG safe amber */
-  color: #000000 !important;
-  border: 3px solid #000000 !important;
-  font-weight: 700;
+/* Ensure text remains visible (renders as white) in inverted mode */
+:root[data-contrast="high"] .text-white,
+:root[data-contrast="high"] h2 {
+  color: black !important;
 }
 
-/* Selected seat */
-:root[data-contrast="high"] .seat.active {
-  outline: 4px solid #16a34a; /* green, 5.1:1 */
+
+/* Footer buttons text */
+:root[data-contrast="high"] .footer button span {
+  color: rgb(41, 41, 41) !important;
 }
 
-/* Disabled / booked */
-:root[data-contrast="high"] .seat.disabled {
-  background-color: #6b7280 !important;
+/* Icons inside footer */
+:root[data-contrast="high"] .footer svg {
+  stroke: #252525 !important;
+}
+
+/* ACTIVE / TOGGLED footer button – HIGH CONTRAST */
+:root[data-contrast="high"] .footer button:has(svg),
+:root[data-contrast="high"] .footer button:has(span) {
+  background-color: #ffca08 !important;
+  color: #1a1a1a !important;
+}
+
+/* ACTIVE STATE (original active bg was darker) */
+:root[data-contrast="high"] .footer button[style*="e2ac37"],
+:root[data-contrast="high"] .footer button.bg-\[\#e2ac37\] {
+  background-color: #1a1a1a !important;
+  color: #ffca08 !important;
+}
+
+/* Active button text */
+:root[data-contrast="high"] .footer button.bg-\[\#e2ac37\] span {
+  color: #ffca08 !important;
+}
+
+/* Active button icon */
+:root[data-contrast="high"] .footer button.bg-\[\#e2ac37\] svg {
+  stroke: #ffca08 !important;
+}
+
+
+/* For Notice Banner */
+:root[data-contrast="high"] .notice-banner h3 {
+  color: #313131 !important;
+}
+
+
+/* for floor name  */
+:root[data-contrast="high"] .library-card > div:first-child {
+  color: #1a1a1a !important;
+}
+
+/* ======================================= */
+/* HIGH CONTRAST – LIBRARY CARD PROGRESS BG */
+/* ======================================= */
+
+:root[data-contrast="high"] .library-card .bg-gray-300 {
+  background-color: #2c2c2c !important;
+}
+
+/* HIGH CONTRAST – FLOOR STATS FLOOR NAME */
+/* ======================================= */
+/* ✅ CURRENT (SELECTED) FLOOR → WHITE */
+:root[data-contrast="high"]
+.floor-stats-bar
+button.bg-\[\#FFCA08\] span {
+  color: #0e0d0d !important;
+}
+
+/* ✅ OTHER FLOORS → BLUE */
+:root[data-contrast="high"]
+.floor-stats-bar
+button.bg-\[\#C4B483\] span {
   color: #ffffff !important;
-  border-color: #000000 !important;
-}
-
-/* -------- SECTION / ZONE OUTLINES -------- */
-:root[data-contrast="high"] .section,
-:root[data-contrast="high"] .zone,
-:root[data-contrast="high"] .area {
-  background-color: transparent !important;
-  border: 3px solid #ca8a04 !important; /* WCAG yellow */
-}
-
-/* -------- LABEL TEXT -------- */
-:root[data-contrast="high"] h1,
-:root[data-contrast="high"] h2,
-:root[data-contrast="high"] h3,
-:root[data-contrast="high"] span,
-:root[data-contrast="high"] label {
-  color: #000000 !important;
-  font-weight: 700;
-}
-
-/* -------- IMAGES / MAP -------- */
-:root[data-contrast="high"] img,
-:root[data-contrast="high"] video {
-  filter: none !important;
-}
-
-/* -------- LOGOS -------- */
-:root[data-contrast="high"] #logo,
-:root[data-contrast="high"] .logo {
-  filter: none !important;
 }

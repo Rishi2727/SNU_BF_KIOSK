@@ -9,6 +9,7 @@ const LibraryCard = ({
     <button
       onClick={onClick}
       className={`
+         library-card
         flex flex-col
         bg-[#FFCA08] hover:bg-[#D7D8D2]
         transition rounded-2xl

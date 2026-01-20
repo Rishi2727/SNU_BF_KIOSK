@@ -350,7 +350,7 @@ const KeyboardModal = ({
               <div className="flex gap-4">
                 <input
                   ref={inputRef}
-                  className={`w-full sm:h-5 xl:h-12 2xl:h-16 px-4 sm:text-md 2xl:text-[35px] border border-gray-300 rounded-lg focus:outline-none transition duration-200 text-gray-400`}
+                  className={`w-full sm:h-5 xl:h-12 2xl:h-16 px-4 sm:text-md 2xl:text-[35px] border border-gray-300 rounded-lg focus:outline-none transition duration-200 text-[#747070ec]`}
                   placeholder={t("translations.Type here")}
                   value={input}
                   onChange={(e) => {

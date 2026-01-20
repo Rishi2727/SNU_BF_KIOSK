@@ -82,7 +82,7 @@ const NoticeBanner = ({ isFocused, lang }) => {
   }, [isFocused, noticeIndex, notices, speak, stop, t]);
 
   return (
-    <div className="absolute bottom-[100px] right-0 w-[73%] px-6">
+    <div className="notice-banner absolute bottom-[100px] right-0 w-[73%] px-6">
       <div
         className={`relative flex gap-5 items-start 
           bg-yellow-500/90 backdrop-blur-md 

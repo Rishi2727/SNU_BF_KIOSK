@@ -345,7 +345,7 @@ const handleFooterEnter = (index) => {
 
   return (
     <>
-      <div className="absolute bottom-px left-0 right-0 z-30 flex items-center justify-between px-7 py-2.5 bg-black/40 backdrop-blur-md">
+      <div className="footer absolute bottom-px left-0 right-0 z-30 flex items-center justify-between px-7 py-2.5 bg-black/40 backdrop-blur-md">
         {/* ✅ Footer Focus Border */}
         {isFocused && (
           <div className="pointer-events-none absolute inset-0 border-[6px] border-[#dc2f02]" />

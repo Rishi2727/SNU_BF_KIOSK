@@ -92,6 +92,7 @@ const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused 
   return (
     <div
       className={`
+        floor-stats-bar
     w-full
     absolute bottom-2.5 right-[5px] z-30
     flex items-center justify-between gap-5

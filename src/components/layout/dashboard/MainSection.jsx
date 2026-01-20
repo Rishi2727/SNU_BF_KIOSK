@@ -202,6 +202,7 @@ const MainSection = ({
                   focusedRegion === FocusRegion.MAIN_SECTION &&
                   cursor === index + 1
                 }
+               
               />
             ))}
           </div>
