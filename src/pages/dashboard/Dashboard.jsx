@@ -10,13 +10,14 @@ import SeatActionModal from "../../components/common/SeatActionModal";
 import { getKioskUserInfo, loginBySchoolNo } from "../../services/api";
 import { clearUserInfo, setUserInfo } from "../../redux/slice/userInfo";
 import { fetchBookingTime } from "../../redux/slice/bookingTimeSlice";
-import {  MODAL_TYPES } from "../../utils/constant";
+import { MODAL_TYPES } from "../../utils/constant";
 import NoticeBanner from "../../components/layout/dashboard/Notice";
 import { useVoice } from "../../context/voiceContext";
 import { useTranslation } from "react-i18next";
 import { useFloorData } from "../../hooks/useFloorData";
 import { fetchFloorList } from "../../redux/slice/floorSlice";
 import { clearHeadphoneFocus } from "../../redux/slice/headphoneSlice";
+import Modal from "../../components/common/Modal";
 
 
 const Dashboard = () => {
@@ -41,9 +42,16 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   const { t } = useTranslation()
-  const {  earphoneInjected } = useSelector(
+  const { earphoneInjected } = useSelector(
     (state) => state.headphone
   );
+  // 🔴 Login error modal state
+  const [loginErrorModal, setLoginErrorModal] = useState({
+    isOpen: false,
+    title: "",
+    message: ""
+  });
+
   // Redux selectors
   const { userInfo, isAuthenticated } = useSelector((state) => state.userInfo);
   const { bookingSeatInfo } = useSelector((state) => state.bookingTime);
@@ -62,9 +70,9 @@ const Dashboard = () => {
   });
 
 
-// Speak on main Screen
+  // Speak on main Screen
   const speakMainScreen = () => {
-    stop(); 
+    stop();
     speak(t("speech.This screen is the main screen."));
   };
   useEffect(() => {
@@ -75,37 +83,37 @@ const Dashboard = () => {
         (e.keyCode === 51 && e.shiftKey);
 
       if (!isHash) return;
-      if (e.repeat) return; 
+      if (e.repeat) return;
 
       speakMainScreen(); // ✅ unified call
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [t,speak]); // t is enough, speak/stop are stable in your hook
+  }, [t, speak]); // t is enough, speak/stop are stable in your hook
 
   useEffect(() => {
     dispatch(fetchFloorList(1)); // libno = 1
   }, [dispatch, lang]);
 
 
-//headphones func
-useEffect(() => {
-  if (!earphoneInjected) return;
+  //headphones func
+  useEffect(() => {
+    if (!earphoneInjected) return;
 
-  // 🔴 FORCE LOGOUT on headphone removal
-  localStorage.removeItem("authenticated");
-  dispatch(clearUserInfo());
+    // 🔴 FORCE LOGOUT on headphone removal
+    localStorage.removeItem("authenticated");
+    dispatch(clearUserInfo());
 
-  // ❌ reset focus
-  setFocused(null);
+    // ❌ reset focus
+    setFocused(null);
 
-  // 🔊 speak main screen
-  speakMainScreen();
+    // 🔊 speak main screen
+    speakMainScreen();
 
-  // 🧹 reset headphone flag
-  dispatch(clearHeadphoneFocus());
-}, [earphoneInjected, dispatch]);
+    // 🧹 reset headphone flag
+    dispatch(clearHeadphoneFocus());
+  }, [earphoneInjected, dispatch]);
 
 
 
@@ -234,15 +242,55 @@ useEffect(() => {
     setFocused(null);
   }, []);
 
+
+  const openLoginErrorModal = useCallback((title, message) => {
+    setLoginErrorModal({
+      isOpen: true,
+      title,
+      message
+    });
+  }, []);
+
+  const closeLoginErrorModal = useCallback(() => {
+    setLoginErrorModal({
+      isOpen: false,
+      title: "",
+      message: ""
+    });
+  }, []);
+
   /**
    * Handle keyboard submission (login)
    */
   const handleKeyboardSubmit = useCallback(async (value) => {
+
+    const mapBackendErrorToKey = (errorText) => {
+      if (!errorText) return "ERROR_GENERIC";
+
+      if (errorText.includes("사용자 정보가 없습니다")) {
+        return "ERROR_USER_NOT_FOUND";
+      }
+
+      return "ERROR_GENERIC";
+    };
+
     try {
       const response = await loginBySchoolNo(value);
       const params = new URLSearchParams(response.split("?")[1]);
 
-      if (params.get("ERROR_YN") === "Y") return;
+      if (params.get("ERROR_YN") === "Y") {
+        const rawError = params.get("ERROR_TEXT");
+        const errorKey = mapBackendErrorToKey(rawError);
+
+        openLoginErrorModal(
+          t("translations.Login Failed"),
+          t(`translations.${errorKey}`)
+        );
+
+        return;
+      }
+
+
 
       const info = await getKioskUserInfo();
 
@@ -265,7 +313,7 @@ useEffect(() => {
     } finally {
       setIsKeyboardOpen(false);
     }
-  }, [dispatch, selectedFloor, shouldShowModal, navigateToFloor]);
+  }, [dispatch, selectedFloor, shouldShowModal, navigateToFloor, t]);
 
   /**
    * Toggle modal state
@@ -458,6 +506,44 @@ useEffect(() => {
         isFocused={focused === FocusRegionforKeyboardModal.KEYBOARD}
         setFocused={setFocused}
       />
+
+      {/* 🔴 Login Error Modal */}
+      <Modal
+        isOpen={loginErrorModal.isOpen}
+        onClose={closeLoginErrorModal}
+        title={loginErrorModal.title}
+        size="medium"
+      >
+        <div className="flex flex-col items-center text-center gap-4 ">
+          <div className="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center">
+            <svg
+              className="w-12 h-12 text-red-600"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+              />
+            </svg>
+          </div>
+          <div
+            className="text-gray-700 text-xl leading-relaxed font-medium"
+            dangerouslySetInnerHTML={{ __html: loginErrorModal.message }}
+          />
+          <button
+            onClick={closeLoginErrorModal}
+            className="mt-4 px-10 py-3 rounded-full bg-red-600 text-white text-lg font-semibold
+               hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-300"
+          >
+            OK
+          </button>
+        </div>
+
+      </Modal>
 
       {/* User Info Modal */}
       <UserInfoModal

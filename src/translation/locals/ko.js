@@ -175,7 +175,10 @@ const koTranslations = {
     "You are now logged in. Please select the features you wish to use.": "로그인이 완료되었습니다. 사용하실 기능을 선택해 주세요.",
     "Next": "다음",
     "Previous": "이전의",
-    "Extension": "확대"
+    "Extension": "확대",
+    "Login Failed":"로그인 실패",
+    "ERROR_USER_NOT_FOUND":
+    "사용자 정보가 없습니다.<br/>사용자 정보 확인 후 다시 이용하시길 바랍니다."
   }
 }
 export default koTranslations;

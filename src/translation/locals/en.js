@@ -167,7 +167,10 @@ const enTranslations = {
     "You are now logged in. Please select the features you wish to use.": "You are now logged in. Please select the features you wish to use.",
     "Next": "Next",
     "Previous": "Previous",
-    "Extension": "Extension"
+    "Extension": "Extension",
+    "Login Failed":"Login Failed",
+        "ERROR_USER_NOT_FOUND":
+    "User information not found.<br/>Please check your details and try again."
   }
 
 }
