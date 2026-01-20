@@ -2,9 +2,39 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Capability for the main window",
-  "windows": ["main"],
+  "windows": [
+    "*"
+  ],
   "permissions": [
     "core:default",
-    "opener:default"
-  ]
+    "shell:allow-open",
+    "core:app:default",
+    "core:resources:default",
+    "core:menu:default",
+    "core:tray:default",
+    "core:window:allow-set-title",
+    "core:event:default",
+    "core:window:default",
+    "core:path:default",
+    "store:default",
+    "http:default",
+    {
+      "identifier": "http:default",
+      "allow": [
+        {
+          "url": "https://**/"
+        },
+        {
+          "url": "http://**/"
+        }
+      ]
+    },
+    "http:default"
+  ],
+    "package": {
+    "version": "{{version}}"
+  },
+  "metadata": {
+    "releaseDate": "{{releaseDate}}"
+  }
 }
