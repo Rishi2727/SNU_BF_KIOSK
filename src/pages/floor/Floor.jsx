@@ -70,6 +70,7 @@ const Floor = () => {
     FLOOR_STATS: "floor_stats",
     LEGEND: "legend",
     MINI_MAP: "mini_map",
+    MAP: "map",          // ✅ ADD THIS
     ROOM: "room",
     FOOTER: "footer",
   });
@@ -172,13 +173,15 @@ const Floor = () => {
         FocusRegion.FOOTER,
       ];
     }
+
     return [
       FocusRegion.FLOOR_STATS,
       FocusRegion.LEGEND,
-      FocusRegion.ROOM,
+      FocusRegion.MAP,   // ✅ NOW VALID
       FocusRegion.FOOTER,
     ];
   };
+
   useEffect(() => {
     const onKeyDown = (e) => {
       const isAsterisk =
@@ -383,86 +386,18 @@ const Floor = () => {
   }, [selectedSector]);
 
   /* =====================================================
-     AUTO SELECT DEFAULT MINI MAP SECTOR (DISABLED)
-  ===================================================== */
-  // useEffect(() => {
-  //   if (!layout || !showRoomView) return;
-  //   // Don't auto-select, start at actual size
-  //   setSelectedMiniSector(null);
-  //   setImageTransform({ x: 0, y: 0, scale: 1 });
-  //   setIsZoomed(false);
-  // }, [layout, showRoomView]);
-
-  /* =====================================================
-     TRACK IMAGE DIMENSIONS
-  ===================================================== */
-  // useEffect(() => {
-  //   const updateDimensions = () => {
-  //     if (mainImageRef.current && containerRef.current) {
-  //       const img = mainImageRef.current;
-  //       const container = containerRef.current;
-  //       const containerRect = container.getBoundingClientRect();
-  //       const imgRect = img.getBoundingClientRect();
-
-  //       setImageDimensions({
-  //         width: imgRect.width,
-  //         height: imgRect.height,
-  //         naturalWidth: img.naturalWidth,
-  //         naturalHeight: img.naturalHeight,
-  //         offsetX: imgRect.left - containerRect.left,
-  //         offsetY: imgRect.top - containerRect.top,
-  //       });
-  //     }
-  //   };
-
-  //   if (showRoomView) {
-  //     updateDimensions();
-  //     window.addEventListener("resize", updateDimensions);
-
-  //     const timer = setTimeout(updateDimensions, 550);
-
-  //     return () => {
-  //       window.removeEventListener("resize", updateDimensions);
-  //       clearTimeout(timer);
-  //     };
-  //   }
-  // }, [imageTransform, selectedSector, showRoomView]);
-
-  /* =====================================================
      MINI MAP CLICK
   ===================================================== */
-const handleMiniSectorClick = (sector) => {
-  setImageTransform(prev => ({
-    ...prev,
-    x: -sector.x1,
-    y: -sector.y1
-  }));
-};
+  const handleMiniSectorClick = (sector) => {
+    setImageTransform(prev => ({
+      ...prev,
+      x: -sector.x1,
+      y: -sector.y1
+    }));
+  };
   /* =====================================================
      IMAGE LOAD HANDLER
   ===================================================== */
-  const handleImageLoad = (e) => {
-    const img = e.target;
-
-    // ✅ hard visual reset
-    setImageTransform({ x: 0, y: 0, scale: 1 });
-    setIsZoomed(false);
-    setSelectedMiniSector(null);
-    setHasPanned(false);
-    setIsPanning(false);
-
-    // ✅ store REAL rendered size
-    requestAnimationFrame(() => {
-      setImageDimensions({
-        width: img.clientWidth,
-        height: img.clientHeight,
-        naturalWidth: img.naturalWidth,
-        naturalHeight: img.naturalHeight,
-        offsetX: 0,
-        offsetY: 0,
-      });
-    });
-  };
 
   /* =====================================================
      SEAT CLICK HANDLER
@@ -599,27 +534,8 @@ const handleMiniSectorClick = (sector) => {
 
     // Don't reset: miniMapCursor, selectedMiniSector, imageTransform, isZoomed
   }, [selectedSector]);
-
-  // 3. REPLACE the "AUTO SELECT DEFAULT MINI MAP SECTOR" useEffect with this:
-  // useEffect(() => {
-  //   if (!layout?.sectors?.length || !showRoomView) return;
-
-  //   // Small delay to ensure layout is ready
-  //   const timer = setTimeout(() => {
-  //     const firstSector = layout.sectors[0];
-  //     if (firstSector) {
-  //       console.log('Auto-selecting first sector:', firstSector.id);
-  //       setMiniMapCursor(0);
-  //       setSelectedMiniSector(firstSector);
-  //       setImageTransform(firstSector.transform);
-  //       setIsZoomed(true);
-  //     }
-  //   }, 100);
-
-  //   return () => clearTimeout(timer);
-  // }, [layout, showRoomView, selectedSector?.SECTORNO]);
   // /* =====================================================
-    //  RENDER
+  //  RENDER
   // ===================================================== */
   return (
     <div className="relative h-screen w-screen overflow-hidden font-bold text-white">
@@ -642,12 +558,13 @@ const handleMiniSectorClick = (sector) => {
 
 
       {/* ================= MAIN CONTENT ================= */}
-      <div className="absolute inset-0 flex items-center justify-center z-0 -top-27 mx-[11px]">
+      <div className="absolute inset-0 flex items-center justify-center z-0 mx-[11px]">
         {currentFloor && (
-          <div className={`relative h-[830px] bg-white/10 backdrop-blur-sm rounded-lg  shadow-2xl ${focusedRegion === FocusRegion.ROOM
+          <div className={`relative w-full h-[720px] bg-white/10 backdrop-blur-sm rounded-lg  shadow-2xl ${focusedRegion === FocusRegion.ROOM
             ? "border-[5px] border-[#dc2f02] box-border"
             : "border-[5px] border-transparent box-border"
             }`}>
+
             {loading ? (
               <LoadingSpinner />
             ) : showRoomView && selectedSector ? (
@@ -670,10 +587,9 @@ const handleMiniSectorClick = (sector) => {
                 isPanning={isPanning}
                 onMiniSectorClick={handleMiniSectorClick}
                 onSeatClick={handleSeatClick}
-                onImageLoad={handleImageLoad}
                 onMiniMapError={() => setMiniMapError(true)}
-                miniMapCursor={miniMapCursor}
-                focusedRegion={focusedRegion}
+                isMinimapFocused={focusedRegion === FocusRegion.MINI_MAP}   // ✅
+                minimapFocusIndex={miniMapCursor}
 
               />
             ) : (
@@ -714,17 +630,19 @@ const handleMiniSectorClick = (sector) => {
                         >
                           {/* ✅ FOCUS VISUAL (padding + min height effect) */}
                           {focusedRegion === FocusRegion.MAP && mapCursor === sectorIndex && (
-                            <div className="pointer-events-none absolute -inset-3 top-[-55px] rounded border-[6px] border-[#dc2f02]" />
+                            <div className="pointer-events-none absolute -inset-3 top-[5px] rounded border-[6px] border-[#dc2f02]" />
                           )}
 
                           <div
-                            className="pointer-events-none absolute -top-4 left-[-15px] right-3 bottom-6 bg-[#FFCA08]/20 border-2 border-[#FFCA08] rounded
-                           opacity-0 group-hover:opacity-100 transition-all duration-200" />
-                          <div className="absolute -top-15 left-1/2 -translate-x-1/2 pointer-events-none">
-                            <span className="bg-[#9A7D4C] text-white px-4 py-1.5 rounded-md text-[30px] font-bold shadow-lg whitespace-nowrap">
-                              {t(`${getSectorLabel(sector, idx)}`)}
-                            </span>
-                          </div>
+                            className="pointer-events-none absolute top-[-50px]
+             bg-[#FFCA08]/20 border-2 border-[#FFCA08] rounded
+             opacity-0 group-hover:opacity-100 transition-all duration-200"
+                            style={{
+                              width: mapStyles.width,
+                              height: mapStyles.height,
+                            }}
+                          />
+
                         </button>
 
                       ));
