@@ -112,20 +112,20 @@ const Configuration = () => {
         fetchSerialPorts();
     }, []);
 
-const handleSerialDeviceChange = (id, field, value) => {
-  setSerialDevices(prev => {
-    const updated = prev.map(device =>
-      device.ID === id
-        ? {
-            ...device,
-            [field]: value   // ✅ keep STRING in state
-          }
-        : device
-    );
-    validateSerialPorts(updated);
-    return updated;
-  });
-};
+    const handleSerialDeviceChange = (id, field, value) => {
+        setSerialDevices(prev => {
+            const updated = prev.map(device =>
+                device.ID === id
+                    ? {
+                        ...device,
+                        [field]: value   // ✅ keep STRING in state
+                    }
+                    : device
+            );
+            validateSerialPorts(updated);
+            return updated;
+        });
+    };
 
     const validateSerialPorts = (devices) => {
         const ports = devices.map((d) => d.port).filter(p => p);
@@ -155,48 +155,48 @@ const handleSerialDeviceChange = (id, field, value) => {
     const handleBack = () => {
         navigate('/');
     };
-const handleSave = async () => {
-    if (isSaving) return;
+    const handleSave = async () => {
+        if (isSaving) return;
 
-    setIsSaving(true);
+        setIsSaving(true);
 
-    try {
-        // 1️⃣ Save manager IP URL
-        await invoke("update_config", {
-            key: "manager_ip_url",
-            value: formData.managerIpUrl
-        });
+        try {
+            // 1️⃣ Save manager IP URL
+            await invoke("update_config", {
+                key: "manager_ip_url",
+                value: formData.managerIpUrl
+            });
 
-        // 2️⃣ Save kiosk mode
-        await invoke("update_config", {
-            key: "kiosk_mode",
-            value: formData.kioskMode.toString()
-        });
+            // 2️⃣ Save kiosk mode
+            await invoke("update_config", {
+                key: "kiosk_mode",
+                value: formData.kioskMode.toString()
+            });
 
-        // 3️⃣ Save serial devices
-        const serialDataToSave = serialDevices.map((device) => ({
-            ...device,
-            baudrate: parseInt(device.baudrate, 10),
-        }));
+            // 3️⃣ Save serial devices
+            const serialDataToSave = serialDevices.map((device) => ({
+                ...device,
+                baudrate: parseInt(device.baudrate, 10),
+            }));
 
-        await invoke("update_config", {
-            key: "serialdata",
-            value: JSON.stringify(serialDataToSave),
-        });
+            await invoke("update_config", {
+                key: "serialdata",
+                value: JSON.stringify(serialDataToSave),
+            });
 
-        // ✅ SUCCESS (no API call here)
-        setShowConfirmationModal(false);
-        setShowSuccessModal(true);
+            // ✅ SUCCESS (no API call here)
+            setShowConfirmationModal(false);
+            setShowSuccessModal(true);
 
-    } catch (error) {
-        console.error("Failed to save configuration:", error);
-        setShowConfirmationModal(false);
-        setErrorMessage(t("Failed to save configuration"));
-        setShowErrorModal(true);
-    } finally {
-        setIsSaving(false);
-    }
-};
+        } catch (error) {
+            console.error("Failed to save configuration:", error);
+            setShowConfirmationModal(false);
+            setErrorMessage(t("Failed to save configuration"));
+            setShowErrorModal(true);
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
 
 
