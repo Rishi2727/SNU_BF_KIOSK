@@ -1,4 +1,71 @@
 import axios from "axios";
+import { invoke } from "@tauri-apps/api/core";
+
+import axiosTauriApiAdapter from "axios-tauri-api-adapter";
+
+export const client = axios.create({
+  // adapter: axiosTauriApiAdapter
+});
+
+let managerIpUrl = "";
+let socket_URL = "";
+let BASE = "";
+let apiInitialized = null;
+export const initializeApi = async (kioskConfigurationFromContext) => {
+  if (!apiInitialized) {
+    apiInitialized = (async () => {
+      let isInitialized = false;
+
+      do {
+        showLoader();
+        let kioskConfiguration = kioskConfigurationFromContext; // Use passed config
+
+        try {
+          const config = await invoke("read_config");
+          const { server, protocol, api_key, manager_ip_url } = config;
+          if (!server) throw new Error("Server not found");
+          console.log("first", manager_ip_url);
+          managerIpUrl = manager_ip_url;
+          BASE = `${protocol}${server}`;
+          const API_PATH = "/api/v1/kiosk";
+
+          const BASE_URL = `${BASE}${API_PATH}`;
+
+          socket_URL =
+            protocol === "https://"
+              ? `wss://${server}/api/v1/kiosk/ws`
+              : `ws://${server}/api/v1/kiosk/ws`;
+          publicApi.defaults.baseURL = BASE_URL;
+          protectedApi.defaults.baseURL = BASE_URL;
+
+          const lng = localStorage.getItem("language") || "ko";
+          publicApi.defaults.headers["Accept-Language"] = lng;
+          protectedApi.defaults.headers["Accept-Language"] = lng;
+          publicApi.defaults.headers["x-kiosk-uuid"] =
+            kioskConfiguration?.machineUid;
+          publicApi.defaults.headers["x-kiosk-version"] =
+            kioskConfiguration?.version;
+          protectedApi.defaults.headers["x-kiosk-uuid"] =
+            kioskConfiguration?.machineUid;
+          protectedApi.defaults.headers["x-kiosk-version"] =
+            kioskConfiguration?.version;
+          publicApi.defaults.headers["x-api-key"] = api_key;
+          protectedApi.defaults.headers["x-api-key"] = api_key;
+
+          isInitialized = true;
+        } catch (error) {
+          console.error("Failed to fetch configuration:", error);
+        } finally {
+          hideLoader();
+        }
+      } while (!isInitialized);
+    })();
+  }
+  return apiInitialized;
+};
+
+export { socket_URL, managerIpUrl };
+
 
 /* ===============================
    🌐 RUNTIME LANGUAGE MANAGER

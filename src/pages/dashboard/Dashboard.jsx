@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import BgMainImage from "../../assets/images/BgMain.jpg";
@@ -34,6 +34,11 @@ const Dashboard = () => {
     [MODAL_TYPES.ASSIGN_CHECK]: false
   });
   const [selectedAssignNo, setSelectedAssignNo] = useState(null);
+
+
+  //state for modal focus 
+  const [isLoginErrorFocused, setIsLoginErrorFocused] = useState(false);
+  const hasSpokenLoginErrorRef = useRef(false);
 
   // ✅ Focus state
   const [focused, setFocused] = useState(null);
@@ -431,6 +436,36 @@ const Dashboard = () => {
   }, [dispatch]);
 
 
+  // useEffect for login error modal focus and speech
+  useEffect(() => {
+    if (loginErrorModal.isOpen) {
+      setIsLoginErrorFocused(true);
+      hasSpokenLoginErrorRef.current = false;
+
+      stop();
+      // Speak the title and message
+      const cleanMessage = loginErrorModal.message.replace(/<[^>]*>/g, ''); // Remove HTML tags
+      speak(`${loginErrorModal.title}. ${cleanMessage}`);
+    } else {
+      setIsLoginErrorFocused(false);
+      hasSpokenLoginErrorRef.current = false;
+      stop();
+    }
+  }, [loginErrorModal.isOpen, loginErrorModal.title, loginErrorModal.message, stop, speak]);
+  useEffect(() => {
+    if (!loginErrorModal.isOpen || !isLoginErrorFocused) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        closeLoginErrorModal();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [loginErrorModal.isOpen, isLoginErrorFocused, closeLoginErrorModal]);
+
   // 🔊 VOICE: speak when dashboard focus changes
   useEffect(() => {
     if (!focused) return;
@@ -506,15 +541,15 @@ const Dashboard = () => {
         isFocused={focused === FocusRegionforKeyboardModal.KEYBOARD}
         setFocused={setFocused}
       />
-
-      {/* 🔴 Login Error Modal */}
+      {/* 🔴 Login Error Modal - Updated with focus styling */}
       <Modal
         isOpen={loginErrorModal.isOpen}
         onClose={closeLoginErrorModal}
         title={loginErrorModal.title}
         size="medium"
+        className={isLoginErrorFocused ? "outline-[6px] outline-[#dc2f02]" : ""}
       >
-        <div className="flex flex-col items-center text-center gap-4 ">
+        <div className="flex flex-col items-center text-center gap-4">
           <div className="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center">
             <svg
               className="w-12 h-12 text-red-600"
@@ -536,13 +571,13 @@ const Dashboard = () => {
           />
           <button
             onClick={closeLoginErrorModal}
-            className="mt-4 px-10 py-3 rounded-full bg-red-600 text-white text-lg font-semibold
-               hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-300"
+            className={`mt-4 px-10 py-3 rounded-full bg-red-600 text-white text-lg font-semibold
+               hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-300
+               ${isLoginErrorFocused ? 'ring-4 ring-red-300' : ''}`}
           >
             OK
           </button>
         </div>
-
       </Modal>
 
       {/* User Info Modal */}
