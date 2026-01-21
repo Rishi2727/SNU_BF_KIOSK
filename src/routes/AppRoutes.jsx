@@ -1,15 +1,16 @@
 import { Routes, Route } from "react-router-dom";
 import { routes } from "./routesConfig";
-import { useNavigateContext } from "../context/NavigateContext";
-import { useDispatch } from "react-redux";
-import { useEffect } from "react";
-import { listen } from "@tauri-apps/api/event";
+import { listen } from '@tauri-apps/api/event';
+import { useNavigateContext } from '../context/NavigateContext';
+import React, { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 
 
 const AppRoutes = () => {
-  const navigate = useNavigateContext();
-  const dispatch = useDispatch();
-  useEffect(() => {
+   const navigate = useNavigateContext();
+     const dispatch = useDispatch();
+
+     useEffect(() => {
     let configUnsubscribe = null;
     let aboutUnsubscribe = null;
     let isMounted = true;
@@ -34,7 +35,7 @@ const AppRoutes = () => {
 
     const handleKeyDown = (e) => {
       if (!isMounted) return;
-
+      
       if (e.ctrlKey && e.shiftKey) {
         const key = e.key.toLowerCase();
         if (key === 'c') {
@@ -53,7 +54,7 @@ const AppRoutes = () => {
 
     return () => {
       isMounted = false;
-
+      
       // Clean up event listeners safely
       if (configUnsubscribe && typeof configUnsubscribe === 'function') {
         try {
@@ -62,7 +63,7 @@ const AppRoutes = () => {
           console.warn('Error unregistering config listener:', err);
         }
       }
-
+      
       if (aboutUnsubscribe && typeof aboutUnsubscribe === 'function') {
         try {
           aboutUnsubscribe();
@@ -70,10 +71,12 @@ const AppRoutes = () => {
           console.warn('Error unregistering about listener:', err);
         }
       }
-
+      
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [navigate, dispatch]);
+
+
   return (
     <Routes>
       {routes.map(({ path, element }) => (
