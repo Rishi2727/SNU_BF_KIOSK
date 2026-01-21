@@ -112,20 +112,21 @@ const Configuration = () => {
         fetchSerialPorts();
     }, []);
 
-    const handleSerialDeviceChange = (id, field, value) => {
-        setSerialDevices(prev => {
-            const updated = prev.map(device =>
-                device.ID === id
-                    ? {
-                        ...device,
-                        [field]: field === "baudrate" ? parseInt(value, 10) || 0 : value
-                    }
-                    : device
-            );
-            validateSerialPorts(updated);
-            return updated;
-        });
-    };
+const handleSerialDeviceChange = (id, field, value) => {
+  setSerialDevices(prev => {
+    const updated = prev.map(device =>
+      device.ID === id
+        ? {
+            ...device,
+            [field]: value   // ✅ keep STRING in state
+          }
+        : device
+    );
+    validateSerialPorts(updated);
+    return updated;
+  });
+};
+
     const validateSerialPorts = (devices) => {
         const ports = devices.map((d) => d.port).filter(p => p);
         const errors = {};
