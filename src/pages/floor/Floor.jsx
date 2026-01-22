@@ -554,14 +554,15 @@ const Floor = () => {
 
       />
 
-
       {/* ================= MAIN CONTENT ================= */}
-      <div className="absolute inset-0 flex items-center justify-center z-0 mx-[11px]">
+      <div className={`absolute inset-0 flex items-center justify-center z-0 mx-[11px] ${focusedRegion === FocusRegion.ROOM
+        ? "border-[5px] border-[#dc2f02] box-border"
+        : "border-[5px] border-transparent box-border"
+        }`}>
+
+
         {currentFloor && (
-          <div className={`relative w-full h-[720px] bg-white/10 backdrop-blur-sm rounded-lg  shadow-2xl ${focusedRegion === FocusRegion.ROOM
-            ? "border-[5px] border-[#dc2f02] box-border"
-            : "border-[5px] border-transparent box-border"
-            }`}>
+          <div className={`relative w-full h-[720px] bg-white/10 backdrop-blur-sm rounded-lg  shadow-2xl `}>
 
             {loading ? (
               <LoadingSpinner />
@@ -586,13 +587,13 @@ const Floor = () => {
                 onMiniSectorClick={handleMiniSectorClick}
                 onSeatClick={handleSeatClick}
                 onMiniMapError={() => setMiniMapError(true)}
-                isMinimapFocused={focusedRegion === FocusRegion.MINI_MAP}   // ✅
+                isMinimapFocused={focusedRegion === FocusRegion.MINI_MAP}
                 minimapFocusIndex={miniMapCursor}
                 focusedRegion={focusedRegion}
 
               />
             ) : (
-              <div className="relative w-full h-full p-5 ">
+              <div className="relative w-full h-full">
                 <div
                   className={`relative w-full h-full`}
                 >
@@ -629,18 +630,17 @@ const Floor = () => {
                         >
                           {/* ✅ FOCUS VISUAL (padding + min height effect) */}
                           {focusedRegion === FocusRegion.MAP && mapCursor === sectorIndex && (
-                            <div className="pointer-events-none absolute -inset-3 top-[5px] rounded border-[6px] border-[#dc2f02]" />
+                            <div className="pointer-events-none absolute -inset-2 rounded border-[6px] border-[#dc2f02] " />
                           )}
 
                           <div
-                            className="pointer-events-none absolute top-[-50px]
-             bg-[#FFCA08]/20 border-2 border-[#FFCA08] rounded
-             opacity-0 group-hover:opacity-100 transition-all duration-200"
-                            style={{
-                              width: mapStyles.width,
-                              height: mapStyles.height,
-                            }}
-                          />
+                            className="pointer-events-none absolute -top-4 left-[-15px] right-3 bottom-6 bg-[#FFCA08]/20 border-2 border-[#FFCA08] rounded
+                           opacity-0 group-hover:opacity-100 transition-all duration-200" />
+                          <div className="absolute -top-15 left-1/2 -translate-x-1/2 pointer-events-none">
+                            <span className="bg-[#9A7D4C] text-white px-4 py-1.5 rounded-md text-[30px] font-bold shadow-lg whitespace-nowrap">
+                              {t(`${getSectorLabel(sector, idx)}`)}
+                            </span>
+                          </div>
 
                         </button>
 
@@ -672,8 +672,8 @@ const Floor = () => {
           logout={handleLogout}
           isFocused={focusedRegion === FocusRegion.FOOTER}
           isAnyModalOpen={isAnyModalOpen}
-              showBack={showRoomView}
-        onBack={backToFloorMap}
+          showBack={showRoomView}
+          onBack={backToFloorMap}
         />
       </div>
 
@@ -684,7 +684,7 @@ const Floor = () => {
         seat={selectedSeat}
         isOpen={showSeatModal}
         onClose={handleCloseModal}
-        
+
       />
     </div>
   );

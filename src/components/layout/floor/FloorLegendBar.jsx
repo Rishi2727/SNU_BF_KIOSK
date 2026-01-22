@@ -126,7 +126,7 @@ const FloorLegendBar = ({
   return (
     <div className={`
         absolute  left-0 right-0 w-full
-        bg-[#b8975e]  h-[180px] top-0.5
+        bg-[#b8975e81]  h-[180px] top-0.5
         flex items-center justify-between
         text-white shadow-lg z-20 
         ${isFocused ? focusRing : ""}
