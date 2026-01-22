@@ -8,6 +8,7 @@ import {
   User,
   LogOut,
   Volume1,
+  ArrowLeft,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -31,7 +32,9 @@ const FooterControls = ({
   logout,
   onZoom,
   isFocused,
-  isAnyModalOpen
+  isAnyModalOpen,
+  showBack,
+  onBack,
 }) => {
   const dispatch = useDispatch();
   const { t } = useTranslation()
@@ -50,9 +53,12 @@ const FooterControls = ({
   );
   const [cursor, setCursor] = useState(null);
   const { speak, stop } = useVoice();
+const BACK_OFFSET = showBack ? 1 : 0;
 
 
-  const FOOTER_BUTTON_COUNT = userInfo ? 11 : 10;
+  const FOOTER_BUTTON_COUNT =
+  (showBack ? 1 : 0) + (userInfo ? 11 : 10);
+
 
   // ✅ Load saved language
   useEffect(() => {
@@ -97,97 +103,102 @@ const FooterControls = ({
   }, [isFocused, cursor, FOOTER_BUTTON_COUNT]);
 
   // ✅ Footer Enter handler
-const handleFooterEnter = (index) => {
-  if (userInfo) {
+  const handleFooterEnter = (index) => {
+      // ⬅ BACK BUTTON
+  if (showBack && index === 1) {
+    onBack();
+    return;
+  }
+    if (userInfo) {
+      switch (index) {
+        case 0:
+          return;
+       case 1 + BACK_OFFSET:
+          // Logout
+          logout();
+          return;
+        case 2 + BACK_OFFSET:
+          // User ID → no action
+          return;
+        case 3 + BACK_OFFSET:
+          // KR
+          handleLanguageChange("KR");
+          return;
+        case 4 + BACK_OFFSET:
+          // EN
+          handleLanguageChange("EN");
+          return;
+        case 5 + BACK_OFFSET:
+          // Volume Down
+          dispatch(decreaseVolume());
+          return;
+        case 6 + BACK_OFFSET:
+          // Volume % → no action
+          return;
+        case 7 + BACK_OFFSET:
+          // Volume Up
+          dispatch(increaseVolume());
+          return;
+        case 8 + BACK_OFFSET:
+          // Info
+          setIsInfoOpen(true);
+          return;
+        case 9 + BACK_OFFSET:
+          // Zoom
+          dispatch(toggleMagnifier());
+          return;
+        case 10 + BACK_OFFSET:
+          // Contrast
+          toggleContrast();
+          return;
+        default:
+          return;
+      }
+    }
+
+    // ------------------ NOT LOGGED IN ------------------
     switch (index) {
       case 0:
         return;
       case 1:
-        // Logout
-        logout();
+        // Login
+        openKeyboard();
         return;
       case 2:
-        // User ID → no action
-        return;
-      case 3:
         // KR
         handleLanguageChange("KR");
         return;
-      case 4:
+      case 3:
         // EN
         handleLanguageChange("EN");
         return;
-      case 5:
+      case 4:
         // Volume Down
         dispatch(decreaseVolume());
         return;
-      case 6:
-        // Volume % → no action
+      case 5:
+        // Volume %
         return;
-      case 7:
+      case 6:
         // Volume Up
         dispatch(increaseVolume());
         return;
-      case 8:
+      case 7:
         // Info
         setIsInfoOpen(true);
         return;
-      case 9:
+      case 8:
         // Zoom
         dispatch(toggleMagnifier());
         return;
-      case 10:
+      case 9:
         // Contrast
         toggleContrast();
         return;
       default:
         return;
     }
-  }
-
-  // ------------------ NOT LOGGED IN ------------------
-  switch (index) {
-    case 0:
-      return;
-    case 1:
-      // Login
-      openKeyboard();
-      return;
-    case 2:
-      // KR
-      handleLanguageChange("KR");
-      return;
-    case 3:
-      // EN
-      handleLanguageChange("EN");
-      return;
-    case 4:
-      // Volume Down
-      dispatch(decreaseVolume());
-      return;
-    case 5:
-      // Volume %
-      return;
-    case 6:
-      // Volume Up
-      dispatch(increaseVolume());
-      return;
-    case 7:
-      // Info
-      setIsInfoOpen(true);
-      return;
-    case 8:
-      // Zoom
-      dispatch(toggleMagnifier());
-      return;
-    case 9:
-      // Contrast
-      toggleContrast();
-      return;
-    default:
-      return;
-  }
-};
+  };
 
 
   // ✅ Clock
@@ -244,51 +255,57 @@ const handleFooterEnter = (index) => {
 
   // 🔊 VOICE: speak footer item on focus change (ALIGNED WITH UI)
   useEffect(() => {
-    if (!isFocused) return;
-    if (cursor === null) return;
- 
+if (!isFocused || cursor === null || isAnyModalOpen) return;
+
+
 
     stop();
+// 🔊 BACK BUTTON
+if (showBack && cursor === 1) {
+  speak(t("speech.Back"));
+  return;
+}
+
 
     let speakText = "";
 
     if (userInfo) {
       switch (cursor) {
         case 0:
-           speakText = `${t("speech.Current Time")} ${new Date().toLocaleTimeString("en-US", {
+          speakText = `${t("speech.Current Time")} ${new Date().toLocaleTimeString("en-US", {
             hour: "numeric",
             minute: "2-digit",
-             hour12: true,
+            hour12: true,
           })}`;
           break;
-        case 1:
+        case 1 + BACK_OFFSET:
           speakText = t("speech.Logout");
           break;
-        case 2:
+        case 2 + BACK_OFFSET:
           speakText = t("speech.UserID");
           break;
-        case 3:
+        case 3 + BACK_OFFSET:
           speakText = t("speech.Language") + " Korean";
           break;
-        case 4:
+        case 4 + BACK_OFFSET:
           speakText = t("speech.Language") + " English";
           break;
-        case 5:
+        case 5 + BACK_OFFSET:
           speakText = t("speech.Volume Down");
           break;
-        case 6:
+        case 6 + BACK_OFFSET:
           speakText = `${Math.round(volume * 100)} percent`;
           break;
-        case 7:
+        case 7 + BACK_OFFSET:
           speakText = t("speech.Volume Up");
           break;
-        case 8:
+        case 8 + BACK_OFFSET:
           speakText = t("speech.Info");
           break;
-        case 9:
+        case 9 + BACK_OFFSET:
           speakText = t("speech.Zoom");
           break;
-        case 10:
+        case 10 + BACK_OFFSET:
           speakText = t("speech.Contrast");
           break;
         default:
@@ -296,11 +313,11 @@ const handleFooterEnter = (index) => {
       }
     } else {
       switch (cursor) {
-      case 0:
-           speakText = `${t("speech.Current Time")} ${new Date().toLocaleTimeString("en-US", {
+        case 0:
+          speakText = `${t("speech.Current Time")} ${new Date().toLocaleTimeString("en-US", {
             hour: "numeric",
             minute: "2-digit",
-             hour12: true,
+            hour12: true,
           })}`;
           break;
         case 1:
@@ -350,17 +367,36 @@ const handleFooterEnter = (index) => {
         {isFocused && (
           <div className="pointer-events-none absolute inset-0 border-[6px] border-[#dc2f02]" />
         )}
+        <div className="flex items-center gap-3">
 
-
-
-        <div className="flex items-center gap-5">
           {/* ⏰ TIME */}
           <div
-            className={`flex items-center gap-3 text-white px-3 py-2 rounded-lg
+            className={`flex items-center gap-2 text-white  py-3  rounded-lg
   ${cursor === 0 && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}`}
           >
             <Clock className="w-8 h-8" />
-            <span className="text-[32px] font-semibold">{time}</span>
+            <span className="text-[30px] font-semibold">{time}</span>
+          </div>
+
+          <div>
+
+            {showBack && (
+              <button
+                onClick={onBack}
+                className={`
+              floor-legend-bar
+              flex items-center gap-2
+              bg-[#FFCA08] text-[#9A7D4C]
+              px-3 py-1 rounded-lg
+              text-[26px] font-bold
+          ${cursor === 1 && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}
+            `}
+
+              >
+                <ArrowLeft className="w-6 h-6" />
+                {t("translations.Back")}
+              </button>
+            )}
           </div>
 
           {/* 👤 LOGIN / LOGOUT / USER INFO */}
@@ -370,7 +406,7 @@ const handleFooterEnter = (index) => {
                 <button
                   onClick={logout}
                   className={`flex items-center gap-2 bg-red-500 px-5 py-2 rounded-full text-white text-[26px]
-          ${cursor === 1 && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}`}
+          ${cursor === 1 + BACK_OFFSET && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}`}
                 >
                   <LogOut className="w-7 h-7" />
                   {t("translations.Logout")}
@@ -378,7 +414,7 @@ const handleFooterEnter = (index) => {
 
                 <div
                   className={`flex items-center gap-2 bg-white text-black px-5 py-2 rounded-lg text-[26px]
-          ${cursor === 2 && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}`}
+          ${cursor === 2 + BACK_OFFSET && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}`}
                 >
                   <User className="w-7 h-7" />
                   {userInfo.SCHOOLNO}
@@ -388,7 +424,7 @@ const handleFooterEnter = (index) => {
               <button
                 onClick={openKeyboard}
                 className={`px-6 py-2 rounded-full bg-[#D7D8D2] text-white text-[28px]
-        ${cursor === 1 && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}`}
+        ${cursor === 1 + BACK_OFFSET && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}`}
               >
                 {t("translations.Login")}
               </button>
@@ -401,9 +437,10 @@ const handleFooterEnter = (index) => {
               <button
                 key={lang}
                 onClick={() => handleLanguageChange(lang)}
-                className={`min-w-20 h-14 text-[28px] font-bold
+                className={`min-w-17 h-14 text-[28px] font-bold
         ${language === lang ? "bg-[#FFCA08] rounded-lg text-white" : "bg-white text-black"}
-        ${cursor === (userInfo ? 3 + i : 2 + i) && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}`}
+        ${cursor === (userInfo ? 3 + i + BACK_OFFSET : 2 + i + BACK_OFFSET)
+ && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}`}
               >
                 {lang}
               </button>
@@ -412,19 +449,19 @@ const handleFooterEnter = (index) => {
         </div>
 
         {/* 🎛 REST OF BUTTONS */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ml-2">
           <FooterButton
             icon={<Volume1 size={28} />}
             label={t("translations.Volume Down")}
             onClick={() => dispatch(decreaseVolume())}
-            isSelected={cursor === (userInfo ? 5 : 4)}
+              isSelected={cursor === (userInfo ? 5 + BACK_OFFSET : 4 + BACK_OFFSET)}
             isFocused={isFocused}
           />
 
           <FooterButton
             label={`${Math.round(volume * 100)}%`}
             onClick={() => { }}
-            isSelected={cursor === (userInfo ? 6 : 5)}
+          isSelected={cursor === (userInfo ? 6 + BACK_OFFSET : 5 + BACK_OFFSET)}
             isFocused={isFocused}
           />
 
@@ -432,7 +469,7 @@ const handleFooterEnter = (index) => {
             icon={<Volume2 size={28} />}
             label={t("translations.Volume Up")}
             onClick={() => dispatch(increaseVolume())}
-            isSelected={cursor === (userInfo ? 7 : 6)}
+           isSelected={cursor === (userInfo ? 7 + BACK_OFFSET : 6 + BACK_OFFSET)}
             isFocused={isFocused}
           />
 
@@ -440,7 +477,7 @@ const handleFooterEnter = (index) => {
             icon={<InfoIcon size={28} />}
             label={t("translations.Info")}
             onClick={() => setIsInfoOpen(true)}
-            isSelected={cursor === (userInfo ? 8 : 7)}
+          isSelected={cursor === (userInfo ? 8 + BACK_OFFSET : 7 + BACK_OFFSET)}
             isFocused={isFocused}
           />
 
@@ -449,7 +486,7 @@ const handleFooterEnter = (index) => {
             label={t("translations.Zoom")}
             active={magnifierEnabled}
             onClick={() => dispatch(toggleMagnifier())}
-            isSelected={cursor === (userInfo ? 9 : 8)}
+            isSelected={cursor === (userInfo ? 9 + BACK_OFFSET : 8 + BACK_OFFSET)}
             isFocused={isFocused}
           />
 
@@ -458,7 +495,7 @@ const handleFooterEnter = (index) => {
             label={t("translations.Contrast")}
             onClick={toggleContrast}
             active={contrastEnabled}
-            isSelected={cursor === (userInfo ? 10 : 9)}
+         isSelected={cursor === (userInfo ? 10 + BACK_OFFSET : 9 + BACK_OFFSET)}
             isFocused={isFocused}
           />
         </div>

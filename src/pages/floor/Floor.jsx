@@ -549,8 +549,6 @@ const Floor = () => {
         buildingName="Central Library, Gwanjeong Building"
         floorName={currentFloor?.title}
         roomName={selectedSector?.MAPLABEL}
-        showBack={showRoomView}
-        onBack={backToFloorMap}
         isFocused={focusedRegion === FocusRegion.LEGEND}
         isAnyModalOpen={isAnyModalOpen}
 
@@ -673,6 +671,8 @@ const Floor = () => {
           logout={handleLogout}
           isFocused={focusedRegion === FocusRegion.FOOTER}
           isAnyModalOpen={isAnyModalOpen}
+              showBack={showRoomView}
+        onBack={backToFloorMap}
         />
       </div>
 
@@ -683,6 +683,7 @@ const Floor = () => {
         seat={selectedSeat}
         isOpen={showSeatModal}
         onClose={handleCloseModal}
+        
       />
     </div>
   );
