@@ -26,7 +26,7 @@ const RoomView = ({
   focusedRegion,
   isMinimapFocused,
   minimapFocusIndex,
-  onMiniSectorClick
+  onMiniSectorClick,
 }) => {
   const { speak, stop } = useVoice();
   const { t } = useTranslation();
@@ -44,6 +44,8 @@ const RoomView = ({
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const [imagePanOffset, setImagePanOffset] = useState({ x: 0, y: 0 });
   const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const [focusedSeatIndex, setFocusedSeatIndex] = useState(-1);
+  const [refsReady, setRefsReady] = useState(false);
 
   /* ================= ROOM CONFIG ================= */
   const roomConfig = useMemo(() => {
@@ -61,6 +63,8 @@ const RoomView = ({
     setIsImageLoaded(false);
     setNaturalDimensions({ width: 0, height: 0 });
     setDisplayDimensions({ width: 0, height: 0 });
+    setFocusedSeatIndex(-1);
+    setRefsReady(false);
   }, [selectedSector?.SECTORNO]);
 
   /* ================= PARSE SEAT POSITION ================= */
@@ -355,45 +359,6 @@ const RoomView = ({
     setIsImageLoaded(true);
   };
 
-  /* ================= SEAT VISIBILITY CHECK ================= */
-  const isSeatVisibleByOverlap = (seat) => {
-    if (!selectedMiniSectorLocal || !sectors.length) return true;
-
-    const sector = sectors.find(s => s.id === selectedMiniSectorLocal.id);
-    if (!sector) return true;
-
-    const threshold = roomConfig.SEAT_OVERLAP_THRESHOLD;
-
-    const referenceDimensions = roomConfig.USE_LEGACY_SYSTEM_MAPPING
-      ? {
-        width: roomConfig.USE_LEGACY_SYSTEM_MAPPING_WIDTH,
-        height: roomConfig.USE_LEGACY_SYSTEM_MAPPING_HEIGHT
-      }
-      : naturalDimensions;
-
-    const scaleX = displayDimensions.width / referenceDimensions.width;
-    const scaleY = displayDimensions.height / referenceDimensions.height;
-
-    const seatX1 = seat.POSX * scaleX;
-    const seatY1 = seat.POSY * scaleY;
-    const seatX2 = (seat.POSX + seat.POSW) * scaleX;
-    const seatY2 = (seat.POSY + seat.POSH) * scaleY;
-    const seatArea = (seatX2 - seatX1) * (seatY2 - seatY1);
-
-    const overlapX1 = Math.max(seatX1, sector.x1);
-    const overlapY1 = Math.max(seatY1, sector.y1);
-    const overlapX2 = Math.min(seatX2, sector.x2);
-    const overlapY2 = Math.min(seatY2, sector.y2);
-
-    if (overlapX1 < overlapX2 && overlapY1 < overlapY2) {
-      const overlapArea = (overlapX2 - overlapX1) * (overlapY2 - overlapY1);
-      const overlapPercentage = overlapArea / seatArea;
-      return overlapPercentage >= (1 - threshold);
-    }
-
-    return false;
-  };
-
   /* ================= MINIMAP HIDE CHECK ================= */
   const isSeatHiddenByMinimap = (seatDiv) => {
     if (!miniMapRef.current || !seatDiv) return false;
@@ -415,11 +380,124 @@ const RoomView = ({
     if (sector) {
       setSelectedMiniSectorLocal(sector);
       setImagePanOffset({ x: -sector.x1, y: -sector.y1 });
+      setFocusedSeatIndex(-1); // Reset seat focus when sector changes
       if (onMiniSectorClick) {
         onMiniSectorClick(sector);
       }
     }
   };
+
+  /* ================= CHECK IF SEAT IS IN CURRENT VIEWPORT ================= */
+  const isSeatInViewport = (seat) => {
+    if (!selectedMiniSectorLocal || !isImageLoaded) return false;
+
+    const position = parseSeatPosition(seat);
+    if (!position) return false;
+
+    const seatLeft = parseFloat(position.left);
+    const seatTop = parseFloat(position.top);
+    const seatRight = seatLeft + parseFloat(position.width);
+    const seatBottom = seatTop + parseFloat(position.height);
+
+    // Account for image pan offset
+    const viewportLeft = -imagePanOffset.x;
+    const viewportTop = -imagePanOffset.y;
+    const viewportRight = viewportLeft + containerSize.width;
+    const viewportBottom = viewportTop + containerSize.height;
+
+    // Check if seat is within viewport
+    return (
+      seatRight > viewportLeft &&
+      seatLeft < viewportRight &&
+      seatBottom > viewportTop &&
+      seatTop < viewportBottom
+    );
+  };
+
+  /* ================= VISIBLE SEATS MEMO ================= */
+const visibleSeats = useMemo(() => {
+  if (!seats?.length || !selectedMiniSectorLocal || !isImageLoaded) return [];
+
+  const visible = seats.filter(seat => {
+    if (!isSeatInViewport(seat)) return false;
+
+    const seatDiv = seatRefs.current[seat.SEATNO];
+    if (!seatDiv) return true;
+
+    return !isSeatHiddenByMinimap(seatDiv);
+  });
+
+  // ✅ force stable order (left → right, top → bottom)
+  return visible.sort((a, b) => {
+    if (a.POSY === b.POSY) return a.POSX - b.POSX;
+    return a.POSY - b.POSY;
+  });
+
+}, [seats, selectedMiniSectorLocal, imagePanOffset, isImageLoaded, containerSize]);
+
+  /* ================= MARK REFS AS READY ================= */
+  useEffect(() => {
+    if (!seats?.length || !isImageLoaded) return;
+
+    // Give time for refs to be set
+    const timer = setTimeout(() => {
+      setRefsReady(true);
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, [seats, isImageLoaded]);
+
+  /* ================= SEAT KEYBOARD NAVIGATION ================= */
+  useEffect(() => {
+    if (focusedRegion !== "room") {
+      setFocusedSeatIndex(-1);
+      return;
+    }
+
+    if (!visibleSeats?.length) {
+      console.log('⚠️ No visible seats for navigation');
+      return;
+    }
+
+    console.log('✅ Seat navigation active, visible seats:', visibleSeats.length);
+
+    const onKeyDown = (e) => {
+      // Don't consume the focus toggle key
+      if (e.key === "*" || e.code === "NumpadMultiply" || e.keyCode === 106) return;
+
+      const TOTAL = visibleSeats.length;
+
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        setFocusedSeatIndex((prev) => {
+          const next = prev === -1 ? 0 : (prev + 1) % TOTAL;
+          console.log('➡️ Next seat:', next, visibleSeats[next]?.VNAME);
+          return next;
+        });
+      }
+
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        setFocusedSeatIndex((prev) => {
+          const next = prev === -1 ? TOTAL - 1 : (prev - 1 + TOTAL) % TOTAL;
+          console.log('⬅️ Previous seat:', next, visibleSeats[next]?.VNAME);
+          return next;
+        });
+      }
+
+      if (e.key === "Enter" && focusedSeatIndex !== -1) {
+        e.preventDefault();
+        const seat = visibleSeats[focusedSeatIndex];
+        if (seat) {
+          console.log('✅ Selecting seat:', seat.VNAME);
+          onSeatClick(seat);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [focusedRegion, visibleSeats, focusedSeatIndex, onSeatClick]);
 
   /* ================= RENDER ================= */
   return (
@@ -490,27 +568,30 @@ const RoomView = ({
                 {seats.map((seat) => {
                   const position = parseSeatPosition(seat);
                   if (!position) return null;
-                  const seatDiv = seatRefs.current[seat.SEATNO];
-                  const isHiddenByMinimap = isSeatHiddenByMinimap(seatDiv);
-                  const isVisible = isSeatVisibleByOverlap(seat);
+
+                  // const seatDiv = seatRefs.current[seat.SEATNO];
+                  // const isHiddenByMinimap = isSeatHiddenByMinimap(seatDiv);
+                  const visibleIndex = visibleSeats.findIndex(s => s.SEATNO === seat.SEATNO);
+                  const isFocused = visibleIndex === focusedSeatIndex && focusedRegion === "room";
 
                   const isAvailable = seat.USECNT === 0 && (seat.STATUS === 1 || seat.STATUS === 2);
                   const isHandicap = seat.STATUS === 9;
 
                   if (seat.ICONTYPE >= 2 && seat.ICONTYPE <= 7) {
                     const src = getRSeatImage(seat);
-                    const fontSize = 30; // Fixed font size for R-type seats
+                    const fontSize = 30;
                     return (
                       <div
                         ref={(el) => (seatRefs.current[seat.SEATNO] = el)}
                         key={seat.SEATNO}
-                        className="absolute pointer-events-auto cursor-pointer transition-all hover:opacity-80"
+                        className={`absolute pointer-events-auto cursor-pointer transition-all hover:opacity-80 ${
+                          isFocused ? 'ring-[6px] ring-[#dc2f02] ring-offset-2 z-50' : ''
+                        }`}
                         style={{
                           left: `${position.left}px`,
                           top: `${position.top}px`,
                           width: `${position.width}px`,
                           height: `${position.height}px`,
-                          display: (isVisible && !isHiddenByMinimap) ? "flex" : "none"
                         }}
                         onClick={(e) => {
                           e.stopPropagation();
@@ -529,26 +610,26 @@ const RoomView = ({
                   }
 
                   if (seat.ICONTYPE === 1 || seat.ICONTYPE === 8) {
-                    const fontSize = 30; // Fixed font size for R-type seats
-                    const seatDiv = seatRefs.current[seat.SEATNO];
-                    const isHiddenByMinimap = isSeatHiddenByMinimap(seatDiv);
-                    const isVisible = isSeatVisibleByOverlap(seat);
+                    const fontSize = 30;
                     return (
                       <div
                         ref={(el) => (seatRefs.current[seat.SEATNO] = el)}
                         key={seat.SEATNO}
-                        className={`absolute pointer-events-auto cursor-pointer rounded transition-all hover:scale-105 flex items-center justify-center ${isHandicap
-                          ? 'bg-[url("http://k-rsv.snu.ac.kr:8011/NEW_SNU_BOOKING/commons/images/kiosk/SeatBtn_disable.png")] bg-contain bg-no-repeat bg-center'
-                          : isAvailable
-                            ? "bg-gradient-to-b from-[#ffc477] to-[#fb9e25] border border-[#eeb44f]"
-                            : "bg-[#e5e1c4]"
-                          }`}
+                        className={`absolute pointer-events-auto cursor-pointer rounded transition-all hover:scale-105 flex items-center justify-center ${
+                          isFocused ? 'ring-[6px] ring-[#dc2f02] ring-offset-2 z-50' : ''
+                        } ${
+                          isHandicap
+                            ? 'bg-[url("http://k-rsv.snu.ac.kr:8011/NEW_SNU_BOOKING/commons/images/kiosk/SeatBtn_disable.png")] bg-contain bg-no-repeat bg-center'
+                            : isAvailable
+                              ? "bg-gradient-to-b from-[#ffc477] to-[#fb9e25] border border-[#eeb44f]"
+                              : "bg-[#e5e1c4]"
+                        }`}
                         style={{
                           left: `${position.left}px`,
                           top: `${position.top}px`,
                           width: `${position.width}px`,
                           height: `${position.height}px`,
-                          display: (isVisible && !isHiddenByMinimap) ? "flex" : "none"
+                          // display: !isHiddenByMinimap ? "flex" : "none"
                         }}
                         onClick={(e) => {
                           e.stopPropagation();

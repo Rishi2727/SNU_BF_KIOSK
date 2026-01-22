@@ -588,6 +588,7 @@ const Floor = () => {
                 onMiniMapError={() => setMiniMapError(true)}
                 isMinimapFocused={focusedRegion === FocusRegion.MINI_MAP}   // ✅
                 minimapFocusIndex={miniMapCursor}
+                focusedRegion={focusedRegion}
 
               />
             ) : (
