@@ -53,11 +53,11 @@ const FooterControls = ({
   );
   const [cursor, setCursor] = useState(null);
   const { speak, stop } = useVoice();
-const BACK_OFFSET = showBack ? 1 : 0;
+  const BACK_OFFSET = showBack ? 1 : 0;
 
 
   const FOOTER_BUTTON_COUNT =
-  (showBack ? 1 : 0) + (userInfo ? 11 : 10);
+    (showBack ? 1 : 0) + (userInfo ? 11 : 10);
 
 
   // ✅ Load saved language
@@ -104,16 +104,16 @@ const BACK_OFFSET = showBack ? 1 : 0;
 
   // ✅ Footer Enter handler
   const handleFooterEnter = (index) => {
-      // ⬅ BACK BUTTON
-  if (showBack && index === 1) {
-    onBack();
-    return;
-  }
+    // ⬅ BACK BUTTON
+    if (showBack && index === 1) {
+      onBack();
+      return;
+    }
     if (userInfo) {
       switch (index) {
         case 0:
           return;
-       case 1 + BACK_OFFSET:
+        case 1 + BACK_OFFSET:
           // Logout
           logout();
           return;
@@ -255,16 +255,16 @@ const BACK_OFFSET = showBack ? 1 : 0;
 
   // 🔊 VOICE: speak footer item on focus change (ALIGNED WITH UI)
   useEffect(() => {
-if (!isFocused || cursor === null || isAnyModalOpen) return;
+    if (!isFocused || cursor === null || isAnyModalOpen) return;
 
 
 
     stop();
-// 🔊 BACK BUTTON
-if (showBack && cursor === 1) {
-  speak(t("speech.Back"));
-  return;
-}
+    // 🔊 BACK BUTTON
+    if (showBack && cursor === 1) {
+      speak(t("speech.Back"));
+      return;
+    }
 
 
     let speakText = "";
@@ -362,7 +362,7 @@ if (showBack && cursor === 1) {
 
   return (
     <>
-      <div className="footer absolute bottom-px left-0 right-0 z-30 flex items-center justify-between px-7 py-2.5 bg-black/40 backdrop-blur-md">
+      <div className="footer absolute bottom-px left-0 right-0 z-30 flex items-center justify-between px-7 py-2 bg-black/40 backdrop-blur-md">
         {/* ✅ Footer Focus Border */}
         {isFocused && (
           <div className="pointer-events-none absolute inset-0 border-[6px] border-[#dc2f02]" />
@@ -440,7 +440,7 @@ if (showBack && cursor === 1) {
                 className={`min-w-17 h-14 text-[28px] font-bold
         ${language === lang ? "bg-[#FFCA08] rounded-lg text-white" : "bg-white text-black"}
         ${cursor === (userInfo ? 3 + i + BACK_OFFSET : 2 + i + BACK_OFFSET)
- && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}`}
+                    && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}`}
               >
                 {lang}
               </button>
@@ -454,14 +454,14 @@ if (showBack && cursor === 1) {
             icon={<Volume1 size={28} />}
             label={t("translations.Volume Down")}
             onClick={() => dispatch(decreaseVolume())}
-              isSelected={cursor === (userInfo ? 5 + BACK_OFFSET : 4 + BACK_OFFSET)}
+            isSelected={cursor === (userInfo ? 5 + BACK_OFFSET : 4 + BACK_OFFSET)}
             isFocused={isFocused}
           />
 
           <FooterButton
             label={`${Math.round(volume * 100)}%`}
             onClick={() => { }}
-          isSelected={cursor === (userInfo ? 6 + BACK_OFFSET : 5 + BACK_OFFSET)}
+            isSelected={cursor === (userInfo ? 6 + BACK_OFFSET : 5 + BACK_OFFSET)}
             isFocused={isFocused}
           />
 
@@ -469,7 +469,7 @@ if (showBack && cursor === 1) {
             icon={<Volume2 size={28} />}
             label={t("translations.Volume Up")}
             onClick={() => dispatch(increaseVolume())}
-           isSelected={cursor === (userInfo ? 7 + BACK_OFFSET : 6 + BACK_OFFSET)}
+            isSelected={cursor === (userInfo ? 7 + BACK_OFFSET : 6 + BACK_OFFSET)}
             isFocused={isFocused}
           />
 
@@ -477,7 +477,7 @@ if (showBack && cursor === 1) {
             icon={<InfoIcon size={28} />}
             label={t("translations.Info")}
             onClick={() => setIsInfoOpen(true)}
-          isSelected={cursor === (userInfo ? 8 + BACK_OFFSET : 7 + BACK_OFFSET)}
+            isSelected={cursor === (userInfo ? 8 + BACK_OFFSET : 7 + BACK_OFFSET)}
             isFocused={isFocused}
           />
 
@@ -495,7 +495,7 @@ if (showBack && cursor === 1) {
             label={t("translations.Contrast")}
             onClick={toggleContrast}
             active={contrastEnabled}
-         isSelected={cursor === (userInfo ? 10 + BACK_OFFSET : 9 + BACK_OFFSET)}
+            isSelected={cursor === (userInfo ? 10 + BACK_OFFSET : 9 + BACK_OFFSET)}
             isFocused={isFocused}
           />
         </div>

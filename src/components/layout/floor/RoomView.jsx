@@ -27,6 +27,8 @@ const RoomView = ({
   isMinimapFocused,
   minimapFocusIndex,
   onMiniSectorClick,
+  focusedSeatIndex, // ✅ Now controlled from parent
+  visibleSeatsFromParent, // ✅ Pass visible seats for speech
 }) => {
   const { speak, stop } = useVoice();
   const { t } = useTranslation();
@@ -44,13 +46,14 @@ const RoomView = ({
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const [imagePanOffset, setImagePanOffset] = useState({ x: 0, y: 0 });
   const [isImageLoaded, setIsImageLoaded] = useState(false);
-  const [focusedSeatIndex, setFocusedSeatIndex] = useState(-1);
   const [refsReady, setRefsReady] = useState(false);
 
   /* ================= ROOM CONFIG ================= */
   const roomConfig = useMemo(() => {
     return getRoomConfig(selectedSector?.SECTORNO);
   }, [selectedSector?.SECTORNO]);
+
+console.log("new",selectedSector);
 
   /* ================= RESET ON SECTOR CHANGE ================= */
   useEffect(() => {
@@ -63,7 +66,6 @@ const RoomView = ({
     setIsImageLoaded(false);
     setNaturalDimensions({ width: 0, height: 0 });
     setDisplayDimensions({ width: 0, height: 0 });
-    setFocusedSeatIndex(-1);
     setRefsReady(false);
   }, [selectedSector?.SECTORNO]);
 
@@ -380,7 +382,6 @@ const RoomView = ({
     if (sector) {
       setSelectedMiniSectorLocal(sector);
       setImagePanOffset({ x: -sector.x1, y: -sector.y1 });
-      setFocusedSeatIndex(-1); // Reset seat focus when sector changes
       if (onMiniSectorClick) {
         onMiniSectorClick(sector);
       }
@@ -415,25 +416,25 @@ const RoomView = ({
   };
 
   /* ================= VISIBLE SEATS MEMO ================= */
-const visibleSeats = useMemo(() => {
-  if (!seats?.length || !selectedMiniSectorLocal || !isImageLoaded) return [];
+  const visibleSeats = useMemo(() => {
+    if (!seats?.length || !selectedMiniSectorLocal || !isImageLoaded) return [];
 
-  const visible = seats.filter(seat => {
-    if (!isSeatInViewport(seat)) return false;
+    const visible = seats.filter(seat => {
+      if (!isSeatInViewport(seat)) return false;
 
-    const seatDiv = seatRefs.current[seat.SEATNO];
-    if (!seatDiv) return true;
+      const seatDiv = seatRefs.current[seat.SEATNO];
+      if (!seatDiv) return true;
 
-    return !isSeatHiddenByMinimap(seatDiv);
-  });
+      return !isSeatHiddenByMinimap(seatDiv);
+    });
 
-  // ✅ force stable order (left → right, top → bottom)
-  return visible.sort((a, b) => {
-    if (a.POSY === b.POSY) return a.POSX - b.POSX;
-    return a.POSY - b.POSY;
-  });
+    // ✅ force stable order (left → right, top → bottom)
+    return visible.sort((a, b) => {
+      if (a.POSY === b.POSY) return a.POSX - b.POSX;
+      return a.POSY - b.POSY;
+    });
 
-}, [seats, selectedMiniSectorLocal, imagePanOffset, isImageLoaded, containerSize]);
+  }, [seats, selectedMiniSectorLocal, imagePanOffset, isImageLoaded, containerSize]);
 
   /* ================= MARK REFS AS READY ================= */
   useEffect(() => {
@@ -447,57 +448,41 @@ const visibleSeats = useMemo(() => {
     return () => clearTimeout(timer);
   }, [seats, isImageLoaded]);
 
-  /* ================= SEAT KEYBOARD NAVIGATION ================= */
-  useEffect(() => {
-    if (focusedRegion !== "room") {
-      setFocusedSeatIndex(-1);
-      return;
-    }
 
-    if (!visibleSeats?.length) {
-      console.log('⚠️ No visible seats for navigation');
-      return;
-    }
 
-    console.log('✅ Seat navigation active, visible seats:', visibleSeats.length);
+  // for mini map auto focus 
+useEffect(() => {
+  if (
+    !isMinimapFocused ||          
+    minimapFocusIndex === -1 ||   
+    !sectors?.length            
+  ) {
+    return;
+  }
 
-    const onKeyDown = (e) => {
-      // Don't consume the focus toggle key
-      if (e.key === "*" || e.code === "NumpadMultiply" || e.keyCode === 106) return;
+  const sector = sectors[minimapFocusIndex];
+  if (!sector) return;
 
-      const TOTAL = visibleSeats.length;
+  // 🔥 AUTO-ZOOM / PAN ON FOCUS MOVE
+  setSelectedMiniSectorLocal(sector);
+  setImagePanOffset({ x: -sector.x1, y: -sector.y1 });
 
-      if (e.key === "ArrowRight") {
-        e.preventDefault();
-        setFocusedSeatIndex((prev) => {
-          const next = prev === -1 ? 0 : (prev + 1) % TOTAL;
-          console.log('➡️ Next seat:', next, visibleSeats[next]?.VNAME);
-          return next;
-        });
-      }
+  // 🔁 keep parent in sync (optional but safe)
+  if (onMiniSectorClick) {
+    onMiniSectorClick(sector);
+  }
 
-      if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        setFocusedSeatIndex((prev) => {
-          const next = prev === -1 ? TOTAL - 1 : (prev - 1 + TOTAL) % TOTAL;
-          console.log('⬅️ Previous seat:', next, visibleSeats[next]?.VNAME);
-          return next;
-        });
-      }
+}, [minimapFocusIndex, isMinimapFocused, sectors]);
 
-      if (e.key === "Enter" && focusedSeatIndex !== -1) {
-        e.preventDefault();
-        const seat = visibleSeats[focusedSeatIndex];
-        if (seat) {
-          console.log('✅ Selecting seat:', seat.VNAME);
-          onSeatClick(seat);
-        }
-      }
-    };
 
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [focusedRegion, visibleSeats, focusedSeatIndex, onSeatClick]);
+
+useEffect(() => {
+  if (typeof visibleSeatsFromParent === "function") {
+    visibleSeatsFromParent(visibleSeats);
+  }
+}, [visibleSeats, visibleSeatsFromParent]);
+
+
 
   /* ================= RENDER ================= */
   return (
@@ -584,9 +569,8 @@ const visibleSeats = useMemo(() => {
                       <div
                         ref={(el) => (seatRefs.current[seat.SEATNO] = el)}
                         key={seat.SEATNO}
-                        className={`absolute pointer-events-auto cursor-pointer transition-all hover:opacity-80 ${
-                          isFocused ? 'ring-[6px] ring-[#dc2f02] ring-offset-2 z-50' : ''
-                        }`}
+                        className={`absolute pointer-events-auto cursor-pointer transition-all hover:opacity-80 ${isFocused ? 'ring-[6px] ring-[#dc2f02] ring-offset-2 z-50' : ''
+                          }`}
                         style={{
                           left: `${position.left}px`,
                           top: `${position.top}px`,
@@ -615,15 +599,13 @@ const visibleSeats = useMemo(() => {
                       <div
                         ref={(el) => (seatRefs.current[seat.SEATNO] = el)}
                         key={seat.SEATNO}
-                        className={`absolute pointer-events-auto cursor-pointer rounded transition-all hover:scale-105 flex items-center justify-center ${
-                          isFocused ? 'ring-[6px] ring-[#dc2f02] ring-offset-2 z-50' : ''
-                        } ${
-                          isHandicap
+                        className={`absolute pointer-events-auto cursor-pointer rounded transition-all hover:scale-105 flex items-center justify-center ${isFocused ? 'ring-[6px] ring-[#dc2f02] ring-offset-2 z-50' : ''
+                          } ${isHandicap
                             ? 'bg-[url("http://k-rsv.snu.ac.kr:8011/NEW_SNU_BOOKING/commons/images/kiosk/SeatBtn_disable.png")] bg-contain bg-no-repeat bg-center'
                             : isAvailable
                               ? "bg-gradient-to-b from-[#ffc477] to-[#fb9e25] border border-[#eeb44f]"
                               : "bg-[#e5e1c4]"
-                        }`}
+                          }`}
                         style={{
                           left: `${position.left}px`,
                           top: `${position.top}px`,

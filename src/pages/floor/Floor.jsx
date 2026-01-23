@@ -14,22 +14,26 @@ import FloorMapImage from "../../components/layout/floor/FloorMapImage";
 import FloorStatsBar from "../../components/layout/floor/FloorStatsBar";
 import FloorLegendBar from "../../components/layout/floor/FloorLegendBar";
 import FooterControls from "../../components/common/Footer";
-import { FloorImageUrl, getKioskUserInfo, getSeatList, ImageBaseUrl } from "../../services/api";
+import {
+  FloorImageUrl,
+  getKioskUserInfo,
+  getSeatList,
+  ImageBaseUrl,
+} from "../../services/api";
 import { MINI_MAP_LAYOUT, MINIMAP_CONFIG } from "../../utils/constant";
 import SeatActionModal from "../../components/common/SeatActionModal";
 import { useTranslation } from "react-i18next";
 import { useVoice } from "../../context/voiceContext";
-
+import { formatFloorForSpeech } from "../../utils/speechFormatter";
 
 const Floor = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
   const { floorId, sectorNo, move } = useParams();
-  const [mapCursor, setMapCursor] = useState(null);
   const [miniMapCursor, setMiniMapCursor] = useState(-1);
   const { userInfo } = useSelector((state) => state.userInfo);
-  // For speak and translations 
+  // For speak and translations
   const { speak, stop } = useVoice();
   const { t } = useTranslation();
   const [isAnyModalOpen, setIsAnyModalOpen] = useState(false);
@@ -66,15 +70,18 @@ const Floor = () => {
   const prevSectorNoRef = useRef(null);
   const [focusedRegion, setFocusedRegion] = useState(null);
   const lang = useSelector((state) => state.lang.current);
+const [visibleSeats, setVisibleSeats] = useState([]);
+
+  // ✅ CENTRALIZED MAIN CONTENT NAVIGATION
+  const [mainContentCursor, setMainContentCursor] = useState(null);
+
   const FocusRegion = Object.freeze({
     FLOOR_STATS: "floor_stats",
-    LEGEND: "legend",
     MINI_MAP: "mini_map",
-    MAP: "map",          // ✅ ADD THIS
+    MAP: "map", // ✅ ADD THIS
     ROOM: "room",
     FOOTER: "footer",
   });
-
 
   /**
    * Initialize authenticated user on mount
@@ -111,13 +118,11 @@ const Floor = () => {
     loading,
   } = useFloorData(floorId, initialFloorInfo);
 
-
   useEffect(() => {
     setMiniMapCursor(-1);
   }, [selectedSector]);
 
-
-  //Speak on screen 
+  //Speak on screen
   useEffect(() => {
     const onKeyDown = (e) => {
       const isHash =
@@ -129,7 +134,9 @@ const Floor = () => {
       if (e.repeat) return;
 
       stop();
-      speak(t("speech.This screen is the floor or reading room selection screen."));
+      speak(
+        t("speech.This screen is the floor or reading room selection screen."),
+      );
     };
 
     window.addEventListener("keydown", onKeyDown);
@@ -167,7 +174,6 @@ const Floor = () => {
     if (showRoomView) {
       return [
         FocusRegion.FLOOR_STATS,
-        FocusRegion.LEGEND,
         FocusRegion.MINI_MAP,
         FocusRegion.ROOM,
         FocusRegion.FOOTER,
@@ -176,8 +182,7 @@ const Floor = () => {
 
     return [
       FocusRegion.FLOOR_STATS,
-      FocusRegion.LEGEND,
-      FocusRegion.MAP,   // ✅ NOW VALID
+      FocusRegion.MAP, // ✅ NOW VALID
       FocusRegion.FOOTER,
     ];
   };
@@ -208,6 +213,121 @@ const Floor = () => {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [showSeatModal, isAnyModalOpen, showRoomView]);
 
+  /* =====================================================
+     CENTRALIZED MAIN CONTENT NAVIGATION (MAP/ROOM)
+  ===================================================== */
+  /* =====================================================
+     MAP LABEL HANDLING
+  ===================================================== */
+  const getSectorLabel = (sector, index = 0) => {
+    if (!sector?.MAPLABEL) return "";
+    const labels = sector.ROOM_NAME.split("$").map((l) => l.trim());
+    return labels[index] || labels[0];
+  };
+
+  const displayableSectors = filterDisplayableSectors(sectorList);
+  // Reset cursor when focus region changes
+  // ✅ AUTO-UPDATE focusedRegion when view changes
+  useEffect(() => {
+    if (showRoomView && focusedRegion === FocusRegion.MAP) {
+      setFocusedRegion(FocusRegion.ROOM);
+    } else if (!showRoomView && focusedRegion === FocusRegion.ROOM) {
+      setFocusedRegion(FocusRegion.MAP);
+    }
+  }, [showRoomView, focusedRegion]);
+
+  // Reset cursor when focus region changes OR when view changes
+  useEffect(() => {
+    setMainContentCursor(null);
+    stop();
+  }, [focusedRegion, showRoomView, stop]);
+
+  // Get total items for main content navigation
+  const getMainContentItemCount = () => {
+    const LEGEND_BAR_COUNT = 4;
+
+    if (focusedRegion === FocusRegion.MAP) {
+      return LEGEND_BAR_COUNT + (displayableSectors?.length || 0);
+    }
+
+    if (focusedRegion === FocusRegion.ROOM) {
+      // Calculate visible seats from RoomView
+      const visibleSeatsCount = seats.filter((seat) => {
+        // This will be calculated properly in RoomView, for now use all seats
+        return true;
+      }).length;
+      return LEGEND_BAR_COUNT + visibleSeatsCount;
+    }
+
+    return LEGEND_BAR_COUNT;
+  };
+
+  // Main content keyboard navigation
+  useEffect(() => {
+    if (focusedRegion !== FocusRegion.MAP && focusedRegion !== FocusRegion.ROOM)
+      return;
+    if (isAnyModalOpen) return;
+
+    const LEGEND_BAR_COUNT = 4;
+    const TOTAL_ITEMS = getMainContentItemCount();
+
+    const onKeyDown = (e) => {
+      // Don't consume focus toggle key
+      if (e.key === "*" || e.code === "NumpadMultiply" || e.keyCode === 106)
+        return;
+
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        setMainContentCursor((prev) =>
+          prev === null ? 0 : (prev + 1) % TOTAL_ITEMS,
+        );
+      }
+
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        setMainContentCursor((prev) =>
+          prev === null
+            ? TOTAL_ITEMS - 1
+            : (prev - 1 + TOTAL_ITEMS) % TOTAL_ITEMS,
+        );
+      }
+
+      if (e.key === "Enter" && mainContentCursor !== null) {
+        e.preventDefault();
+
+        // If cursor is in legend bar range (0-3), do nothing (just for navigation)
+        if (mainContentCursor < LEGEND_BAR_COUNT) {
+          return;
+        }
+
+        // If cursor is in map/room content range
+        const contentIndex = mainContentCursor - LEGEND_BAR_COUNT;
+
+        if (focusedRegion === FocusRegion.MAP && displayableSectors?.length) {
+          handleSectorClick(displayableSectors[contentIndex]);
+        }
+
+        if (focusedRegion === FocusRegion.ROOM) {
+          // Handle seat click - will be implemented with visible seats
+          const visibleSeats = seats; // This will be refined
+          if (visibleSeats[contentIndex]) {
+            handleSeatClick(visibleSeats[contentIndex]);
+          }
+        }
+        
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [
+    focusedRegion,
+    mainContentCursor,
+    displayableSectors,
+    seats,
+    isAnyModalOpen,
+  ]);
+
   useEffect(() => {
     if (focusedRegion !== FocusRegion.MINI_MAP) return;
     if (!showRoomView) return;
@@ -216,20 +336,19 @@ const Floor = () => {
     const TOTAL = layout.sectors.length;
 
     const onKeyDown = (e) => {
-      if (e.key === "*" || e.code === "NumpadMultiply" || e.keyCode === 106) return;
+      if (e.key === "*" || e.code === "NumpadMultiply" || e.keyCode === 106)
+        return;
 
       // 👉 ONLY MOVE RED BORDER (NO ZOOM, NO CLICK)
       if (e.key === "ArrowRight") {
         e.preventDefault();
-        setMiniMapCursor((prev) =>
-          prev === -1 ? 0 : (prev + 1) % TOTAL
-        );
+        setMiniMapCursor((prev) => (prev === -1 ? 0 : (prev + 1) % TOTAL));
       }
 
       if (e.key === "ArrowLeft") {
         e.preventDefault();
         setMiniMapCursor((prev) =>
-          prev === -1 ? TOTAL - 1 : (prev - 1 + TOTAL) % TOTAL
+          prev === -1 ? TOTAL - 1 : (prev - 1 + TOTAL) % TOTAL,
         );
       }
 
@@ -248,9 +367,7 @@ const Floor = () => {
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-
   }, [focusedRegion, showRoomView, layout, miniMapCursor]);
-
 
   /* =====================================================
      LOGOUT
@@ -320,7 +437,7 @@ const Floor = () => {
   useEffect(() => {
     if (sectorNo && sectorList?.length) {
       const sector = sectorList.find(
-        (s) => String(s.SECTORNO) === String(sectorNo)
+        (s) => String(s.SECTORNO) === String(sectorNo),
       );
 
       if (sector) {
@@ -389,10 +506,10 @@ const Floor = () => {
      MINI MAP CLICK
   ===================================================== */
   const handleMiniSectorClick = (sector) => {
-    setImageTransform(prev => ({
+    setImageTransform((prev) => ({
       ...prev,
       x: -sector.x1,
-      y: -sector.y1
+      y: -sector.y1,
     }));
   };
   /* =====================================================
@@ -421,105 +538,90 @@ const Floor = () => {
     setIsAnyModalOpen(false);
   };
 
-  /* =====================================================
-     MAP LABEL HANDLING
-  ===================================================== */
-  const getSectorLabel = (sector, index = 0) => {
-    if (!sector?.MAPLABEL) return "";
-    const labels = sector.ROOM_NAME.split("$").map((l) => l.trim());
-    return labels[index] || labels[0];
-  };
-
-  const displayableSectors = filterDisplayableSectors(sectorList);
-
   // ==============Map of Image ==================
 
   useEffect(() => {
-    if (focusedRegion !== FocusRegion.MAP) {
-      setMapCursor(null);
-    }
-  }, [focusedRegion]);
-
-  useEffect(() => {
-    if (focusedRegion !== FocusRegion.MAP) return;
-    if (isAnyModalOpen) return;
-    if (!displayableSectors?.length) return;
-
-    const SECTION_COUNT = displayableSectors.length;
-
-    const onKeyDown = (e) => {
-      // 🚫 never consume focus toggle key
-      if (e.key === "*" || e.code === "NumpadMultiply" || e.keyCode === 106) {
-        if (!isAsterisk) return;
-        if (showSeatModal || isAnyModalOpen) return;
-
-      }
-
-      if (e.key === "ArrowRight") {
-        e.preventDefault();
-        setMapCursor((c) => (c == null ? 0 : (c + 1) % SECTION_COUNT));
-      }
-
-      if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        setMapCursor((c) =>
-          c == null
-            ? SECTION_COUNT - 1
-            : (c - 1 + SECTION_COUNT) % SECTION_COUNT
-        );
-      }
-
-      if (e.key === "Enter" && mapCursor != null) {
-        e.preventDefault();
-        handleSectorClick(displayableSectors[mapCursor]);
-      }
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [focusedRegion, mapCursor, displayableSectors]);
-
-  useEffect(() => {
     if (isAnyModalOpen) {
-      stop();          // 🔇 stop header/footer speech
+      stop(); // 🔇 stop header/footer speech
       setFocusedRegion(null); // ❌ clear background focus
     }
   }, [isAnyModalOpen, stop]);
 
-
+  // 🔊 SPEECH: Main content (legend bar + map/room)
   useEffect(() => {
-    if (focusedRegion !== FocusRegion.MAP) return;
-    if (mapCursor === null) return;
-    if (!displayableSectors?.length) return;
-
-    const sector = displayableSectors[mapCursor];
-    if (!sector) return;
+    if (focusedRegion !== FocusRegion.MAP && focusedRegion !== FocusRegion.ROOM)
+      return;
+    if (mainContentCursor === null) return;
 
     stop();
 
-    const label = getSectorLabel(sector);
+    const LEGEND_BAR_COUNT = 4;
 
-    // Basic speech (safe)
-    speak(
-      t("speech.MAP_SECTOR_INFO", {
-        sector: label,
-      })
-    );
+    // If cursor is in legend bar range (0-3)
+    if (mainContentCursor < LEGEND_BAR_COUNT) {
+      switch (mainContentCursor) {
+        case 0:
+          speak(
+            t("speech.Floor legend location", {
+              building: t(
+                `translations.${"Central Library, Gwanjeong Building"}`,
+              ),
+              floor: formatFloorForSpeech(currentFloor?.title, lang),
+              room: selectedSector?.MAPLABEL || "",
+            }),
+          );
+          break;
+        case 1:
+          speak(t("speech.Available seats"));
+          break;
+        case 2:
+          speak(t("speech.Booked seats"));
+          break;
+        case 3:
+          speak(t("speech.Disabled seats"));
+          break;
+      }
+      return;
+    }
+
+    // If cursor is in content range (map sectors or room seats)
+    const contentIndex = mainContentCursor - LEGEND_BAR_COUNT;
+
+    if (focusedRegion === FocusRegion.MAP && displayableSectors?.length) {
+      const sector = displayableSectors[contentIndex];
+      if (sector) {
+        const label = getSectorLabel(sector);
+        speak(
+          t("speech.MAP_SECTOR_INFO", {
+            sector: label,
+          }),
+        );
+      }
+    }
+
+if (focusedRegion === FocusRegion.ROOM && visibleSeats?.length) {
+  const seat = visibleSeats[contentIndex];
+  if (seat) {
+    speak(`Seat ${seat.VNAME}`);
+  }
+}
 
   }, [
     focusedRegion,
-    mapCursor,
+    mainContentCursor,
     displayableSectors,
+    seats,
+    currentFloor,
+    selectedSector,
     speak,
     stop,
     t,
-
+    lang,
   ]);
 
   useEffect(() => {
     setMiniMapCursor(-1);
   }, [selectedSector]);
-
 
   // 2. REPLACE the "RESET ON SECTOR CHANGE" useEffect with this:
   useEffect(() => {
@@ -534,6 +636,7 @@ const Floor = () => {
 
     // Don't reset: miniMapCursor, selectedMiniSector, imageTransform, isZoomed
   }, [selectedSector]);
+  
   // /* =====================================================
   //  RENDER
   // ===================================================== */
@@ -544,26 +647,32 @@ const Floor = () => {
         className="absolute inset-0 h-full w-full object-cover"
         alt="background"
       />
-      {/* ================= LEGEND + FOOTER ================= */}
-      <FloorLegendBar
-        buildingName="Central Library, Gwanjeong Building"
-        floorName={currentFloor?.title}
-        roomName={selectedSector?.MAPLABEL}
-        isFocused={focusedRegion === FocusRegion.LEGEND}
-        isAnyModalOpen={isAnyModalOpen}
-
-      />
-
       {/* ================= MAIN CONTENT ================= */}
-      <div className={`absolute inset-0 flex items-center justify-center z-0 mx-[11px] ${focusedRegion === FocusRegion.ROOM
-        ? "border-[5px] border-[#dc2f02] box-border"
-        : "border-[5px] border-transparent box-border"
-        }`}>
-
+      <div
+        className={`absolute inset-0 flex items-center justify-center z-0 mx-[11px] ${
+          focusedRegion === FocusRegion.ROOM ||
+          focusedRegion === FocusRegion.MAP
+            ? "border-[5px] border-[#dc2f02] box-border"
+            : "border-[5px] border-transparent box-border"
+        }`}
+      >
+        <FloorLegendBar
+          buildingName="Central Library, Gwanjeong Building"
+          floorName={currentFloor?.title}
+          roomName={selectedSector?.MAPLABEL}
+          isFocused={
+            focusedRegion === FocusRegion.ROOM ||
+            focusedRegion === FocusRegion.MAP
+          }
+          isAnyModalOpen={isAnyModalOpen}
+          cursor={mainContentCursor}
+          SECTION_COUNT={4}
+        />
 
         {currentFloor && (
-          <div className={`relative w-full h-[720px] bg-white/10 backdrop-blur-sm rounded-lg  shadow-2xl `}>
-
+          <div
+            className={`relative w-full h-[720px] bg-white/10 backdrop-blur-sm rounded-lg  shadow-2xl `}
+          >
             {loading ? (
               <LoadingSpinner />
             ) : showRoomView && selectedSector ? (
@@ -590,35 +699,37 @@ const Floor = () => {
                 isMinimapFocused={focusedRegion === FocusRegion.MINI_MAP}
                 minimapFocusIndex={miniMapCursor}
                 focusedRegion={focusedRegion}
-
+                focusedSeatIndex={
+                  mainContentCursor !== null && mainContentCursor >= 4
+                    ? mainContentCursor - 4
+                    : -1
+                }
+                 visibleSeatsFromParent={setVisibleSeats}
               />
             ) : (
               <div className="relative w-full h-full">
-                <div
-                  className={`relative w-full h-full`}
-                >
+                <div className={`relative w-full h-full`}>
                   <FloorMapImage
                     floorImageUrl={floorImageUrl}
                     currentFloor={currentFloor}
                     onImageError={handleImageError}
                     imageError={imageError}
-
                   />
 
                   {!imageError &&
                     displayableSectors.map((sector, sectorIndex) => {
                       const mapStylesList = parseMapPoint(sector.MAPPOINT);
-
+                      const LEGEND_BAR_COUNT = 4;
+                      const isSectorFocused =
+                        focusedRegion === FocusRegion.MAP &&
+                        mainContentCursor === sectorIndex + LEGEND_BAR_COUNT;
 
                       return mapStylesList.map((mapStyles, idx) => (
                         <button
                           key={`${sector.SECTORNO}-${idx}`}
                           onClick={() => handleSectorClick(sector)}
                           className="group absolute transition-all z-20"
-                          aria-selected={
-                            focusedRegion === FocusRegion.MAP &&
-                            mapCursor === sectorIndex
-                          }
+                          aria-selected={isSectorFocused}
                           style={{
                             top: mapStyles.top,
                             left: mapStyles.left,
@@ -629,21 +740,20 @@ const Floor = () => {
                           }}
                         >
                           {/* ✅ FOCUS VISUAL (padding + min height effect) */}
-                          {focusedRegion === FocusRegion.MAP && mapCursor === sectorIndex && (
+                          {isSectorFocused && (
                             <div className="pointer-events-none absolute -inset-2 rounded border-[6px] border-[#dc2f02] " />
                           )}
 
                           <div
                             className="pointer-events-none absolute -top-4 left-[-15px] right-3 bottom-6 bg-[#FFCA08]/20 border-2 border-[#FFCA08] rounded
-                           opacity-0 group-hover:opacity-100 transition-all duration-200" />
+                           opacity-0 group-hover:opacity-100 transition-all duration-200"
+                          />
                           <div className="absolute -top-15 left-1/2 -translate-x-1/2 pointer-events-none">
                             <span className="bg-[#9A7D4C] text-white px-4 py-1.5 rounded-md text-[30px] font-bold shadow-lg whitespace-nowrap">
                               {t(`${getSectorLabel(sector, idx)}`)}
                             </span>
                           </div>
-
                         </button>
-
                       ));
                     })}
                 </div>
@@ -664,9 +774,7 @@ const Floor = () => {
           isAnyModalOpen={isAnyModalOpen}
         />
       </div>
-      <div
-
-      >
+      <div>
         <FooterControls
           userInfo={userInfo}
           logout={handleLogout}
@@ -677,14 +785,12 @@ const Floor = () => {
         />
       </div>
 
-
       {/* ================= SEAT BOOKING MODAL ================= */}
       <SeatActionModal
         mode={isMoveMode ? "move" : "booking"}
         seat={selectedSeat}
         isOpen={showSeatModal}
         onClose={handleCloseModal}
-
       />
     </div>
   );

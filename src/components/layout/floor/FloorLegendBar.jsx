@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Home, Users, Armchair, ArrowLeft } from 'lucide-react';
 import { useVoice } from "../../../context/voiceContext";
 import { useTranslation } from "react-i18next";
@@ -10,63 +10,14 @@ const FloorLegendBar = ({
   floorName,
   roomName,
   isFocused,
-  isAnyModalOpen
+  isAnyModalOpen,
+  cursor, // ✅ Now controlled from parent
+  SECTION_COUNT = 4, // ✅ Passed from parent
 }) => {
 
-  const SECTION_COUNT = 4;
-  const [cursor, setCursor] = useState(null);
   const { speak, stop } = useVoice();
   const { t } = useTranslation();
   const lang = i18n.language;
-  /* --------------------------
-   RESET CURSOR ON DEFOCUS
----------------------------*/
-  useEffect(() => {
-    if (!isFocused) {
-      setCursor(null);
-    }
-  }, [isFocused]);
-
-
-  // --------------------------
-  // KEYBOARD NAVIGATION
-  // --------------------------
-  useEffect(() => {
-    if (!isFocused || isAnyModalOpen) return;
-
-    const onKeyDown = (e) => {
-      // Never consume focus toggle key
-      if (
-        e.key === "*" ||
-        e.code === "NumpadMultiply" ||
-        e.keyCode === 106
-      ) {
-        return;
-      }
-
-      if (e.key === "ArrowRight") {
-        e.preventDefault();
-        setCursor((c) =>
-          c == null ? 0 : (c + 1) % SECTION_COUNT
-        );
-      }
-
-      if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        setCursor((c) =>
-          c == null ? SECTION_COUNT - 1 : (c - 1 + SECTION_COUNT) % SECTION_COUNT
-        );
-      }
-
-      if (e.key === "Enter") {
-        e.preventDefault();
-
-      }
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [isFocused, cursor, SECTION_COUNT]);
 
 
   // 🔊 VOICE: speak legend item when cursor changes
@@ -129,7 +80,7 @@ const FloorLegendBar = ({
         bg-[#b8975e81]  h-[180px] top-0.5
         flex items-center justify-between
         text-white shadow-lg z-20 
-        ${isFocused ? focusRing : ""}
+       
       `}>
 
 
