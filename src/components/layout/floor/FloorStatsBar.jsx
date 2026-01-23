@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { formatFloorForSpeech } from "../../../utils/speechFormatter";
 import { useDispatch, useSelector } from "react-redux";
 
-const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused ,isAnyModalOpen}) => {
+const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused, isAnyModalOpen }) => {
   const calculatePercentage = (occupied, total) => {
     return (occupied / total) * 100;
   };
@@ -14,7 +14,7 @@ const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused 
   const { t } = useTranslation();
   const lang = useSelector((state) => state.lang.current);
 
- const dispatch = useDispatch();
+  const dispatch = useDispatch();
   /* --------------------------
    RESET CURSOR ON DEFOCUS
 ---------------------------*/
@@ -93,12 +93,12 @@ const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused 
     <div
       className={`
         floor-stats-bar
-    w-full
-    absolute bottom-2.5 right-[5px] z-30
-    flex items-center justify-between gap-5
+    w-[78%]
+    absolute bottom-2.5  z-30
+    flex items-center   gap-5
     px-5   py-1
     bg-white/90 backdrop-blur-md
-    rounded-tl-2xl shadow-xl
+   rounded-md shadow-xl
     ${isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}
   `}
     >

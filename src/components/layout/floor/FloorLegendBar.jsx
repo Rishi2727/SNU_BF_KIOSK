@@ -109,7 +109,7 @@ const FloorLegendBar = ({
       </div>
 
       {/* RIGHT */}
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-6 mr-3">
         <div className={`flex items-center gap-2 ${isFocusedAt(1) ? focusRing : ""}`}
           aria-selected={isFocusedAt(1)}>
           <div className="w-8 h-8 bg-[#FFCA08] rounded"></div>

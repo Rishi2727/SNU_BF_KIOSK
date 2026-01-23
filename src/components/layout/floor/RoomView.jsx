@@ -27,8 +27,9 @@ const RoomView = ({
   isMinimapFocused,
   minimapFocusIndex,
   onMiniSectorClick,
-  focusedSeatIndex, // ✅ Now controlled from parent
-  visibleSeatsFromParent, // ✅ Pass visible seats for speech
+  focusedSeatIndex, 
+  visibleSeatsFromParent, 
+  onSectorsCalculated,
 }) => {
   const { speak, stop } = useVoice();
   const { t } = useTranslation();
@@ -50,10 +51,14 @@ const RoomView = ({
 
   /* ================= ROOM CONFIG ================= */
   const roomConfig = useMemo(() => {
-    return getRoomConfig(selectedSector?.SECTORNO);
+    const config = getRoomConfig(selectedSector?.SECTORNO);
+    // Default overlap threshold is 0.1 (meaning 90% visibility required)
+    return {
+      ...config
+    };
   }, [selectedSector?.SECTORNO]);
 
-console.log("new",selectedSector);
+  console.log("new", selectedSector);
 
   /* ================= RESET ON SECTOR CHANGE ================= */
   useEffect(() => {
@@ -361,6 +366,42 @@ console.log("new",selectedSector);
     setIsImageLoaded(true);
   };
 
+  /* ================= CHECK SEAT VISIBILITY BY OVERLAP ================= */
+  const isSeatVisibleByOverlap = (seat) => {
+    if (!selectedMiniSectorLocal || !sectors.length) return true;
+
+    const sector = sectors.find(s => s.id === selectedMiniSectorLocal.id);
+    if (!sector) return true;
+
+    const threshold = roomConfig.SEAT_OVERLAP_THRESHOLD || 0.1;
+
+    const position = parseSeatPosition(seat);
+    if (!position) return false;
+
+    const seatLeft = parseFloat(position.left);
+    const seatTop = parseFloat(position.top);
+    const seatWidth = parseFloat(position.width);
+    const seatHeight = parseFloat(position.height);
+    const seatRight = seatLeft + seatWidth;
+    const seatBottom = seatTop + seatHeight;
+    const seatArea = seatWidth * seatHeight;
+
+    const overlapLeft = Math.max(seatLeft, sector.x1);
+    const overlapTop = Math.max(seatTop, sector.y1);
+    const overlapRight = Math.min(seatRight, sector.x2);
+    const overlapBottom = Math.min(seatBottom, sector.y2);
+
+    if (overlapLeft < overlapRight && overlapTop < overlapBottom) {
+      const overlapArea = (overlapRight - overlapLeft) * (overlapBottom - overlapTop);
+      const overlapPercentage = overlapArea / seatArea;
+
+      // Show seat only if overlap is >= 90% (1 - 0.1 threshold)
+      return overlapPercentage >= (1 - threshold);
+    }
+
+    return false;
+  };
+
   /* ================= MINIMAP HIDE CHECK ================= */
   const isSeatHiddenByMinimap = (seatDiv) => {
     if (!miniMapRef.current || !seatDiv) return false;
@@ -420,8 +461,13 @@ console.log("new",selectedSector);
     if (!seats?.length || !selectedMiniSectorLocal || !isImageLoaded) return [];
 
     const visible = seats.filter(seat => {
+      // Check if seat is in viewport
       if (!isSeatInViewport(seat)) return false;
 
+      // ✅ NEW: Check if seat has sufficient overlap with current sector
+      if (!isSeatVisibleByOverlap(seat)) return false;
+
+      // Check if hidden by minimap
       const seatDiv = seatRefs.current[seat.SEATNO];
       if (!seatDiv) return true;
 
@@ -429,10 +475,24 @@ console.log("new",selectedSector);
     });
 
     // ✅ force stable order (left → right, top → bottom)
-    return visible.sort((a, b) => {
-      if (a.POSY === b.POSY) return a.POSX - b.POSX;
-      return a.POSY - b.POSY;
-    });
+ // ✅ stable + counting-wise order
+return visible.sort((a1, b1) => {
+  const a = a1.VNAME
+  const b = b1.VNAME
+
+  const re = /^([A-Za-z]*)(\d*)$/;
+
+  const [, aPrefix, aNum] = a.match(re);
+  const [, bPrefix, bNum] = b.match(re);
+
+  // 1️⃣ Compare prefix (letters)
+  if (aPrefix !== bPrefix) {
+    return aPrefix.localeCompare(bPrefix);
+  }
+
+  // 2️⃣ Compare numeric part
+  return (parseInt(aNum || 0) - parseInt(bNum || 0));
+});
 
   }, [seats, selectedMiniSectorLocal, imagePanOffset, isImageLoaded, containerSize]);
 
@@ -448,41 +508,42 @@ console.log("new",selectedSector);
     return () => clearTimeout(timer);
   }, [seats, isImageLoaded]);
 
+  /* ====================HANDLED MINI MAP AUTO FOCUS ===================== */ 
+  useEffect(() => {
+    if (
+      !isMinimapFocused ||
+      minimapFocusIndex === -1 ||
+      !sectors?.length
+    ) {
+      return;
+    }
+    const clampedIndex = Math.min(minimapFocusIndex, sectors.length - 1);
+    const sector = sectors[clampedIndex];
+    
+    if (!sector) {
+      console.warn('⚠️ Sector not found at index:', minimapFocusIndex, 'max:', sectors.length - 1);
+      return;
+    }
+    setSelectedMiniSectorLocal(sector);
+    setImagePanOffset({ x: -sector.x1, y: -sector.y1 });
+    if (onMiniSectorClick) {
+      onMiniSectorClick(sector);
+    }
+  }, [minimapFocusIndex, isMinimapFocused, sectors, onMiniSectorClick]);
 
+  // Used for keyboard cursor bounds and minimap navigation
+  useEffect(() => {
+    if (sectors?.length > 0 && onSectorsCalculated) {
+      onSectorsCalculated(sectors.length);
+    }
+  }, [sectors, onSectorsCalculated]);
 
-  // for mini map auto focus 
-useEffect(() => {
-  if (
-    !isMinimapFocused ||          
-    minimapFocusIndex === -1 ||   
-    !sectors?.length            
-  ) {
-    return;
-  }
-
-  const sector = sectors[minimapFocusIndex];
-  if (!sector) return;
-
-  // 🔥 AUTO-ZOOM / PAN ON FOCUS MOVE
-  setSelectedMiniSectorLocal(sector);
-  setImagePanOffset({ x: -sector.x1, y: -sector.y1 });
-
-  // 🔁 keep parent in sync (optional but safe)
-  if (onMiniSectorClick) {
-    onMiniSectorClick(sector);
-  }
-
-}, [minimapFocusIndex, isMinimapFocused, sectors]);
-
-
-
-useEffect(() => {
-  if (typeof visibleSeatsFromParent === "function") {
-    visibleSeatsFromParent(visibleSeats);
-  }
-}, [visibleSeats, visibleSeatsFromParent]);
-
-
+  // Used for keyboard navigation, focus handling, and speech
+  useEffect(() => {
+    if (typeof visibleSeatsFromParent === "function") {
+      visibleSeatsFromParent(visibleSeats);
+    }
+  }, [visibleSeats, visibleSeatsFromParent]);
 
   /* ================= RENDER ================= */
   return (
@@ -496,10 +557,11 @@ useEffect(() => {
         {!loadingSeats && selectedSector?.SECTOR_IMAGE && (
           <div
             ref={miniMapRef}
-            className="absolute z-50 bg-white/10"
+            className="absolute z-100 bg-white/10"
             style={{
               top: `${roomConfig.MINIMAP_POSITION_TOP}px`,
-              left: `${roomConfig.MINIMAP_POSITION_LEFT}px`
+              left: `${roomConfig.MINIMAP_POSITION_LEFT}px`,
+              
             }}
           >
             {sectors.length === 0 && (
@@ -554,8 +616,10 @@ useEffect(() => {
                   const position = parseSeatPosition(seat);
                   if (!position) return null;
 
-                  // const seatDiv = seatRefs.current[seat.SEATNO];
-                  // const isHiddenByMinimap = isSeatHiddenByMinimap(seatDiv);
+                  // ✅ Check visibility by overlap
+                  const isVisibleByOverlap = isSeatVisibleByOverlap(seat);
+                  if (!isVisibleByOverlap) return null;
+
                   const visibleIndex = visibleSeats.findIndex(s => s.SEATNO === seat.SEATNO);
                   const isFocused = visibleIndex === focusedSeatIndex && focusedRegion === "room";
 
@@ -609,9 +673,8 @@ useEffect(() => {
                         style={{
                           left: `${position.left}px`,
                           top: `${position.top}px`,
-                          width: `${position.width}px`,
+                          width: `${position.width * roomConfig.ZOOM_SEATS_SCALE}px`,
                           height: `${position.height}px`,
-                          // display: !isHiddenByMinimap ? "flex" : "none"
                         }}
                         onClick={(e) => {
                           e.stopPropagation();

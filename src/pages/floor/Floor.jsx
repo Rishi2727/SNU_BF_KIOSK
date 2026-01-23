@@ -33,13 +33,10 @@ const Floor = () => {
   const { floorId, sectorNo, move } = useParams();
   const [miniMapCursor, setMiniMapCursor] = useState(-1);
   const { userInfo } = useSelector((state) => state.userInfo);
-  // For speak and translations
   const { speak, stop } = useVoice();
   const { t } = useTranslation();
   const [isAnyModalOpen, setIsAnyModalOpen] = useState(false);
-
   const isMoveMode = move === "move" || location.state?.mode === "move";
-
   const { floorInfo: initialFloorInfo } = location.state || {};
   const [selectedSector, setSelectedSector] = useState(null);
   const [showRoomView, setShowRoomView] = useState(false);
@@ -70,15 +67,15 @@ const Floor = () => {
   const prevSectorNoRef = useRef(null);
   const [focusedRegion, setFocusedRegion] = useState(null);
   const lang = useSelector((state) => state.lang.current);
-const [visibleSeats, setVisibleSeats] = useState([]);
-
+  const [visibleSeats, setVisibleSeats] = useState([]);
+  const [minimapSectorCount, setMinimapSectorCount] = useState(0);
   // ✅ CENTRALIZED MAIN CONTENT NAVIGATION
   const [mainContentCursor, setMainContentCursor] = useState(null);
 
   const FocusRegion = Object.freeze({
     FLOOR_STATS: "floor_stats",
     MINI_MAP: "mini_map",
-    MAP: "map", // ✅ ADD THIS
+    MAP: "map",
     ROOM: "room",
     FOOTER: "footer",
   });
@@ -103,6 +100,7 @@ const [visibleSeats, setVisibleSeats] = useState([]);
 
     initializeUser();
   }, [dispatch]);
+
   /* =====================================================
      FLOOR DATA HOOK
   ===================================================== */
@@ -227,7 +225,6 @@ const [visibleSeats, setVisibleSeats] = useState([]);
 
   const displayableSectors = filterDisplayableSectors(sectorList);
   // Reset cursor when focus region changes
-  // ✅ AUTO-UPDATE focusedRegion when view changes
   useEffect(() => {
     if (showRoomView && focusedRegion === FocusRegion.MAP) {
       setFocusedRegion(FocusRegion.ROOM);
@@ -245,11 +242,9 @@ const [visibleSeats, setVisibleSeats] = useState([]);
   // Get total items for main content navigation
   const getMainContentItemCount = () => {
     const LEGEND_BAR_COUNT = 4;
-
     if (focusedRegion === FocusRegion.MAP) {
       return LEGEND_BAR_COUNT + (displayableSectors?.length || 0);
     }
-
     if (focusedRegion === FocusRegion.ROOM) {
       // Calculate visible seats from RoomView
       const visibleSeatsCount = seats.filter((seat) => {
@@ -314,7 +309,6 @@ const [visibleSeats, setVisibleSeats] = useState([]);
             handleSeatClick(visibleSeats[contentIndex]);
           }
         }
-        
       }
     };
 
@@ -328,46 +322,40 @@ const [visibleSeats, setVisibleSeats] = useState([]);
     isAnyModalOpen,
   ]);
 
+  // Mini map keyboard navigation:
   useEffect(() => {
     if (focusedRegion !== FocusRegion.MINI_MAP) return;
     if (!showRoomView) return;
-    if (!layout?.sectors?.length) return;
-
-    const TOTAL = layout.sectors.length;
-
+    if (!selectedSector) return;
     const onKeyDown = (e) => {
       if (e.key === "*" || e.code === "NumpadMultiply" || e.keyCode === 106)
         return;
-
-      // 👉 ONLY MOVE RED BORDER (NO ZOOM, NO CLICK)
       if (e.key === "ArrowRight") {
         e.preventDefault();
-        setMiniMapCursor((prev) => (prev === -1 ? 0 : (prev + 1) % TOTAL));
+        setMiniMapCursor((prev) => {
+          // Start from -1 or increment
+          if (prev === -1) return 0;
+          // We'll let RoomView handle the bounds
+          return prev + 1;
+        });
       }
-
       if (e.key === "ArrowLeft") {
         e.preventDefault();
-        setMiniMapCursor((prev) =>
-          prev === -1 ? TOTAL - 1 : (prev - 1 + TOTAL) % TOTAL,
-        );
+        setMiniMapCursor((prev) => {
+          if (prev === -1 || prev === 0) return -1;
+          return prev - 1;
+        });
       }
-
-      // ✅ ENTER = ACTUAL SELECTION
       if (e.key === "Enter" && miniMapCursor !== -1) {
         e.preventDefault();
-
-        const sector = layout.sectors[miniMapCursor];
-        if (!sector) return;
-
-        setSelectedMiniSector(sector);
-        setImageTransform(sector.transform);
-        setIsZoomed(true);
+        // The selection is already handled by the auto-focus effect in RoomView
+        // No need to do anything here
       }
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [focusedRegion, showRoomView, layout, miniMapCursor]);
+  }, [focusedRegion, showRoomView, miniMapCursor, selectedSector]);
 
   /* =====================================================
      LOGOUT
@@ -539,7 +527,6 @@ const [visibleSeats, setVisibleSeats] = useState([]);
   };
 
   // ==============Map of Image ==================
-
   useEffect(() => {
     if (isAnyModalOpen) {
       stop(); // 🔇 stop header/footer speech
@@ -586,7 +573,6 @@ const [visibleSeats, setVisibleSeats] = useState([]);
 
     // If cursor is in content range (map sectors or room seats)
     const contentIndex = mainContentCursor - LEGEND_BAR_COUNT;
-
     if (focusedRegion === FocusRegion.MAP && displayableSectors?.length) {
       const sector = displayableSectors[contentIndex];
       if (sector) {
@@ -598,14 +584,12 @@ const [visibleSeats, setVisibleSeats] = useState([]);
         );
       }
     }
-
-if (focusedRegion === FocusRegion.ROOM && visibleSeats?.length) {
-  const seat = visibleSeats[contentIndex];
-  if (seat) {
-    speak(`Seat ${seat.VNAME}`);
-  }
-}
-
+    if (focusedRegion === FocusRegion.ROOM && visibleSeats?.length) {
+      const seat = visibleSeats[contentIndex];
+      if (seat) {
+        speak(`Seat ${seat.VNAME}`);
+      }
+    }
   }, [
     focusedRegion,
     mainContentCursor,
@@ -636,7 +620,12 @@ if (focusedRegion === FocusRegion.ROOM && visibleSeats?.length) {
 
     // Don't reset: miniMapCursor, selectedMiniSector, imageTransform, isZoomed
   }, [selectedSector]);
-  
+
+  // Reset sector count when changing sectors
+  useEffect(() => {
+    setMinimapSectorCount(0);
+    setMiniMapCursor(-1);
+  }, [selectedSector]);
   // /* =====================================================
   //  RENDER
   // ===================================================== */
@@ -704,7 +693,8 @@ if (focusedRegion === FocusRegion.ROOM && visibleSeats?.length) {
                     ? mainContentCursor - 4
                     : -1
                 }
-                 visibleSeatsFromParent={setVisibleSeats}
+                visibleSeatsFromParent={setVisibleSeats}
+                onSectorsCalculated={setMinimapSectorCount}
               />
             ) : (
               <div className="relative w-full h-full">
@@ -745,7 +735,7 @@ if (focusedRegion === FocusRegion.ROOM && visibleSeats?.length) {
                           )}
 
                           <div
-                            className="pointer-events-none absolute -top-4 left-[-15px] right-3 bottom-6 bg-[#FFCA08]/20 border-2 border-[#FFCA08] rounded
+                            className="pointer-events-none absolute -top-10 left-[-11px] right-4 bottom-13 bg-[#FFCA08]/20 border-2 border-[#FFCA08] rounded
                            opacity-0 group-hover:opacity-100 transition-all duration-200"
                           />
                           <div className="absolute -top-15 left-1/2 -translate-x-1/2 pointer-events-none">
