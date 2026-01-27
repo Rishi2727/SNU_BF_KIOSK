@@ -27,8 +27,8 @@ const RoomView = ({
   isMinimapFocused,
   minimapFocusIndex,
   onMiniSectorClick,
-  focusedSeatIndex, 
-  visibleSeatsFromParent, 
+  focusedSeatIndex,
+  visibleSeatsFromParent,
   onSectorsCalculated,
 }) => {
   const { speak, stop } = useVoice();
@@ -38,6 +38,8 @@ const RoomView = ({
   const mainImageRef = useRef(null);
   const containerRef = useRef(null);
   const seatRefs = useRef({});
+  const prevSectorNoRef = useRef(null); // Track previous sector number
+
   const [seatBounds, setSeatBounds] = useState(null);
   const [sectors, setSectors] = useState([]);
   const [allSectors, setAllSectors] = useState([]);
@@ -48,21 +50,24 @@ const RoomView = ({
   const [imagePanOffset, setImagePanOffset] = useState({ x: 0, y: 0 });
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [refsReady, setRefsReady] = useState(false);
+  const [firstSectorSet, setFirstSectorSet] = useState(false);
 
   /* ================= ROOM CONFIG ================= */
   const roomConfig = useMemo(() => {
     const config = getRoomConfig(selectedSector?.SECTORNO);
-    // Default overlap threshold is 0.1 (meaning 90% visibility required)
     return {
       ...config
     };
   }, [selectedSector?.SECTORNO]);
 
-  console.log("new", selectedSector);
+  console.log("🏠 RoomView - Sector:", selectedSector?.SECTORNO, "Seats:", seats?.length);
 
-  /* ================= RESET ON SECTOR CHANGE ================= */
+  /* ================= COMPLETE RESET ON SECTOR CHANGE ================= */
   useEffect(() => {
-    // Reset all state when sector changes
+    if (prevSectorNoRef.current === selectedSector?.SECTORNO) return;
+
+    prevSectorNoRef.current = selectedSector?.SECTORNO;
+
     setSelectedMiniSectorLocal(null);
     setImagePanOffset({ x: 0, y: 0 });
     setSectors([]);
@@ -72,7 +77,13 @@ const RoomView = ({
     setNaturalDimensions({ width: 0, height: 0 });
     setDisplayDimensions({ width: 0, height: 0 });
     setRefsReady(false);
+    setFirstSectorSet(false);
+
+    seatRefs.current = {};
+
   }, [selectedSector?.SECTORNO]);
+
+
 
   /* ================= PARSE SEAT POSITION ================= */
   const parseSeatPosition = (seat) => {
@@ -81,8 +92,8 @@ const RoomView = ({
       !seat?.POSY ||
       !seat?.POSW ||
       !seat?.POSH ||
-      !mainImageRef?.current ||
-      !naturalDimensions.width
+      !naturalDimensions.width ||
+      !displayDimensions.width
     ) return null;
 
     const referenceDimensions = roomConfig.USE_LEGACY_SYSTEM_MAPPING
@@ -96,10 +107,10 @@ const RoomView = ({
     const scaleY = displayDimensions.height / referenceDimensions.height;
 
     return {
-      left: `${seat.POSX * scaleX}`,
-      top: `${seat.POSY * scaleY}`,
-      width: `${seat.POSW * scaleX}`,
-      height: `${seat.POSH * scaleY}`,
+      left: seat.POSX * scaleX,
+      top: seat.POSY * scaleY,
+      width: seat.POSW * scaleX,
+      height: seat.POSH * scaleY,
     };
   };
 
@@ -107,10 +118,12 @@ const RoomView = ({
   useEffect(() => {
     const updateContainerSize = () => {
       if (containerRef.current) {
-        setContainerSize({
+        const newSize = {
           width: containerRef.current.clientWidth,
           height: containerRef.current.clientHeight
-        });
+        };
+        console.log("📦 Container size:", newSize);
+        setContainerSize(newSize);
       }
     };
 
@@ -119,21 +132,70 @@ const RoomView = ({
     return () => window.removeEventListener('resize', updateContainerSize);
   }, []);
 
+  /* ================= IMAGE LOAD HANDLER ================= */
+  const handleImageLoad = (e) => {
+    const img = e.target;
+
+    console.log('🖼️ Image loaded:', {
+      natural: { width: img.naturalWidth, height: img.naturalHeight },
+      sector: selectedSector?.SECTORNO
+    });
+
+    setNaturalDimensions({
+      width: img.naturalWidth,
+      height: img.naturalHeight
+    });
+
+    const containerElement = containerRef.current;
+    const containerWidth = containerElement?.clientWidth || window.innerWidth * 0.67;
+    const containerHeight = containerElement?.clientHeight || 870;
+
+    let scale = 1;
+    const widthRatio = containerWidth / img.naturalWidth;
+    const heightRatio = containerHeight / img.naturalHeight;
+
+    if (img.naturalWidth < containerWidth && img.naturalHeight < containerHeight) {
+      scale = roomConfig.MINIMUM_SCALE_MULTIPLIER;
+    } else if (img.naturalWidth < containerWidth || img.naturalHeight < containerHeight) {
+      scale = Math.max(widthRatio, heightRatio);
+    } else {
+      scale = 1;
+    }
+
+    const finalScale = scale * roomConfig.ZOOM_AFTER_SCALE;
+    const displayWidth = Math.floor(img.naturalWidth * finalScale);
+    const displayHeight = Math.floor(img.naturalHeight * finalScale);
+
+    console.log('🔍 Display dimensions:', { width: displayWidth, height: displayHeight, scale: finalScale });
+
+    setDisplayDimensions({ width: displayWidth, height: displayHeight });
+    setIsImageLoaded(true);
+  };
+
   /* ================= CALCULATE SEAT BOUNDS ================= */
   useEffect(() => {
-    if (!roomConfig.USE_SEAT_BOUNDS || !seats.length || !naturalDimensions.width || !displayDimensions.width) {
-      if (!roomConfig.USE_SEAT_BOUNDS && displayDimensions.width && displayDimensions.height) {
-        setSeatBounds({
-          minX: 0,
-          minY: 0,
-          maxX: displayDimensions.width,
-          maxY: displayDimensions.height,
-          width: displayDimensions.width,
-          height: displayDimensions.height
-        });
-      } else {
-        setSeatBounds(null);
-      }
+    if (!isImageLoaded || !seats.length || !naturalDimensions.width || !displayDimensions.width) {
+      console.log("⏸️ Skipping seat bounds:", {
+        isImageLoaded,
+        seatsCount: seats.length,
+        hasNaturalDims: !!naturalDimensions.width,
+        hasDisplayDims: !!displayDimensions.width
+      });
+      return;
+    }
+
+    console.log("📏 Calculating seat bounds for", seats.length, "seats");
+
+    if (!roomConfig.USE_SEAT_BOUNDS) {
+      console.log("📏 Using full display dimensions (USE_SEAT_BOUNDS=false)");
+      setSeatBounds({
+        minX: 0,
+        minY: 0,
+        maxX: displayDimensions.width,
+        maxY: displayDimensions.height,
+        width: displayDimensions.width,
+        height: displayDimensions.height
+      });
       return;
     }
 
@@ -166,30 +228,31 @@ const RoomView = ({
     maxX = Math.min(displayDimensions.width, maxX + roomConfig.SEAT_BOUNDS_MARGIN);
     maxY = Math.min(displayDimensions.height, maxY + roomConfig.SEAT_BOUNDS_MARGIN);
 
-    setSeatBounds({
+    const bounds = {
       minX,
       minY,
       maxX,
       maxY,
       width: maxX - minX,
       height: maxY - minY
-    });
-  }, [seats, naturalDimensions, displayDimensions, roomConfig]);
+    };
+
+    console.log("✅ Seat bounds:", bounds);
+    setSeatBounds(bounds);
+  }, [seats, naturalDimensions, displayDimensions, isImageLoaded, roomConfig]);
 
   /* ================= CALCULATE SECTORS ================= */
   useEffect(() => {
-    let isCancelled = false;
-    let timeoutId = null;
-
-    if (!isImageLoaded || !seatBounds || !containerSize.width || !containerSize.height) {
-      console.log('❌ Sector calc skipped:', { isImageLoaded, seatBounds, containerSize });
-      setSectors([]);
-      setAllSectors([]);
+    if (!seatBounds || !containerSize.width || !containerSize.height) {
+      console.log('⏸️ Sector calc waiting for:', {
+        hasSeatBounds: !!seatBounds,
+        containerSize
+      });
       return;
     }
 
     if (!seats.length || !naturalDimensions.width || !displayDimensions.width) {
-      console.log('❌ Sector calc skipped - missing data:', {
+      console.log('⏸️ Sector calc waiting for dimensions:', {
         seatsCount: seats.length,
         naturalDimensions,
         displayDimensions
@@ -197,174 +260,180 @@ const RoomView = ({
       return;
     }
 
-    const calculateSectors = () => {
-      if (isCancelled) return;
+    console.log("🔢 Calculating sectors...");
 
-      const { minX, minY, width: boundsWidth, height: boundsHeight } = seatBounds;
-      const { width: containerWidth, height: containerHeight } = containerSize;
+    const { minX, minY, width: boundsWidth, height: boundsHeight } = seatBounds;
+    const { width: containerWidth, height: containerHeight } = containerSize;
 
-      const referenceDimensions = roomConfig.USE_LEGACY_SYSTEM_MAPPING
-        ? {
-          width: roomConfig.USE_LEGACY_SYSTEM_MAPPING_WIDTH,
-          height: roomConfig.USE_LEGACY_SYSTEM_MAPPING_HEIGHT
-        }
-        : naturalDimensions;
-
-      const scaleX = displayDimensions.width / referenceDimensions.width;
-      const scaleY = displayDimensions.height / referenceDimensions.height;
-
-      const numHorizontalSectors = Math.ceil(boundsWidth / containerWidth);
-      const numVerticalSectors = Math.ceil(boundsHeight / containerHeight);
-
-      const horizontalStep = numHorizontalSectors > 1
-        ? (boundsWidth - containerWidth) / (numHorizontalSectors - 1)
-        : 0;
-      const verticalStep = numVerticalSectors > 1
-        ? (boundsHeight - containerHeight) / (numVerticalSectors - 1)
-        : 0;
-
-      const calculatedSectors = [];
-      const allSectors = [];
-      let sectorId = 1;
-
-      for (let row = 0; row < numVerticalSectors; row++) {
-        for (let col = 0; col < numHorizontalSectors; col++) {
-          const x1 = minX + (col * horizontalStep);
-          const y1 = minY + (row * verticalStep);
-          const x2 = x1 + containerWidth;
-          const y2 = y1 + containerHeight;
-
-          let uniqueX1 = x1;
-          let uniqueX2 = x2;
-          let uniqueY1 = y1;
-          let uniqueY2 = y2;
-
-          if (col > 0) {
-            const leftSectorX1 = minX + ((col - 1) * horizontalStep);
-            uniqueX1 = (leftSectorX1 + x1) / 2 + containerWidth / 2;
-          }
-          if (col < numHorizontalSectors - 1) {
-            const rightSectorX1 = minX + ((col + 1) * horizontalStep);
-            uniqueX2 = (x1 + rightSectorX1) / 2 + containerWidth / 2;
-          }
-
-          if (row > 0) {
-            const topSectorY1 = minY + ((row - 1) * verticalStep);
-            uniqueY1 = (topSectorY1 + y1) / 2 + containerHeight / 2;
-          }
-          if (row < numVerticalSectors - 1) {
-            const bottomSectorY1 = minY + ((row + 1) * verticalStep);
-            uniqueY2 = (y1 + bottomSectorY1) / 2 + containerHeight / 2;
-          }
-
-          const centerX = (uniqueX1 + uniqueX2) / 2;
-          const centerY = (uniqueY1 + uniqueY2) / 2;
-
-          const hasCompleteSeat = seats.some(seat => {
-            const sx1 = seat.POSX * scaleX;
-            const sy1 = seat.POSY * scaleY;
-            const sx2 = (seat.POSX + seat.POSW) * scaleX;
-            const sy2 = (seat.POSY + seat.POSH) * scaleY;
-
-            return sx1 >= x1 && sx2 <= x2 && sy1 >= y1 && sy2 <= y2;
-          });
-
-          const sectorData = {
-            id: sectorId,
-            x1: Math.round(x1),
-            y1: Math.round(y1),
-            x2: Math.round(x2),
-            y2: Math.round(y2),
-            uniqueX1: Math.round(uniqueX1),
-            uniqueY1: Math.round(uniqueY1),
-            uniqueX2: Math.round(uniqueX2),
-            uniqueY2: Math.round(uniqueY2),
-            centerX: Math.round(centerX),
-            centerY: Math.round(centerY),
-            enabled: hasCompleteSeat,
-            row,
-            col
-          };
-
-          allSectors.push(sectorData);
-
-          if (hasCompleteSeat) {
-            calculatedSectors.push(sectorData);
-          }
-
-          sectorId++;
-        }
+    const referenceDimensions = roomConfig.USE_LEGACY_SYSTEM_MAPPING
+      ? {
+        width: roomConfig.USE_LEGACY_SYSTEM_MAPPING_WIDTH,
+        height: roomConfig.USE_LEGACY_SYSTEM_MAPPING_HEIGHT
       }
+      : naturalDimensions;
 
-      if (isCancelled) return;
+    const scaleX = displayDimensions.width / referenceDimensions.width;
+    const scaleY = displayDimensions.height / referenceDimensions.height;
 
-      setSectors(calculatedSectors);
-      setAllSectors(allSectors);
+    const numHorizontalSectors = Math.ceil(boundsWidth / containerWidth);
+    const numVerticalSectors = Math.ceil(boundsHeight / containerHeight);
 
-      if (calculatedSectors.length > 0 && !selectedMiniSectorLocal && !isCancelled) {
-        const firstSector = calculatedSectors[0];
-        timeoutId = setTimeout(() => {
-          if (!isCancelled) {
-            setSelectedMiniSectorLocal(firstSector);
-            setImagePanOffset({ x: -firstSector.x1, y: -firstSector.y1 });
-          }
-        }, 100);
-      }
-    };
-
-    calculateSectors();
-
-    return () => {
-      isCancelled = true;
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-  }, [seatBounds, containerSize, seats, naturalDimensions, displayDimensions, isImageLoaded, roomConfig, selectedMiniSectorLocal]);
-
-  /* ================= IMAGE LOAD HANDLER ================= */
-  const handleImageLoad = (e) => {
-    const img = e.target;
-
-    console.log('🖼️ Image loaded:', {
-      natural: { width: img.naturalWidth, height: img.naturalHeight },
-      client: { width: img.clientWidth, height: img.clientHeight }
+    console.log("📊 Sector grid:", {
+      horizontal: numHorizontalSectors,
+      vertical: numVerticalSectors,
+      total: numHorizontalSectors * numVerticalSectors,
+      bounds: { width: boundsWidth, height: boundsHeight },
+      container: { width: containerWidth, height: containerHeight }
     });
 
-    setNaturalDimensions({
-      width: img.naturalWidth,
-      height: img.naturalHeight
-    });
+    const horizontalStep = numHorizontalSectors > 1
+      ? (boundsWidth - containerWidth) / (numHorizontalSectors - 1)
+      : 0;
+    const verticalStep = numVerticalSectors > 1
+      ? (boundsHeight - containerHeight) / (numVerticalSectors - 1)
+      : 0;
 
-    const containerElement = containerRef.current;
-    const containerWidth = containerElement?.clientWidth || window.innerWidth * 0.67;
-    const containerHeight = containerElement?.clientHeight || 870;
+    const calculatedSectors = [];
+    const allSectors = [];
+    let sectorId = 1;
 
-    console.log('📦 Container size:', { containerWidth, containerHeight });
+    for (let row = 0; row < numVerticalSectors; row++) {
+      for (let col = 0; col < numHorizontalSectors; col++) {
+        const x1 = minX + (col * horizontalStep);
+        const y1 = minY + (row * verticalStep);
+        const x2 = x1 + containerWidth;
+        const y2 = y1 + containerHeight;
 
-    let scale = 1;
-    const widthRatio = containerWidth / img.naturalWidth;
-    const heightRatio = containerHeight / img.naturalHeight;
+        let uniqueX1 = x1;
+        let uniqueX2 = x2;
+        let uniqueY1 = y1;
+        let uniqueY2 = y2;
 
-    if (img.naturalWidth < containerWidth && img.naturalHeight < containerHeight) {
-      scale = roomConfig.MINIMUM_SCALE_MULTIPLIER;
-    } else if (img.naturalWidth < containerWidth || img.naturalHeight < containerHeight) {
-      scale = Math.max(widthRatio, heightRatio);
-    } else {
-      scale = 1;
+        if (col > 0) {
+          const leftSectorX1 = minX + ((col - 1) * horizontalStep);
+          uniqueX1 = (leftSectorX1 + x1) / 2 + containerWidth / 2;
+        }
+        if (col < numHorizontalSectors - 1) {
+          const rightSectorX1 = minX + ((col + 1) * horizontalStep);
+          uniqueX2 = (x1 + rightSectorX1) / 2 + containerWidth / 2;
+        }
+
+        if (row > 0) {
+          const topSectorY1 = minY + ((row - 1) * verticalStep);
+          uniqueY1 = (topSectorY1 + y1) / 2 + containerHeight / 2;
+        }
+        if (row < numVerticalSectors - 1) {
+          const bottomSectorY1 = minY + ((row + 1) * verticalStep);
+          uniqueY2 = (y1 + bottomSectorY1) / 2 + containerHeight / 2;
+        }
+
+        const centerX = (uniqueX1 + uniqueX2) / 2;
+        const centerY = (uniqueY1 + uniqueY2) / 2;
+
+        // Check if any seat is COMPLETELY within this sector
+        const hasCompleteSeat = seats.some(seat => {
+          const sx1 = seat.POSX * scaleX;
+          const sy1 = seat.POSY * scaleY;
+          const sx2 = (seat.POSX + seat.POSW) * scaleX;
+          const sy2 = (seat.POSY + seat.POSH) * scaleY;
+
+          const overlapLeft = Math.max(sx1, x1);
+          const overlapTop = Math.max(sy1, y1);
+          const overlapRight = Math.min(sx2, x2);
+          const overlapBottom = Math.min(sy2, y2);
+
+          const isComplete = overlapLeft < overlapRight && overlapTop < overlapBottom;
+
+          if (isComplete) {
+            console.log(`  ✓ Seat ${seat.VNAME} found in sector ${sectorId}`);
+          }
+
+          return isComplete;
+        });
+
+
+
+        const sectorData = {
+          id: sectorId,
+          x1: Math.round(x1),
+          y1: Math.round(y1),
+          x2: Math.round(x2),
+          y2: Math.round(y2),
+          uniqueX1: Math.round(uniqueX1),
+          uniqueY1: Math.round(uniqueY1),
+          uniqueX2: Math.round(uniqueX2),
+          uniqueY2: Math.round(uniqueY2),
+          centerX: Math.round(centerX),
+          centerY: Math.round(centerY),
+          enabled: hasCompleteSeat,
+          row,
+          col
+        };
+
+        allSectors.push(sectorData);
+
+        if (hasCompleteSeat) {
+          calculatedSectors.push(sectorData);
+        }
+
+        sectorId++;
+      }
     }
 
-    const finalScale = scale * roomConfig.ZOOM_AFTER_SCALE;
-    const displayWidth = Math.floor(img.naturalWidth * finalScale);
-    const displayHeight = Math.floor(img.naturalHeight * finalScale);
-
-    console.log('🔍 Scale calculation:', {
-      scale,
-      finalScale,
-      display: { width: displayWidth, height: displayHeight }
+    console.log("✅ Sectors calculated:", {
+      total: allSectors.length,
+      enabled: calculatedSectors.length,
+      enabledIds: calculatedSectors.map(s => s.id)
     });
 
-    setDisplayDimensions({ width: displayWidth, height: displayHeight });
-    setIsImageLoaded(true);
-  };
+    setSectors(calculatedSectors);
+    setAllSectors(allSectors);
+
+  }, [seatBounds, containerSize, seats, naturalDimensions, displayDimensions, roomConfig]);
+  // 🔄 Geometry changed → allow first sector to be set again
+  useEffect(() => {
+    if (!seatBounds) return;
+
+    console.log("♻️ Geometry changed → resetting first sector lock");
+
+    setFirstSectorSet(false);
+    setSelectedMiniSectorLocal(null);
+
+  }, [
+    seatBounds?.minX,
+    seatBounds?.minY,
+    seatBounds?.maxX,
+    seatBounds?.maxY,
+    displayDimensions.width,
+    displayDimensions.height
+  ]);
+  useEffect(() => {
+    if (!sectors.length) return;
+    if (!isImageLoaded) return;
+    if (!seatBounds) return;
+    if (!containerSize.width || !containerSize.height) return;
+    if (firstSectorSet) return;
+
+    const firstSector = allSectors.find(s => s.id === 1);
+    if (!firstSector) return;
+
+    console.log("🎯 Auto-selected sector:------------->", firstSector.id, allSectors);
+
+    setFirstSectorSet(true);
+    setSelectedMiniSectorLocal(firstSector);
+    setImagePanOffset({ x: -firstSector.x1, y: -firstSector.y1 });
+
+    if (onMiniSectorClick) onMiniSectorClick(firstSector);
+
+  }, [
+    sectors,
+    isImageLoaded,
+    seatBounds,
+    containerSize,
+    firstSectorSet,
+    onMiniSectorClick
+  ]);
+
 
   /* ================= CHECK SEAT VISIBILITY BY OVERLAP ================= */
   const isSeatVisibleByOverlap = (seat) => {
@@ -378,10 +447,10 @@ const RoomView = ({
     const position = parseSeatPosition(seat);
     if (!position) return false;
 
-    const seatLeft = parseFloat(position.left);
-    const seatTop = parseFloat(position.top);
-    const seatWidth = parseFloat(position.width);
-    const seatHeight = parseFloat(position.height);
+    const seatLeft = position.left;
+    const seatTop = position.top;
+    const seatWidth = position.width;
+    const seatHeight = position.height;
     const seatRight = seatLeft + seatWidth;
     const seatBottom = seatTop + seatHeight;
     const seatArea = seatWidth * seatHeight;
@@ -395,7 +464,6 @@ const RoomView = ({
       const overlapArea = (overlapRight - overlapLeft) * (overlapBottom - overlapTop);
       const overlapPercentage = overlapArea / seatArea;
 
-      // Show seat only if overlap is >= 90% (1 - 0.1 threshold)
       return overlapPercentage >= (1 - threshold);
     }
 
@@ -419,6 +487,7 @@ const RoomView = ({
 
   /* ================= HANDLE SECTOR SELECTION ================= */
   const handleSectorSelect = (sectorId) => {
+    console.log("🎯 Manual sector selection:", sectorId);
     const sector = sectors.find(s => s.id === sectorId);
     if (sector) {
       setSelectedMiniSectorLocal(sector);
@@ -431,23 +500,21 @@ const RoomView = ({
 
   /* ================= CHECK IF SEAT IS IN CURRENT VIEWPORT ================= */
   const isSeatInViewport = (seat) => {
-    if (!selectedMiniSectorLocal || !isImageLoaded) return false;
+    if (!selectedMiniSectorLocal) return false;
 
     const position = parseSeatPosition(seat);
     if (!position) return false;
 
-    const seatLeft = parseFloat(position.left);
-    const seatTop = parseFloat(position.top);
-    const seatRight = seatLeft + parseFloat(position.width);
-    const seatBottom = seatTop + parseFloat(position.height);
+    const seatLeft = position.left;
+    const seatTop = position.top;
+    const seatRight = seatLeft + position.width;
+    const seatBottom = seatTop + position.height;
 
-    // Account for image pan offset
     const viewportLeft = -imagePanOffset.x;
     const viewportTop = -imagePanOffset.y;
     const viewportRight = viewportLeft + containerSize.width;
     const viewportBottom = viewportTop + containerSize.height;
 
-    // Check if seat is within viewport
     return (
       seatRight > viewportLeft &&
       seatLeft < viewportRight &&
@@ -458,49 +525,44 @@ const RoomView = ({
 
   /* ================= VISIBLE SEATS MEMO ================= */
   const visibleSeats = useMemo(() => {
-    if (!seats?.length || !selectedMiniSectorLocal || !isImageLoaded) return [];
+    if (!seats?.length || !selectedMiniSectorLocal) {
+      return [];
+    }
 
     const visible = seats.filter(seat => {
-      // Check if seat is in viewport
       if (!isSeatInViewport(seat)) return false;
-
-      // ✅ NEW: Check if seat has sufficient overlap with current sector
       if (!isSeatVisibleByOverlap(seat)) return false;
 
-      // Check if hidden by minimap
       const seatDiv = seatRefs.current[seat.SEATNO];
       if (!seatDiv) return true;
 
       return !isSeatHiddenByMinimap(seatDiv);
     });
 
-    // ✅ force stable order (left → right, top → bottom)
- // ✅ stable + counting-wise order
-return visible.sort((a1, b1) => {
-  const a = a1.VNAME
-  const b = b1.VNAME
+    const sorted = visible.sort((a1, b1) => {
+      const a = a1.VNAME;
+      const b = b1.VNAME;
 
-  const re = /^([A-Za-z]*)(\d*)$/;
+      const re = /^([A-Za-z]*)(\d*)$/;
+      const [, aPrefix, aNum] = a.match(re);
+      const [, bPrefix, bNum] = b.match(re);
 
-  const [, aPrefix, aNum] = a.match(re);
-  const [, bPrefix, bNum] = b.match(re);
+      if (aPrefix !== bPrefix) {
+        return aPrefix.localeCompare(bPrefix);
+      }
 
-  // 1️⃣ Compare prefix (letters)
-  if (aPrefix !== bPrefix) {
-    return aPrefix.localeCompare(bPrefix);
-  }
+      return (parseInt(aNum || 0) - parseInt(bNum || 0));
+    });
 
-  // 2️⃣ Compare numeric part
-  return (parseInt(aNum || 0) - parseInt(bNum || 0));
-});
+    console.log("👁️ Visible seats:", sorted.length, "->", sorted.map(s => s.VNAME).join(", "));
 
-  }, [seats, selectedMiniSectorLocal, imagePanOffset, isImageLoaded, containerSize]);
+    return sorted;
+  }, [seats, selectedMiniSectorLocal, imagePanOffset, containerSize]);
 
   /* ================= MARK REFS AS READY ================= */
   useEffect(() => {
     if (!seats?.length || !isImageLoaded) return;
 
-    // Give time for refs to be set
     const timer = setTimeout(() => {
       setRefsReady(true);
     }, 200);
@@ -508,37 +570,59 @@ return visible.sort((a1, b1) => {
     return () => clearTimeout(timer);
   }, [seats, isImageLoaded]);
 
-  /* ====================HANDLED MINI MAP AUTO FOCUS ===================== */ 
-  useEffect(() => {
-    if (
-      !isMinimapFocused ||
-      minimapFocusIndex === -1 ||
-      !sectors?.length
-    ) {
-      return;
-    }
+  /* ================= HANDLE MINI MAP AUTO FOCUS ================= */
+ useEffect(() => {
+  if (!isMinimapFocused) return;
+  if (!sectors.length) return;
+  if (!firstSectorSet || !selectedMiniSectorLocal) return;
+  if (minimapFocusIndex === -1) return;
+
+  const clampedIndex = Math.min(minimapFocusIndex, sectors.length - 1);
+  const sector = sectors[clampedIndex];
+  if (!sector) return;
+
+  // ✅ ONLY LOG / VISUAL FOCUS
+  console.log("👀 Minimap focus moved to sector:", sector.id);
+
+}, [
+  minimapFocusIndex,
+  isMinimapFocused,
+  sectors,
+  firstSectorSet,
+  selectedMiniSectorLocal
+]);
+useEffect(() => {
+  if (!isMinimapFocused) return;
+
+  const handleKeyDown = (e) => {
+    if (e.key !== "Enter") return;
+    if (minimapFocusIndex === -1) return;
+
     const clampedIndex = Math.min(minimapFocusIndex, sectors.length - 1);
     const sector = sectors[clampedIndex];
-    
-    if (!sector) {
-      console.warn('⚠️ Sector not found at index:', minimapFocusIndex, 'max:', sectors.length - 1);
-      return;
-    }
+    if (!sector) return;
+
+    console.log("✅ ENTER pressed → selecting sector:", sector.id);
+
     setSelectedMiniSectorLocal(sector);
     setImagePanOffset({ x: -sector.x1, y: -sector.y1 });
-    if (onMiniSectorClick) {
-      onMiniSectorClick(sector);
-    }
-  }, [minimapFocusIndex, isMinimapFocused, sectors, onMiniSectorClick]);
 
-  // Used for keyboard cursor bounds and minimap navigation
+    if (onMiniSectorClick) onMiniSectorClick(sector);
+  };
+
+  window.addEventListener("keydown", handleKeyDown);
+  return () => window.removeEventListener("keydown", handleKeyDown);
+
+}, [isMinimapFocused, minimapFocusIndex, sectors, onMiniSectorClick]);
+
+
+  // Notify parent of sector count and visible seats
   useEffect(() => {
     if (sectors?.length > 0 && onSectorsCalculated) {
       onSectorsCalculated(sectors.length);
     }
   }, [sectors, onSectorsCalculated]);
 
-  // Used for keyboard navigation, focus handling, and speech
   useEffect(() => {
     if (typeof visibleSeatsFromParent === "function") {
       visibleSeatsFromParent(visibleSeats);
@@ -546,6 +630,9 @@ return visible.sort((a1, b1) => {
   }, [visibleSeats, visibleSeatsFromParent]);
 
   /* ================= RENDER ================= */
+  const canShowMinimap = !loadingSeats && selectedSector?.SECTOR_IMAGE && sectors.length > 0;
+  const canShowSeats = selectedMiniSectorLocal && !loadingSeats;
+
   return (
     <>
       <div
@@ -553,22 +640,17 @@ return visible.sort((a1, b1) => {
         className="flex flex-col w-full h-full relative"
       >
         {loadingSeats && <LoadingSpinner />}
-        {/* MINIMAP - Now positioned on top of the image */}
-        {!loadingSeats && selectedSector?.SECTOR_IMAGE && (
+
+        {/* MINIMAP */}
+        {canShowMinimap && (
           <div
             ref={miniMapRef}
             className="absolute z-100 bg-white/10"
             style={{
               top: `${roomConfig.MINIMAP_POSITION_TOP}px`,
               left: `${roomConfig.MINIMAP_POSITION_LEFT}px`,
-              
             }}
           >
-            {sectors.length === 0 && (
-              <div className="text-xs text-red-500 bg-white p-2 rounded">
-                No sectors calculated yet
-              </div>
-            )}
             <SectorZoomMiniMap
               roomImage={`${baseUrl}${selectedSector.SECTOR_IMAGE}`}
               mode="room"
@@ -587,6 +669,7 @@ return visible.sort((a1, b1) => {
             />
           </div>
         )}
+
         <div className="flex-1 relative bg-gray-100">
           {selectedSector?.SECTOR_IMAGE ? (
             <div className="w-full h-full relative overflow-hidden">
@@ -612,11 +695,10 @@ return visible.sort((a1, b1) => {
                 />
 
                 {/* SEATS */}
-                {seats.map((seat) => {
+                {canShowSeats && seats.map((seat) => {
                   const position = parseSeatPosition(seat);
                   if (!position) return null;
 
-                  // ✅ Check visibility by overlap
                   const isVisibleByOverlap = isSeatVisibleByOverlap(seat);
                   if (!isVisibleByOverlap) return null;
 

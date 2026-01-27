@@ -51,7 +51,7 @@ const SectorZoomMiniMap = ({
   return (
     <div
       ref={containerRef}
-      className="relative bg-gray-100 rounded-lg overflow-hidden border-2 border-gray-300"
+      className="relative bg-gray-100 rounded-lg overflow-hidden border-2 border-gray-300 z-50"
       style={minimapDimensions ? {
         width: `${minimapDimensions.width}px`,
         height: `${minimapDimensions.height}px`
@@ -61,7 +61,7 @@ const SectorZoomMiniMap = ({
       }}
     >
       {/* Image container */}
-      <div className={`absolute inset-0 ${isMinimapFocused ? focusRing : "border-[6px] border-transparent"}`}>
+      <div className={`absolute inset-0  ${isMinimapFocused ? focusRing : ""}`}>
         <img
           ref={imageRef}
           src={roomImage}
@@ -143,8 +143,15 @@ const SectorZoomMiniMap = ({
               strokeWidth = "0";
             }
             const enabledSectors = allSectors.filter(s => s.enabled);
-            const enabledIndex = enabledSectors.findIndex(s => s.id === sector.id);
-            const isMinimapFocusedSector = isMinimapFocused && enabledIndex === minimapFocusIndex;
+
+            let isMinimapFocusedSector = false;
+
+            if (sector.enabled) {
+              const enabledIndex = enabledSectors.findIndex(s => s.id === sector.id);
+              isMinimapFocusedSector =
+                isMinimapFocused && enabledIndex === minimapFocusIndex;
+            }
+
             return (
               <g key={sector.id} className={isEnabled ? "pointer-events-auto cursor-pointer" : "pointer-events-none"} onClick={() => isEnabled && onSectorSelect(sector.id)}>
                 <rect
@@ -157,7 +164,7 @@ const SectorZoomMiniMap = ({
                   strokeWidth={strokeWidth}
                   className="transition-all duration-200"
                 />
-                { isMinimapFocusedSector &&  (
+               { sector.enabled && isMinimapFocusedSector && (
                   <rect
                     x={x - 3}
                     y={y - 3}

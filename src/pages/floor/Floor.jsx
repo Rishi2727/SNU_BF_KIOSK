@@ -115,11 +115,6 @@ const Floor = () => {
     setImageError,
     loading,
   } = useFloorData(floorId, initialFloorInfo);
-
-  useEffect(() => {
-    setMiniMapCursor(-1);
-  }, [selectedSector]);
-
   //Speak on screen
   useEffect(() => {
     const onKeyDown = (e) => {
@@ -152,7 +147,6 @@ const Floor = () => {
     : null;
   const miniMapUrl = miniMapFile ? `${ImageBaseUrl}/${miniMapFile}` : null;
   const seatFontScale = layout?.seatFontScale ?? 1; // Keep font size constant
-  const sectorListData = sectorList;
 
   /* =====================================================
      BUILD URL PATH WITH MOVE MODE
@@ -242,20 +236,18 @@ const Floor = () => {
   // Get total items for main content navigation
   const getMainContentItemCount = () => {
     const LEGEND_BAR_COUNT = 4;
+
+    if (focusedRegion === FocusRegion.ROOM) {
+      return LEGEND_BAR_COUNT + visibleSeats.length; // ✅ use visibleSeats
+    }
+
     if (focusedRegion === FocusRegion.MAP) {
       return LEGEND_BAR_COUNT + (displayableSectors?.length || 0);
-    }
-    if (focusedRegion === FocusRegion.ROOM) {
-      // Calculate visible seats from RoomView
-      const visibleSeatsCount = seats.filter((seat) => {
-        // This will be calculated properly in RoomView, for now use all seats
-        return true;
-      }).length;
-      return LEGEND_BAR_COUNT + visibleSeatsCount;
     }
 
     return LEGEND_BAR_COUNT;
   };
+
 
   // Main content keyboard navigation
   useEffect(() => {
@@ -273,19 +265,32 @@ const Floor = () => {
 
       if (e.key === "ArrowRight") {
         e.preventDefault();
-        setMainContentCursor((prev) =>
-          prev === null ? 0 : (prev + 1) % TOTAL_ITEMS,
-        );
+
+        setMainContentCursor((prev) => {
+          // first time → start from legend 0
+          if (prev === null) return 0;
+
+          // move right, if end reached → back to legend 0
+          if (prev + 1 >= TOTAL_ITEMS) return 0;
+
+          return prev + 1;
+        });
       }
 
       if (e.key === "ArrowLeft") {
         e.preventDefault();
-        setMainContentCursor((prev) =>
-          prev === null
-            ? TOTAL_ITEMS - 1
-            : (prev - 1 + TOTAL_ITEMS) % TOTAL_ITEMS,
-        );
+
+        setMainContentCursor((prev) => {
+          // first time → go to last item
+          if (prev === null) return TOTAL_ITEMS - 1;
+
+          // move left, if before 0 → go to last
+          if (prev - 1 < 0) return TOTAL_ITEMS - 1;
+
+          return prev - 1;
+        });
       }
+
 
       if (e.key === "Enter" && mainContentCursor !== null) {
         e.preventDefault();
@@ -323,39 +328,51 @@ const Floor = () => {
   ]);
 
   // Mini map keyboard navigation:
+  // ✅ Mini map keyboard navigation (WITH LOOP)
   useEffect(() => {
     if (focusedRegion !== FocusRegion.MINI_MAP) return;
     if (!showRoomView) return;
     if (!selectedSector) return;
+    if (!minimapSectorCount) return; // 🔥 total enabled sectors from RoomView
+
     const onKeyDown = (e) => {
       if (e.key === "*" || e.code === "NumpadMultiply" || e.keyCode === 106)
         return;
+
+      // ▶ RIGHT ARROW → NEXT (loop)
       if (e.key === "ArrowRight") {
         e.preventDefault();
         setMiniMapCursor((prev) => {
-          // Start from -1 or increment
           if (prev === -1) return 0;
-          // We'll let RoomView handle the bounds
-          return prev + 1;
+          return (prev + 1) % minimapSectorCount; // 🔁 loop
         });
       }
+
+      // ◀ LEFT ARROW → PREVIOUS (loop)
       if (e.key === "ArrowLeft") {
         e.preventDefault();
         setMiniMapCursor((prev) => {
-          if (prev === -1 || prev === 0) return -1;
-          return prev - 1;
+          if (prev === -1) return minimapSectorCount - 1;
+          return (prev - 1 + minimapSectorCount) % minimapSectorCount; // 🔁 loop
         });
       }
-      if (e.key === "Enter" && miniMapCursor !== -1) {
+
+      // ⏎ ENTER → handled in RoomView
+      if (e.key === "Enter") {
         e.preventDefault();
-        // The selection is already handled by the auto-focus effect in RoomView
-        // No need to do anything here
       }
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [focusedRegion, showRoomView, miniMapCursor, selectedSector]);
+
+  }, [
+    focusedRegion,
+    showRoomView,
+    selectedSector,
+    minimapSectorCount
+  ]);
+
 
   /* =====================================================
      LOGOUT
@@ -442,6 +459,7 @@ const Floor = () => {
     setSelectedSector(sector);
     setShowRoomView(true);
 
+    console.log("first--------------------", sector)
     navigate(buildFloorPath(sector.FLOOR, sector.SECTORNO), {
       replace: false,
       state: {
@@ -479,27 +497,26 @@ const Floor = () => {
   useEffect(() => {
     if (!selectedSector) return;
 
-    if (prevSectorNoRef.current === selectedSector.SECTORNO) return;
-    prevSectorNoRef.current = selectedSector.SECTORNO;
+    console.log("🧹 Floor: reset minimap navigation");
 
-    setSelectedMiniSector(null);
-    setImageTransform({ x: 0, y: 0, scale: 1 });
-    setIsZoomed(false);
-    setMiniMapError(false);
-    setSelectedSeat(null);
-    setShowSeatModal(false);
+    setMiniMapCursor(-1);
+    setFocusedRegion(FocusRegion.ROOM); // force focus away from minimap
+
   }, [selectedSector]);
 
   /* =====================================================
      MINI MAP CLICK
   ===================================================== */
   const handleMiniSectorClick = (sector) => {
+    if (!sector) return;   // ✅ protect against null
+
     setImageTransform((prev) => ({
       ...prev,
       x: -sector.x1,
       y: -sector.y1,
     }));
   };
+
   /* =====================================================
      IMAGE LOAD HANDLER
   ===================================================== */
@@ -603,29 +620,6 @@ const Floor = () => {
     lang,
   ]);
 
-  useEffect(() => {
-    setMiniMapCursor(-1);
-  }, [selectedSector]);
-
-  // 2. REPLACE the "RESET ON SECTOR CHANGE" useEffect with this:
-  useEffect(() => {
-    if (!selectedSector) return;
-    if (prevSectorNoRef.current === selectedSector.SECTORNO) return;
-    prevSectorNoRef.current = selectedSector.SECTORNO;
-
-    // Only reset these specific states
-    setMiniMapError(false);
-    setSelectedSeat(null);
-    setShowSeatModal(false);
-
-    // Don't reset: miniMapCursor, selectedMiniSector, imageTransform, isZoomed
-  }, [selectedSector]);
-
-  // Reset sector count when changing sectors
-  useEffect(() => {
-    setMinimapSectorCount(0);
-    setMiniMapCursor(-1);
-  }, [selectedSector]);
   // /* =====================================================
   //  RENDER
   // ===================================================== */
@@ -638,12 +632,11 @@ const Floor = () => {
       />
       {/* ================= MAIN CONTENT ================= */}
       <div
-        className={`absolute inset-0 flex items-center justify-center z-0 mx-[11px] ${
-          focusedRegion === FocusRegion.ROOM ||
+        className={`absolute inset-0 flex items-center justify-center z-0 mx-[11px] ${focusedRegion === FocusRegion.ROOM ||
           focusedRegion === FocusRegion.MAP
-            ? "border-[5px] border-[#dc2f02] box-border"
-            : "border-[5px] border-transparent box-border"
-        }`}
+          ? "border-[5px] border-[#dc2f02] box-border"
+          : "border-[5px] border-transparent box-border"
+          }`}
       >
         <FloorLegendBar
           buildingName="Central Library, Gwanjeong Building"
