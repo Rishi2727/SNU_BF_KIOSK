@@ -648,7 +648,7 @@ const Floor = () => {
       />
       {/* ================= MAIN CONTENT ================= */}
       <div
-        className={`relative inset-0 h-[900px] flex items-center justify-center z-0  ${focusedRegion === FocusRegion.ROOM ||
+        className={`relative inset-0 h-[900px] flex items-center  justify-center z-0  ${focusedRegion === FocusRegion.ROOM ||
           focusedRegion === FocusRegion.MAP
           ? "border-[5px] border-[#dc2f02] box-border"
           : "border-[5px] border-transparent box-border"
