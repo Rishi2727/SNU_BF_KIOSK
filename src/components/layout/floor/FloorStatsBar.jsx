@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { formatFloorForSpeech } from "../../../utils/speechFormatter";
 import { useDispatch, useSelector } from "react-redux";
 
-const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused, isAnyModalOpen }) => {
+const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused, isAnyModalOpen,  isMinimapNearFloorStats }) => {
   const calculatePercentage = (occupied, total) => {
     return (occupied / total) * 100;
   };
@@ -93,7 +93,7 @@ const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused,
     <div
       className={`
         floor-stats-bar
-    w-[78%]
+      ${isMinimapNearFloorStats ? 'w-[78%]' : 'w-full'}
     absolute bottom-2.5  z-30
     flex items-center   gap-5
     px-5   py-1

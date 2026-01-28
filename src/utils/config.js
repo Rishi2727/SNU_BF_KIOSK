@@ -15,6 +15,13 @@ export const DEFAULT_VALUES = {
   SEAT_OVERLAP_THRESHOLD: 0.1,
 };
 
+// Determine if minimap is positioned at the bottom (overlapping with FloorStatsBar)
+export function isMinimapAtBottom(roomId) {
+  const config = getRoomConfig(roomId);
+  // If minimap top position is greater than 600px, it's likely at the bottom
+  // You can adjust this threshold based on your layout
+  return config.MINIMAP_POSITION_TOP > 600;
+}
 export const ROOM_WISE_CONFIG = {
   16101: {
     ZOOM_AFTER_SCALE: 1.95,

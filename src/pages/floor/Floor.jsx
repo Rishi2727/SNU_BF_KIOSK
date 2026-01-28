@@ -25,6 +25,7 @@ import SeatActionModal from "../../components/common/SeatActionModal";
 import { useTranslation } from "react-i18next";
 import { useVoice } from "../../context/voiceContext";
 import { formatFloorForSpeech } from "../../utils/speechFormatter";
+import { getRoomConfig, isMinimapAtBottom } from "../../utils/config";
 
 const Floor = () => {
   const navigate = useNavigate();
@@ -79,6 +80,10 @@ const Floor = () => {
     ROOM: "room",
     FOOTER: "footer",
   });
+  // Determine if minimap is at bottom (near FloorStatsBar)
+const isMinimapNearFloorStats = showRoomView && selectedSector 
+  ? isMinimapAtBottom(selectedSector.SECTORNO)
+  : false
 
   /**
    * Initialize authenticated user on mount
@@ -755,6 +760,7 @@ const Floor = () => {
           loading={loading}
           isFocused={focusedRegion === FocusRegion.FLOOR_STATS}
           isAnyModalOpen={isAnyModalOpen}
+             isMinimapNearFloorStats={isMinimapNearFloorStats}
         />
       </div>
       <div>
