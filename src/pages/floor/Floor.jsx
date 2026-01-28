@@ -81,9 +81,9 @@ const Floor = () => {
     FOOTER: "footer",
   });
   // Determine if minimap is at bottom (near FloorStatsBar)
-const isMinimapNearFloorStats = showRoomView && selectedSector 
-  ? isMinimapAtBottom(selectedSector.SECTORNO)
-  : false
+  const isMinimapNearFloorStats = showRoomView && selectedSector
+    ? isMinimapAtBottom(selectedSector.SECTORNO)
+    : false
 
   /**
    * Initialize authenticated user on mount
@@ -624,6 +624,14 @@ const isMinimapNearFloorStats = showRoomView && selectedSector
     t,
     lang,
   ]);
+  // ✅ RESET MINIMAP CURSOR WHEN ENTERING MINIMAP FOCUS
+  useEffect(() => {
+    if (focusedRegion === FocusRegion.MINI_MAP) {
+      console.log("♻️ Entered MINI_MAP → resetting cursor");
+      setMiniMapCursor(-1); // important: forces fresh start
+    }
+  }, [focusedRegion]);
+
 
   // /* =====================================================
   //  RENDER
@@ -760,7 +768,7 @@ const isMinimapNearFloorStats = showRoomView && selectedSector
           loading={loading}
           isFocused={focusedRegion === FocusRegion.FLOOR_STATS}
           isAnyModalOpen={isAnyModalOpen}
-             isMinimapNearFloorStats={isMinimapNearFloorStats}
+          isMinimapNearFloorStats={isMinimapNearFloorStats}
         />
       </div>
       <div>
