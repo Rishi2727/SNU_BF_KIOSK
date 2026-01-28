@@ -398,25 +398,28 @@ const Floor = () => {
   /* =====================================================
      FLOOR CHANGE - PRESERVE MOVE MODE
   ===================================================== */
-  const handleFloorClick = (floor) => {
-    if (currentFloor?.id === floor.id) return;
+const handleFloorClick = (floor) => {
+  // 🟡 SAME FLOOR CLICKED → GO BACK TO FLOOR MAP
+  if (currentFloor?.id === floor.id) {
+    // If we are inside room/sector view
+    if (showRoomView) {
+      backToFloorMap();     
+    }
+    return;
+  }
+  setCurrentFloor(floor);
+  setSelectedSector(null);
+  setShowRoomView(false);
 
-    // change floor (this will trigger redux sector fetch in useFloorData)
-    setCurrentFloor(floor);
+  navigate(buildFloorPath(floor.title), {
+    replace: true,
+    state: {
+      floorInfo: floor,
+      mode: isMoveMode ? "move" : undefined,
+    },
+  });
+};
 
-    // reset UI states
-    setSelectedSector(null);
-    setShowRoomView(false);
-
-    // navigate (no waiting for API)
-    navigate(buildFloorPath(floor.title), {
-      replace: true,
-      state: {
-        floorInfo: floor,
-        mode: isMoveMode ? "move" : undefined,
-      },
-    });
-  };
   /* =====================================================
      FETCH SEATS
   ===================================================== */
@@ -742,7 +745,7 @@ const Floor = () => {
                           )}
 
                           <div
-                            className="pointer-events-none absolute -top-10 left-[-11px] right-4 bottom-13 bg-[#FFCA08]/20 border-2 border-[#FFCA08] rounded
+                            className="pointer-events-none absolute -top-6 left-[30px] right-4 bottom-13 bg-[#FFCA08]/20 border-2 border-[#FFCA08] rounded
                            opacity-0 group-hover:opacity-100 transition-all duration-200"
                           />
                           <div className="absolute -top-15 left-1/2 -translate-x-1/2 pointer-events-none">
