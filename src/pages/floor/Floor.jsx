@@ -645,7 +645,7 @@ const Floor = () => {
       />
       {/* ================= MAIN CONTENT ================= */}
       <div
-        className={`absolute inset-0 flex items-center justify-center z-0 mx-[11px] ${focusedRegion === FocusRegion.ROOM ||
+        className={`relative inset-0 h-[900px] flex items-center justify-center z-0 mx-[11px] ${focusedRegion === FocusRegion.ROOM ||
           focusedRegion === FocusRegion.MAP
           ? "border-[5px] border-[#dc2f02] box-border"
           : "border-[5px] border-transparent box-border"
@@ -666,8 +666,9 @@ const Floor = () => {
 
         {currentFloor && (
           <div
-            className={`relative w-full h-[720px] bg-white/10 backdrop-blur-sm rounded-lg  shadow-2xl `}
+            className={`relative w-full h-[720px] bg-white/10 backdrop-blur-sm rounded-lg shadow-2xl top-[80px]`}
           >
+
             {loading ? (
               <LoadingSpinner />
             ) : showRoomView && selectedSector ? (
