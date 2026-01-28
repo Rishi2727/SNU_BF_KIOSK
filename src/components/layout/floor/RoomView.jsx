@@ -536,7 +536,7 @@ const RoomView = ({
       const seatDiv = seatRefs.current[seat.SEATNO];
       if (!seatDiv) return true;
 
-      return !isSeatHiddenByMinimap(seatDiv);
+      return !isSeatVisibleByOverlap(seatDiv);
     });
 
     const sorted = visible.sort((a1, b1) => {
@@ -570,27 +570,29 @@ const RoomView = ({
     return () => clearTimeout(timer);
   }, [seats, isImageLoaded]);
 
-  /* ================= HANDLE MINI MAP AUTO FOCUS ================= */
- useEffect(() => {
+/* ================= MINIMAP FOCUS SPEAK ================= */
+useEffect(() => {
   if (!isMinimapFocused) return;
   if (!sectors.length) return;
-  if (!firstSectorSet || !selectedMiniSectorLocal) return;
   if (minimapFocusIndex === -1) return;
 
   const clampedIndex = Math.min(minimapFocusIndex, sectors.length - 1);
   const sector = sectors[clampedIndex];
   if (!sector) return;
 
-  // ✅ ONLY LOG / VISUAL FOCUS
   console.log("👀 Minimap focus moved to sector:", sector.id);
+
+  // 🔊 SPEAK
+  speak(t("Mini map sector") + " " + sector.id);
 
 }, [
   minimapFocusIndex,
   isMinimapFocused,
   sectors,
-  firstSectorSet,
-  selectedMiniSectorLocal
+  speak,
+  t
 ]);
+
 useEffect(() => {
   if (!isMinimapFocused) return;
 
@@ -607,13 +609,16 @@ useEffect(() => {
     setSelectedMiniSectorLocal(sector);
     setImagePanOffset({ x: -sector.x1, y: -sector.y1 });
 
+    // 🔊 SPEAK CONFIRMATION
+    speak(t("Selected mini map sector") + " " + sector.id);
+
     if (onMiniSectorClick) onMiniSectorClick(sector);
   };
 
   window.addEventListener("keydown", handleKeyDown);
   return () => window.removeEventListener("keydown", handleKeyDown);
 
-}, [isMinimapFocused, minimapFocusIndex, sectors, onMiniSectorClick]);
+}, [isMinimapFocused, minimapFocusIndex, sectors, onMiniSectorClick, speak, t]);
 
 
   // Notify parent of sector count and visible seats
