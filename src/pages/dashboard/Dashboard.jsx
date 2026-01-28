@@ -34,8 +34,8 @@ const Dashboard = () => {
     [MODAL_TYPES.ASSIGN_CHECK]: false
   });
   const [selectedAssignNo, setSelectedAssignNo] = useState(null);
-// Add this state near your other modal states
-const [loginErrorButtonFocused, setLoginErrorButtonFocused] = useState(false);
+  // Add this state near your other modal states
+  const [loginErrorButtonFocused, setLoginErrorButtonFocused] = useState(false);
 
   //state for modal focus 
   const [isLoginErrorFocused, setIsLoginErrorFocused] = useState(false);
@@ -235,18 +235,18 @@ const [loginErrorButtonFocused, setLoginErrorButtonFocused] = useState(false);
    * Open keyboard modal
    */
 
-const openKeyboard = useCallback((floor = null, shouldAutoFocus = false) => {
-  setSelectedFloor(floor);
-  setIsKeyboardOpen(true);
-  
-  // ✅ If opened via focused login button, auto-focus keyboard
-  if (shouldAutoFocus) {
-    // Small delay to ensure modal is rendered
-    setTimeout(() => {
-      setFocused(FocusRegionforKeyboardModal.KEYBOARD);
-    }, 100);
-  }
-}, []);
+  const openKeyboard = useCallback((floor = null, shouldAutoFocus = false) => {
+    setSelectedFloor(floor);
+    setIsKeyboardOpen(true);
+
+    // ✅ If opened via focused login button, auto-focus keyboard
+    if (shouldAutoFocus) {
+      // Small delay to ensure modal is rendered
+      setTimeout(() => {
+        setFocused(FocusRegionforKeyboardModal.KEYBOARD);
+      }, 100);
+    }
+  }, []);
 
   /**
    * Close keyboard modal
@@ -449,7 +449,7 @@ const openKeyboard = useCallback((floor = null, shouldAutoFocus = false) => {
   useEffect(() => {
     if (loginErrorModal.isOpen) {
       setIsLoginErrorFocused(true);
-       setLoginErrorButtonFocused(true);
+      setLoginErrorButtonFocused(true);
       hasSpokenLoginErrorRef.current = false;
 
       stop();
@@ -458,44 +458,44 @@ const openKeyboard = useCallback((floor = null, shouldAutoFocus = false) => {
       speak(`${loginErrorModal.title} ${cleanMessage}  ${t("speech.Press OK button")}`);
     } else {
       setIsLoginErrorFocused(false);
-         setLoginErrorButtonFocused(false);
+      setLoginErrorButtonFocused(false);
       hasSpokenLoginErrorRef.current = false;
       stop();
     }
   }, [loginErrorModal.isOpen, loginErrorModal.title, loginErrorModal.message, stop, speak]);
-  
-useEffect(() => {
-  if (!loginErrorModal.isOpen || !isLoginErrorFocused) return;
 
-  const handleKeyDown = (e) => {
-    // Handle Enter key
-    if (e.key === "Enter") {
-      e.preventDefault();
-      if (loginErrorButtonFocused) {
-        closeLoginErrorModal();
-      }
-    }
+  useEffect(() => {
+    if (!loginErrorModal.isOpen || !isLoginErrorFocused) return;
 
-    // Handle Arrow keys - toggle button focus
-    if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
-      e.preventDefault();
-      setLoginErrorButtonFocused(prev => {
-        const newFocus = !prev;
-        
-        // Speak when button gets focus
-        if (newFocus) {
-          stop();
-          speak(t("speech.Press OK button"));
+    const handleKeyDown = (e) => {
+      // Handle Enter key
+      if (e.key === "Enter") {
+        e.preventDefault();
+        if (loginErrorButtonFocused) {
+          closeLoginErrorModal();
         }
-        
-        return newFocus;
-      });
-    }
-  };
+      }
 
-  window.addEventListener("keydown", handleKeyDown);
-  return () => window.removeEventListener("keydown", handleKeyDown);
-}, [loginErrorModal.isOpen, isLoginErrorFocused, loginErrorButtonFocused, closeLoginErrorModal, stop, speak, t]);
+      // Handle Arrow keys - toggle button focus
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        e.preventDefault();
+        setLoginErrorButtonFocused(prev => {
+          const newFocus = !prev;
+
+          // Speak when button gets focus
+          if (newFocus) {
+            stop();
+            speak(t("speech.Press OK button"));
+          }
+
+          return newFocus;
+        });
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [loginErrorModal.isOpen, isLoginErrorFocused, loginErrorButtonFocused, closeLoginErrorModal, stop, speak, t]);
 
   // 🔊 VOICE: speak when dashboard focus changes
   useEffect(() => {
@@ -556,7 +556,7 @@ useEffect(() => {
         {/* Footer Controls */}
         <FooterControls
           userInfo={userInfo}
-       openKeyboard={(shouldAutoFocus) => openKeyboard(null, shouldAutoFocus)}
+          openKeyboard={(shouldAutoFocus) => openKeyboard(null, shouldAutoFocus)}
           logout={handleLogout}
           isFocused={focused === FocusRegion.FOOTER}
         />
@@ -602,12 +602,12 @@ useEffect(() => {
           />
           <button
             onClick={closeLoginErrorModal}
-             className={`mt-4 px-10 py-3 rounded-full bg-red-600 text-white text-lg font-semibold
+            className={`mt-4 px-10 py-3 rounded-full bg-red-600 text-white text-lg font-semibold
          hover:bg-red-700 focus:outline-none transition-all
-         ${loginErrorButtonFocused 
-           ? 'ring-[6px] ring-red-300 scale-105' 
-           : 'ring-0'
-         }`}
+         ${loginErrorButtonFocused
+                ? 'ring-[6px] ring-red-300 scale-105'
+                : 'ring-0'
+              }`}
           >
             {t("translations.OK")}
           </button>

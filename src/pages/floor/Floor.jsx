@@ -741,7 +741,7 @@ const Floor = () => {
                           }}
                         >
                           {isSectorFocused && (
-                            <div className="pointer-events-none absolute -inset-2 rounded border-[6px] border-[#dc2f02]" />
+                            <div className="pointer-events-none -top-14 bottom-6  absolute -inset-2 rounded border-[6px] border-[#dc2f02]" />
                           )}
 
                           <div className="pointer-events-none absolute -top-6 left-[30px] right-4 bottom-13 bg-[#FFCA08]/20 border-2 border-[#FFCA08] rounded opacity-0 group-hover:opacity-100 transition-all duration-200" />
