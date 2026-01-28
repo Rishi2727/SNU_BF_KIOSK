@@ -718,8 +718,23 @@ const SeatActionModal = ({
                     return t("speech.SEAT_MODAL_TITLE", {
                         action: MODE_LABELS[mode],
                     });
-                case "header":
-                    return t("speech.SEAT_MODAL_LOCATION_INFO");
+                case "header": {
+                    // Assign check mode
+                    if (isAssignCheck && seatInfo) {
+                        return `${t("translations.Central Library")} ${seatInfo.FLOOR_NAME} ${seatInfo.SECTOR_NAME} ${seatInfo.SEAT_VNAME}`;
+                    }
+
+                    // Booking / Move / Extension / Return
+                    if (seat || bookingSeatInfo) {
+                        return `${t("translations.Central Library")} ${seat?.ROOM_NAME || bookingSeatInfo?.FLOOR_NAME
+                            } ${seat?.NAME || bookingSeatInfo?.SECTOR_NAME
+                            } ${seat?.VNAME || bookingSeatInfo?.SEAT_VNAME
+                            }`;
+                    }
+
+                    return "";
+                }
+
 
                 case "name-label":
                 case "name-value":
