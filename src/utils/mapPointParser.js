@@ -1,17 +1,21 @@
 export const parseMapPoint = (mapPoint) => {
-  if (!mapPoint) return [];
+  if (!mapPoint || typeof mapPoint !== "string") return [];
 
-  // split multiple layouts by $
-  return mapPoint.split("$").map(block => {
-    const styles = {};
-    block.split(";").forEach(style => {
-      const [key, value] = style.split(":").map(s => s.trim());
-      if (key && value) {
-        styles[key] = value;
-      }
-    });
-    return styles;
-  }).filter(s => Object.keys(s).length > 0);
+  return mapPoint
+    .split("$")
+    .map((block) => {
+      const styles = {};
+
+      block.split(";").forEach((style) => {
+        const [key, value] = style.split(":").map((s) => s.trim());
+        if (key && value) {
+          styles[key] = value; // top, left, right, width, height
+        }
+      });
+
+      return styles;
+    })
+    .filter((s) => Object.keys(s).length > 0);
 };
 
 

@@ -398,27 +398,27 @@ const Floor = () => {
   /* =====================================================
      FLOOR CHANGE - PRESERVE MOVE MODE
   ===================================================== */
-const handleFloorClick = (floor) => {
-  // 🟡 SAME FLOOR CLICKED → GO BACK TO FLOOR MAP
-  if (currentFloor?.id === floor.id) {
-    // If we are inside room/sector view
-    if (showRoomView) {
-      backToFloorMap();     
+  const handleFloorClick = (floor) => {
+    // 🟡 SAME FLOOR CLICKED → GO BACK TO FLOOR MAP
+    if (currentFloor?.id === floor.id) {
+      // If we are inside room/sector view
+      if (showRoomView) {
+        backToFloorMap();
+      }
+      return;
     }
-    return;
-  }
-  setCurrentFloor(floor);
-  setSelectedSector(null);
-  setShowRoomView(false);
+    setCurrentFloor(floor);
+    setSelectedSector(null);
+    setShowRoomView(false);
 
-  navigate(buildFloorPath(floor.title), {
-    replace: true,
-    state: {
-      floorInfo: floor,
-      mode: isMoveMode ? "move" : undefined,
-    },
-  });
-};
+    navigate(buildFloorPath(floor.title), {
+      replace: true,
+      state: {
+        floorInfo: floor,
+        mode: isMoveMode ? "move" : undefined,
+      },
+    });
+  };
 
   /* =====================================================
      FETCH SEATS
@@ -648,7 +648,7 @@ const handleFloorClick = (floor) => {
       />
       {/* ================= MAIN CONTENT ================= */}
       <div
-        className={`relative inset-0 h-[900px] flex items-center justify-center z-0 mx-[11px] ${focusedRegion === FocusRegion.ROOM ||
+        className={`relative inset-0 h-[900px] flex items-center justify-center z-0  ${focusedRegion === FocusRegion.ROOM ||
           focusedRegion === FocusRegion.MAP
           ? "border-[5px] border-[#dc2f02] box-border"
           : "border-[5px] border-transparent box-border"
@@ -719,6 +719,7 @@ const handleFloorClick = (floor) => {
                   {!imageError &&
                     displayableSectors.map((sector, sectorIndex) => {
                       const mapStylesList = parseMapPoint(sector.MAPPOINT);
+
                       const LEGEND_BAR_COUNT = 4;
                       const isSectorFocused =
                         focusedRegion === FocusRegion.MAP &&
@@ -736,26 +737,24 @@ const handleFloorClick = (floor) => {
                             right: mapStyles.right,
                             width: mapStyles.width,
                             height: mapStyles.height,
-                            minHeight: "60px",
+                            minHeight: "0px",
                           }}
                         >
-                          {/* ✅ FOCUS VISUAL (padding + min height effect) */}
                           {isSectorFocused && (
-                            <div className="pointer-events-none absolute -inset-2 rounded border-[6px] border-[#dc2f02] " />
+                            <div className="pointer-events-none absolute -inset-2 rounded border-[6px] border-[#dc2f02]" />
                           )}
 
-                          <div
-                            className="pointer-events-none absolute -top-6 left-[30px] right-4 bottom-13 bg-[#FFCA08]/20 border-2 border-[#FFCA08] rounded
-                           opacity-0 group-hover:opacity-100 transition-all duration-200"
-                          />
+                          <div className="pointer-events-none absolute -top-6 left-[30px] right-4 bottom-13 bg-[#FFCA08]/20 border-2 border-[#FFCA08] rounded opacity-0 group-hover:opacity-100 transition-all duration-200" />
+
                           <div className="absolute -top-15 left-1/2 -translate-x-1/2 pointer-events-none">
                             <span className="bg-[#9A7D4C] text-white px-4 py-1.5 rounded-md text-[30px] font-bold shadow-lg whitespace-nowrap">
-                              {t(`${getSectorLabel(sector, idx)}`)}
+                              {t(getSectorLabel(sector, idx))}
                             </span>
                           </div>
                         </button>
                       ));
-                    })}
+                    })
+                  }
                 </div>
               </div>
             )}
