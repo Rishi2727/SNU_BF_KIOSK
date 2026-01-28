@@ -109,7 +109,8 @@ const enTranslations = {
     "MULTIPLE_BOOKING_DESC": "When multiple bookings exist, the 'No' button moves to the next popup until all are displayed.",
     "Extension": "Extension",
     "Central Library": "Central Library",
-     "Current Time":"Current Time"
+     "Current Time":"Current Time",
+        "Press OK button": "Press OK button to close",
   },
   translations: {
     "Confirm": "Confirm",
