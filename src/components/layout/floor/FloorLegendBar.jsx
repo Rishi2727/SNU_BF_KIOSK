@@ -86,18 +86,18 @@ const FloorLegendBar = ({
 
 
       {/* LEFT */}
-      <div className="flex items-center gap-5">
+      <div className="flex items-center gap-2">
 
-
-        <div className={`flex items-center gap-2 ${isFocusedAt(0)
+        <img
+          src={logo}
+          alt="logo"
+          className=" w-[38%] "
+        />
+        <div className={`flex items-center -ml-10 gap-2 ${isFocusedAt(0)
           ? focusRing : ""}`}
           aria-selected={isFocusedAt(0)}>
-          <img
-            src={logo}
-            alt="logo"
-            className=" w-[38%] -ml-2!"
-          />
-          <Home className="w-8 h-8 -ml-16!" />
+
+          <Home className="w-8 h-8 " />
           <span className="text-[28px] font-semibold text-nowrap">
             {buildingName && `${t(`translations.${buildingName}`)} `}
             {floorName && `( ${t(`translations.${floorName}`)} `}
