@@ -234,11 +234,19 @@ const [loginErrorButtonFocused, setLoginErrorButtonFocused] = useState(false);
   /**
    * Open keyboard modal
    */
-  const openKeyboard = useCallback((floor = null) => {
-    setSelectedFloor(floor);
-    setIsKeyboardOpen(true);
 
-  }, []);
+const openKeyboard = useCallback((floor = null, shouldAutoFocus = false) => {
+  setSelectedFloor(floor);
+  setIsKeyboardOpen(true);
+  
+  // ✅ If opened via focused login button, auto-focus keyboard
+  if (shouldAutoFocus) {
+    // Small delay to ensure modal is rendered
+    setTimeout(() => {
+      setFocused(FocusRegionforKeyboardModal.KEYBOARD);
+    }, 100);
+  }
+}, []);
 
   /**
    * Close keyboard modal
@@ -548,7 +556,7 @@ useEffect(() => {
         {/* Footer Controls */}
         <FooterControls
           userInfo={userInfo}
-          openKeyboard={() => openKeyboard(null)}
+       openKeyboard={(shouldAutoFocus) => openKeyboard(null, shouldAutoFocus)}
           logout={handleLogout}
           isFocused={focused === FocusRegion.FOOTER}
         />

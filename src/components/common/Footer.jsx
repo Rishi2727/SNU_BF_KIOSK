@@ -161,9 +161,9 @@ const FooterControls = ({
       case 0:
         return;
       case 1:
-        // Login
-        openKeyboard();
-        return;
+      // ✅ Login - with auto-focus
+      openKeyboard(true); // Pass true for auto-focus
+      return;
       case 2:
         // KR
         handleLanguageChange("KR");
@@ -422,7 +422,7 @@ const FooterControls = ({
               </>
             ) : (
               <button
-                onClick={openKeyboard}
+               onClick={() => openKeyboard(false)}
                 className={`px-6 py-2 rounded-full bg-[#D7D8D2] text-white text-[28px]
         ${cursor === 1 + BACK_OFFSET && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}`}
               >

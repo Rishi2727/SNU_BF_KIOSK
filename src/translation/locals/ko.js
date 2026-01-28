@@ -180,7 +180,8 @@ const koTranslations = {
     "Extension": "확대",
     "Login Failed": "로그인 실패",
     "ERROR_USER_NOT_FOUND":
-      "사용자 정보가 없습니다.<br/>사용자 정보 확인 후 다시 이용하시길 바랍니다."
+      "사용자 정보가 없습니다.<br/>사용자 정보 확인 후 다시 이용하시길 바랍니다.",
+    "OK": "좋아요"
   }
 }
 export default koTranslations;

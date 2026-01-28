@@ -109,8 +109,8 @@ const enTranslations = {
     "MULTIPLE_BOOKING_DESC": "When multiple bookings exist, the 'No' button moves to the next popup until all are displayed.",
     "Extension": "Extension",
     "Central Library": "Central Library",
-     "Current Time":"Current Time",
-        "Press OK button": "Press OK button to close",
+    "Current Time": "Current Time",
+    "Press OK button": "Press OK button to close",
   },
   translations: {
     "Confirm": "Confirm",
@@ -170,9 +170,10 @@ const enTranslations = {
     "Next": "Next",
     "Previous": "Previous",
     "Extension": "Extension",
-    "Login Failed":"Login Failed",
-        "ERROR_USER_NOT_FOUND":
-    "User information not found.<br/>Please check your details and try again."
+    "Login Failed": "Login Failed",
+    "ERROR_USER_NOT_FOUND":
+      "User information not found.<br/>Please check your details and try again.",
+    "OK": "OK"
   }
 
 }
