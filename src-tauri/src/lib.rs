@@ -116,8 +116,7 @@ fn restart_app(app_handle: tauri::AppHandle, logger: State<'_, Arc<Logger>>) -> 
         .log(LogLevel::INFO, "Restart command invoked from frontend")
         .unwrap();
 
-    app_handle.restart();
-    Ok(())
+    app_handle.restart()
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -181,7 +180,7 @@ pub fn run() {
                 let tray_logger = Arc::clone(&logger_setup); // Clone logger for use in the event handler closure
                 TrayIconBuilder::new()
                     .menu(&menu)
-                    .menu_on_left_click(true) // Show menu on left click
+                    .show_menu_on_left_click(true) // Show menu on left click
                     .icon(app.default_window_icon().unwrap().clone()) // Set tray icon
                     .on_menu_event(move |app, event| {
                         let event_logger = Arc::clone(&tray_logger); // Clone logger inside the event handler closure

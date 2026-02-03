@@ -1,8 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 import { disableNextFocus } from "../redux/slice/headphoneSlice";
-import { clearLoginSession } from "../utils/clearLoginSession";
-import { clearUserInfo } from "../redux/slice/userInfo";
+import { logout } from "../redux/slice/authSlice";
 
 
 
@@ -52,8 +51,7 @@ export function useHeadphoneGuard() {
       if (!prevConnectedRef.current && connected) {
         console.log("🎧 Headphone detected");
 
-        clearLoginSession();
-        dispatch(clearUserInfo());
+        dispatch(logout());
 
         // 🔥 tell app: earphone injected, prevent focus, trigger speech
         dispatch(disableNextFocus());

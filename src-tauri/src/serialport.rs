@@ -207,6 +207,7 @@ pub fn list_serial_ports(logger: tauri::State<'_, Arc<Logger>>) -> Result<Vec<St
 pub fn continuous_read(
     port_name: String,
     baud_rate: u32,
+    device_name: String,
     logger: tauri::State<'_, Arc<Logger>>,
     app_handle: AppHandle,
 ) -> Result<(), String> {
@@ -295,7 +296,7 @@ pub fn continuous_read(
                                 if let Err(e) = app_handle.emit(
                                     "serial-data",
                                     serde_json::json!({
-                                        "device_name": port_name.clone(),
+                                        "device_name": device_name.clone(),
                                         "data": data
                                     }),
                                 ) {

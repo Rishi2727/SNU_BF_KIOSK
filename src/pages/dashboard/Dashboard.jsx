@@ -7,8 +7,9 @@ import KeyboardModal from "../../components/layout/keyBoardModal/KeyboardModal";
 import FooterControls from "../../components/common/Footer";
 import UserInfoModal from "../../components/layout/dashboard/useInfoModal";
 import SeatActionModal from "../../components/common/SeatActionModal";
-import { getKioskUserInfo, loginBySchoolNo } from "../../services/api";
+import { getKioskUserInfo } from "../../services/api";
 import { clearUserInfo, setUserInfo } from "../../redux/slice/userInfo";
+import { login, logout } from "../../redux/slice/authSlice";
 import { fetchBookingTime } from "../../redux/slice/bookingTimeSlice";
 import { MODAL_TYPES } from "../../utils/constant";
 import NoticeBanner from "../../components/layout/dashboard/Notice";
@@ -108,8 +109,7 @@ const Dashboard = () => {
     if (!earphoneInjected) return;
 
     // 🔴 FORCE LOGOUT on headphone removal
-    localStorage.removeItem("authenticated");
-    dispatch(clearUserInfo());
+    dispatch(logout());
 
     // ❌ reset focus
     setFocused(null);
@@ -289,45 +289,29 @@ const Dashboard = () => {
     };
 
     try {
-      const response = await loginBySchoolNo(value);
-      const params = new URLSearchParams(response.split("?")[1]);
-
-      if (params.get("ERROR_YN") === "Y") {
-        const rawError = params.get("ERROR_TEXT");
-        const errorKey = mapBackendErrorToKey(rawError);
-
-        openLoginErrorModal(
-          t("translations.Login Failed"),
-          t(`translations.${errorKey}`)
-        );
-
-        return;
-      }
-
-
-
-      const info = await getKioskUserInfo();
-
-      if (info?.successYN === "Y") {
-        dispatch(setUserInfo(info.bookingInfo));
-        localStorage.setItem("authenticated", "true");
-        const showModal = shouldShowModal(info.bookingInfo);
-        if (selectedFloor) {
-          if (showModal) {
-            setIsUserInfoModalOpen(true);
-          } else {
-            await navigateToFloor(selectedFloor);
-          }
-        } else if (showModal) {
+      const result = await dispatch(login(value)).unwrap();
+      
+      // Successfully logged in, result contains userInfo
+      const showModal = shouldShowModal(result);
+      if (selectedFloor) {
+        if (showModal) {
           setIsUserInfoModalOpen(true);
+        } else {
+          await navigateToFloor(selectedFloor);
         }
+      } else if (showModal) {
+        setIsUserInfoModalOpen(true);
       }
     } catch (error) {
-      console.error("Login failed:", error);
+      // Handle login error
+      const errorKey = mapBackendErrorToKey(error.errorMessage);
+      const title = t("translations.Login Failed");
+      const message = t(`translations.${errorKey}`);
+      openLoginErrorModal(title, message);
     } finally {
       setIsKeyboardOpen(false);
     }
-  }, [dispatch, selectedFloor, shouldShowModal, navigateToFloor, t]);
+  }, [dispatch, selectedFloor, shouldShowModal, navigateToFloor, t, openLoginErrorModal]);
 
   /**
    * Toggle modal state
@@ -417,8 +401,7 @@ const Dashboard = () => {
    */
   const handleUserInfoModalClose = useCallback(() => {
     setIsUserInfoModalOpen(false);
-    localStorage.removeItem("authenticated");
-    dispatch(clearUserInfo());
+    dispatch(logout());
     navigate("/");
   }, [dispatch, navigate]);
 
@@ -440,8 +423,7 @@ const Dashboard = () => {
    * Handle logout
    */
   const handleLogout = useCallback(() => {
-    localStorage.removeItem("authenticated");
-    dispatch(clearUserInfo());
+    dispatch(logout());
   }, [dispatch]);
 
 

@@ -8,6 +8,7 @@ import GlobalShortcuts from "./global/GlobalShortcuts";
 import { VoiceProvider } from "./context/voiceContext";
 import { NavigateProvider } from "./context/NavigateContext";
 import GlobalHeadphoneMonitor from "./components/GlobalHeadphoneMonitor";
+import { SerialPortProvider } from "./context/SerialPortContext";
 
 
 
@@ -20,9 +21,11 @@ function App() {
         <Magnifier />
         <VoiceProvider>
           <NavigateProvider>
-            <GlobalShortcuts />
-            <GlobalHeadphoneMonitor/>
-            <AppRoutes />
+            <SerialPortProvider>
+              <GlobalShortcuts />
+              <GlobalHeadphoneMonitor/>
+              <AppRoutes />
+            </SerialPortProvider>
           </NavigateProvider>
         </VoiceProvider>
       </Provider>

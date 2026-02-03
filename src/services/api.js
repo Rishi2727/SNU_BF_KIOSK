@@ -7,6 +7,11 @@ export const client = axios.create({
   // adapter: axiosTauriApiAdapter
 });
 
+// Create a separate client with Tauri adapter for external APIs to bypass CORS
+export const externalClient = axios.create({
+  adapter: axiosTauriApiAdapter
+});
+
 let managerIpUrl = "";
 let socket_URL = "";
 let BASE = "";
@@ -235,6 +240,23 @@ export const loginBySchoolNo = (schoolno) =>
 export const getKioskUserInfo = () =>
   protectedApi.post("/json/getKioskUserInfo", {});
 
+export const QRValidate = (qrCode) => {
+  // URL encode the qrCode to handle special characters and spaces
+  const encodedQrCode = encodeURIComponent(qrCode);
+  return externalClient.get("https://libapp.snu.ac.kr/SNU_MOB/qrCheck.do", {
+    params: { code: qrCode },
+    responseType: 'text', // Expect text/XML response instead of JSON
+    transformResponse: [(data) => {
+      // Try to parse as JSON if possible, otherwise return raw text
+      try {
+        return JSON.parse(data);
+      } catch (e) {
+        // If XML or other format, return as-is
+        return data;
+      }
+    }]
+  });
+};
 
 /* ===============================
    💺 SEAT

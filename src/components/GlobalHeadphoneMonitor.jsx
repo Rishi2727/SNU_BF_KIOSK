@@ -1,8 +1,7 @@
 import { useDispatch } from "react-redux"
 import { useNavigateContext } from "../context/NavigateContext";
 import { useHeadphoneGuard } from "../hooks/useHeadphoneGuard";
-import { clearLoginSession } from "../utils/clearLoginSession";
-import { clearUserInfo } from "../redux/slice/userInfo";
+import { logout } from "../redux/slice/authSlice";
 import { disableNextFocus, triggerHeadphoneFocus } from "../redux/slice/headphoneSlice";
 
 
@@ -12,8 +11,7 @@ const GlobalHeadphoneMonitor = () => {
 
 useHeadphoneGuard({
     onFocusContent:()=>{
-        clearLoginSession();
-        dispatch(clearUserInfo())
+        dispatch(logout())
         dispatch(disableNextFocus());
         navigate('/')
     }

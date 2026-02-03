@@ -8,8 +8,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { useVoice } from "../context/voiceContext";
 import { disableNextFocus } from "../redux/slice/headphoneSlice";
-import { clearLoginSession } from "../utils/clearLoginSession";
-import { clearUserInfo } from "../redux/slice/userInfo";
+import { logout } from "../redux/slice/authSlice";
 import { useNavigateContext } from "../context/NavigateContext";
 import { useLocation } from "react-router-dom";
 
@@ -101,8 +100,7 @@ export default function GlobalShortcuts() {
     dispatch(disableNextFocus());
 
     if (!isDashboard) {
-      clearLoginSession();
-      dispatch(clearUserInfo());
+      dispatch(logout());
       navigate("/");
     }
     // stays on dashboard without focusing anything

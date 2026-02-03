@@ -21,8 +21,8 @@ async fn make_kiosk_login_request(logger: Arc<Logger>) -> Result<ApiResponse, St
     let config = read_config_file(Arc::clone(&logger))
         .map_err(|e| format!("Error reading config: {}", e))?;
 
-    let protocol = config.protocol.trim_end_matches("://").to_lowercase();
-    let base_url = format!("{}://{}/", protocol, config.server.trim_end_matches('/'));
+    // Use primary_server_url which is already a complete URL
+    let base_url = config.primary_server_url.trim_end_matches('/');
 
     let endpoint = format!(
         "api/v1/kiosk/login/{}?version={}",
@@ -42,7 +42,7 @@ async fn make_kiosk_login_request(logger: Arc<Logger>) -> Result<ApiResponse, St
         .get(&api_url)
         .header("x-kiosk-uuid", &config.machineId)
         .header("x-kiosk-version", RELEASE_VERSION)
-        .header("x-api-key", &config.api_key)
+        .header("x-machine-id", &config.machineId)
         .send()
         .await
     {
