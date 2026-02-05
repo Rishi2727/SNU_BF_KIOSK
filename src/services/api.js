@@ -1,31 +1,96 @@
 import axios from "axios";
 import { invoke } from "@tauri-apps/api/core";
-import axiosTauriApiAdapter from "axios-tauri-api-adapter";
+import { fetch as tauriFetch } from '@tauri-apps/plugin-http';
+
+// Custom Tauri adapter that properly handles large responses and null bytes
+const customTauriAdapter = async (config) => {
+  try {
+    const url = config.baseURL ? config.baseURL + config.url : config.url;
+    
+    // Build query parameters
+    let fullUrl = url;
+    if (config.params) {
+      const params = new URLSearchParams(config.params);
+      fullUrl += (url.includes('?') ? '&' : '?') + params.toString();
+    }
+    
+    // Make request using Tauri's fetch
+    const response = await tauriFetch(fullUrl, {
+      method: config.method?.toUpperCase() || 'GET',
+      headers: config.headers || {},
+      body: config.data,
+    });
+    
+    // Always get as arrayBuffer to prevent truncation
+    const arrayBuffer = await response.arrayBuffer();
+    
+    // Normalize status code to valid range (handle 999 and other non-standard codes)
+    let status = response.status;
+    if (status < 200 || status > 599) {
+      console.warn(`⚠️ Non-standard HTTP status ${status}, normalizing to 200`);
+      status = 200;
+    }
+    
+    return {
+      data: arrayBuffer,
+      status: status,
+      statusText: response.statusText || 'OK',
+      headers: Object.fromEntries(response.headers.entries()),
+      config: config,
+      request: {}
+    };
+  } catch (error) {
+    console.error('Custom Tauri adapter error:', error);
+    throw error;
+  }
+};
 
 const parseApiResponse = (data) => {
-  // console.log("Raw API Response:", data);
-
-  // Already parsed or non-string
+  // Already parsed object
+  if (data && typeof data === "object" && !Array.isArray(data) && !(data instanceof ArrayBuffer)) {
+    return data;
+  }
+  
+  // ArrayBuffer from Tauri adapter
+  if (data instanceof ArrayBuffer) {
+    const decoder = new TextDecoder('utf-8');
+    data = decoder.decode(data);
+  }
+  
+  // Not a string at this point
   if (typeof data !== "string") {
     return data;
   }
-  // Try JSON parse
-  try {
-    const cleaned = data
-    .replace(/^\uFEFF/, "") // BOM
-    .replace(/\0/g, "")     // NULL bytes
+  
+  // Clean the string FIRST before parsing
+  const cleaned = data
+    .replace(/^\uFEFF/, "")  // Remove BOM
+    .replace(/\0/g, "")      // Remove ALL null bytes (this is critical!)
     .trim();
-    return Object.freeze(JSON.parse(cleaned));
-  } catch {
-    // Not JSON → return text as-is
-    console.warn("API Response is not valid JSON, returning raw text.", data.substring(0, 30));
-    console.log("Full non-JSON response:", data);
+  
+  // Try JSON parse on cleaned string
+  try {
+    const parsed = JSON.parse(cleaned);
+    return parsed;
+  } catch (e) {
+    // Log detailed error info
+    console.warn("⚠️ API Response is not valid JSON, returning raw text.", cleaned.substring(0, 80));
+    console.error("Parse error:", e.message);
+    console.log("Data length:", cleaned.length, "Original length:", data.length);
+    
+    // Try to find where the JSON is broken
+    const errorPos = e.message.match(/position (\d+)/);
+    if (errorPos) {
+      const pos = parseInt(errorPos[1]);
+      console.log("Error context:", cleaned.substring(Math.max(0, pos - 50), Math.min(cleaned.length, pos + 50)));
+    }
+    
     return data;
   }
 };
 
 export const masterClient = axios.create({
-  adapter: axiosTauriApiAdapter,
+  adapter: customTauriAdapter,
   headers: {
     Accept: "application/json",
     "X-Requested-With": "XMLHttpRequest",
@@ -33,7 +98,6 @@ export const masterClient = axios.create({
   },
   withCredentials: true,
   timeout: 60000,
-  responseType: "text",
   transformResponse: [parseApiResponse],
 });
 
