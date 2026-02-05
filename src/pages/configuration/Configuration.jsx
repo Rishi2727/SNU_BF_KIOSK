@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -7,23 +7,18 @@ import { useEffect } from "react";
 import {
     ArrowLeft,
     Server,
-    Key,
     Wifi,
     Monitor,
     Settings,
     Save,
-    Globe,
-    Shield,
     Cpu,
     HardDrive,
     Calendar,
-    Info,
     CheckCircle,
     AlertCircle
 } from 'lucide-react';
 import './Configuration.css';
 import Dropdown from '../../components/common/dropdown';
-import { client } from '../../services/api';
 import Modal from '../../components/common/Modal';
 
 

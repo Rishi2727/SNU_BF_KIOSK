@@ -16,7 +16,7 @@ const FloorMapImage = ({ floorImageUrl, currentFloor, onImageError, imageError }
   return (
     <>
       <img
-        src={floorImageUrl}
+        src={floorImageUrl || undefined}
         alt={`Floor ${currentFloor.title} Map`}
         className="w-full h-full object-cover "
         onError={onImageError}

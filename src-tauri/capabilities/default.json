@@ -22,14 +22,19 @@
       "identifier": "http:default",
       "allow": [
         {
-          "url": "https://**/"
+          "url": "http://k-rsv.snu.ac.kr:8011/**"
         },
         {
-          "url": "http://**/"
+          "url": "http://k-rsv.snu.ac.kr:8012/**"
+        },
+        {
+          "url": "https://**"
+        },
+        {
+          "url": "http://**"
         }
       ]
-    },
-    "http:default"
+    }
   ],
     "package": {
     "version": "{{version}}"

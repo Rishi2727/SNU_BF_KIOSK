@@ -9,10 +9,23 @@ import { VoiceProvider } from "./context/voiceContext";
 import { NavigateProvider } from "./context/NavigateContext";
 import GlobalHeadphoneMonitor from "./components/GlobalHeadphoneMonitor";
 import { SerialPortProvider } from "./context/SerialPortContext";
+import {initializeApi} from "./services/api";
+import React, {useEffect} from "react";
 
 
 
 function App() {
+
+  React.useEffect(() => {
+    const init = async () => {
+      try {
+        await initializeApi();
+      } catch (error) {
+        console.error("Failed to initialize API:", error);
+      }
+    };
+    init();
+  }, []);
 
 
   return (

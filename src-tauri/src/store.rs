@@ -167,10 +167,10 @@ pub fn ensure_config_exists(logger: Arc<Logger>) -> Result<PathBuf, Box<dyn std:
     if !config_file_path.exists() {
         let default_config = Config {
             machineId: Uuid::new_v4().to_string(),
-            primary_server_url: "http://k-rsv.snu.ac.kr:8011/NEW_SNU_BOOKING/".to_string(),
-            secondary_server_url: "http://k-rsv.snu.ac.kr:8012/SEATAPI/".to_string(),
-            qr_server_url: "https://libapp.snu.ac.kr/SNU_MOB/qrCheck.do".to_string(),
-            rfid_server_url: "https://libapp.snu.ac.kr/SNU_MOB/qrCheck.do".to_string(),
+            primary_server_url: "http://k-rsv.snu.ac.kr:8011/NEW_SNU_BOOKING".to_string(),
+            secondary_server_url: "http://k-rsv.snu.ac.kr:8012/SEATAPI".to_string(),
+            qr_server_url: "https://libapp.snu.ac.kr/SNU_MOB".to_string(),
+            rfid_server_url: "https://libapp.snu.ac.kr/SNU_MOB".to_string(),
             kiosk_mode: false,
             debug_mode: false,
             serialdata: vec![
