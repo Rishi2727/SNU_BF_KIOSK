@@ -165,7 +165,7 @@ const ensureInitialized = async () => {
   throw new Error("API is not initialized after 10 seconds.");
 };
 
-let ApiClientManagerIP = masterClient.create();
+let ApiClientManagerIP = axios.create();
 let ApiClientPrimary = masterClient.create();
 let ApiClientSecondary = masterClient.create();
 let ApiClientQR = masterClient.create();
@@ -324,3 +324,9 @@ export const logout = async () => {
   await ensureInitialized();
   return (await ApiClientPrimary.get("/kiosk/login/logout"))?.data;
 };
+
+export const managerCall = async (message) => {
+  await ensureInitialized();
+  const response = await fetch(`${managerIpUrl}/callMan.api?msg=${encodeURIComponent(message)}`, {mode: 'no-cors'});
+  return await response.json();
+}

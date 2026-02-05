@@ -27,6 +27,11 @@ fn default_rfid_server_url() -> String {
     "https://libapp.snu.ac.kr/SNU_MOB/qrCheck.do".to_string()
 }
 
+// Provide default for RFID server URL
+fn default_manager_ip_url() -> String {
+    "http://192.168.1.3:5841".to_string()
+}
+
 /// Provide default popup timers
 fn default_popup_timers() -> Vec<PopupTimer> {
     vec![
@@ -126,6 +131,8 @@ pub struct Config {
     pub qr_server_url: String,
     #[serde(default = "default_rfid_server_url")]
     pub rfid_server_url: String,
+    #[serde(default = "default_manager_ip_url")]
+    pub manager_ip_url: String,
     pub kiosk_mode: bool,
     pub debug_mode: bool,
     pub serialdata: Vec<SerialData>,
@@ -171,7 +178,8 @@ pub fn ensure_config_exists(logger: Arc<Logger>) -> Result<PathBuf, Box<dyn std:
             secondary_server_url: "http://k-rsv.snu.ac.kr:8012/SEATAPI".to_string(),
             qr_server_url: "https://libapp.snu.ac.kr/SNU_MOB".to_string(),
             rfid_server_url: "https://libapp.snu.ac.kr/SNU_MOB".to_string(),
-            kiosk_mode: false,
+            manager_ip_url: "http://192.168.1.3:5841".to_string(),
+            kiosk_mode: true,
             debug_mode: false,
             serialdata: vec![
                 SerialData {
@@ -382,6 +390,7 @@ pub fn update_config_key(
         "secondary_server_url" => config.secondary_server_url = value.to_string(),
         "qr_server_url" => config.qr_server_url = value.to_string(),
         "rfid_server_url" => config.rfid_server_url = value.to_string(),
+        "manager_ip_url" => config.manager_ip_url = value.to_string(),
         "serialdata" => {
             let updated_serialdata: Vec<SerialData> = serde_json::from_str(value).map_err(|e| {
                 logger

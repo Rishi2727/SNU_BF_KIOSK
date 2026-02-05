@@ -11,6 +11,7 @@ import { disableNextFocus } from "../redux/slice/headphoneSlice";
 import { logout } from "../redux/slice/authSlice";
 import { useNavigateContext } from "../context/NavigateContext";
 import { useLocation } from "react-router-dom";
+import { managerCall } from "../services/api";
 
 export default function GlobalShortcuts() {
   const dispatch = useDispatch();
@@ -34,23 +35,16 @@ export default function GlobalShortcuts() {
      Send API to Manager
   =============================== */
   const sendToManager = useCallback(async () => {
-    const managerIpUrl = "http://192.168.1.155:5841";
-    if (!managerIpUrl || sendingRef.current) return;
-
     sendingRef.current = true;
-
     try {
-      const url = `${managerIpUrl}/callMan.api?msg=${encodeURIComponent(
-        messageRef.current
-      )}`;
+      const res = await managerCall(messageRef.current);
 
-      const res = await fetch(url, { method: "GET" });
+      console.log("Manager call response:", res);
 
-      if (!res.ok) {
+      if (res.status !== 200) {
         speak(t("Failed to send message to administrator"));
         return;
       }
-
       speak(t("Message sent to administrator"));
     } catch (err) {
       speak(t("Network error. Unable to contact administrator"));
