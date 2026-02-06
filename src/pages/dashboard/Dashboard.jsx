@@ -42,6 +42,11 @@ const Dashboard = () => {
   const [isLoginErrorFocused, setIsLoginErrorFocused] = useState(false);
   const hasSpokenLoginErrorRef = useRef(false);
 
+  // ✅ NEW: Floor Selection Modal State
+  const [isFloorSelectionModalOpen, setIsFloorSelectionModalOpen] = useState(false);
+  const [floorSelectionFocusedIndex, setFloorSelectionFocusedIndex] = useState(0);
+  const [isFloorSelectionFocused, setIsFloorSelectionFocused] = useState(false);
+
   // ✅ Focus state
   const [focused, setFocused] = useState(null);
 
@@ -151,7 +156,8 @@ const Dashboard = () => {
         isUserInfoModalOpen ||
         modalStates[MODAL_TYPES.EXTENSION] ||
         modalStates[MODAL_TYPES.RETURN] ||
-        modalStates[MODAL_TYPES.ASSIGN_CHECK]
+        modalStates[MODAL_TYPES.ASSIGN_CHECK] ||
+        isFloorSelectionModalOpen
       ) {
         return;
       }
@@ -171,7 +177,7 @@ const Dashboard = () => {
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [isKeyboardOpen, isUserInfoModalOpen, modalStates, FocusRegion]);
+  }, [isKeyboardOpen, isUserInfoModalOpen, modalStates, isFloorSelectionModalOpen, FocusRegion]);
 
   /**
    * Check if modal should be shown based on booking info
@@ -273,6 +279,36 @@ const Dashboard = () => {
     });
   }, []);
 
+  // ✅ NEW: Open Floor Selection Modal
+  const openFloorSelectionModal = useCallback(() => {
+    setIsFloorSelectionModalOpen(true);
+    setFloorSelectionFocusedIndex(0);
+    setIsFloorSelectionFocused(true);
+    
+    stop();
+    speak(t("speech.Please select a floor"));
+  }, [stop, speak, t]);
+
+  // ✅ NEW: Close Floor Selection Modal
+  const closeFloorSelectionModal = useCallback(() => {
+    setIsFloorSelectionModalOpen(false);
+    setIsFloorSelectionFocused(false);
+    setFloorSelectionFocusedIndex(0);
+    stop();
+  }, [stop]);
+
+  // ✅ NEW: Handle Floor Selection
+  const handleFloorSelect = useCallback((floorTitle) => {
+    closeFloorSelectionModal();
+    navigateToFloor(floorTitle);
+  }, [closeFloorSelectionModal, navigateToFloor]);
+
+  // ✅ NEW: Handle Logout from Floor Selection Modal
+  const handleFloorSelectionLogout = useCallback(() => {
+    closeFloorSelectionModal();
+    dispatch(logout());
+  }, [closeFloorSelectionModal, dispatch]);
+
   /**
    * Handle keyboard submission (login)
    */
@@ -293,6 +329,15 @@ const Dashboard = () => {
       
       // Successfully logged in, result contains userInfo
       const showModal = shouldShowModal(result);
+      
+      // ✅ NEW: If no booking data available AND no floor selected (login from footer)
+      // show floor selection modal
+      if ((!result || result.ASSIGN_NO === "0") && !selectedFloor) {
+        openFloorSelectionModal();
+        return;
+      }
+      
+      // If a specific floor was selected (login from floor card), navigate directly
       if (selectedFloor) {
         if (showModal) {
           setIsUserInfoModalOpen(true);
@@ -311,7 +356,7 @@ const Dashboard = () => {
     } finally {
       setIsKeyboardOpen(false);
     }
-  }, [dispatch, selectedFloor, shouldShowModal, navigateToFloor, t, openLoginErrorModal]);
+  }, [dispatch, selectedFloor, shouldShowModal, navigateToFloor, t, openLoginErrorModal, openFloorSelectionModal]);
 
   /**
    * Toggle modal state
@@ -479,6 +524,52 @@ const Dashboard = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [loginErrorModal.isOpen, isLoginErrorFocused, loginErrorButtonFocused, closeLoginErrorModal, stop, speak, t]);
 
+  // ✅ NEW: Floor Selection Modal keyboard navigation
+  useEffect(() => {
+    if (!isFloorSelectionModalOpen || !isFloorSelectionFocused) return;
+
+    const totalOptions = floors.length + 1; // floors + logout button
+
+    const handleKeyDown = (e) => {
+      // Handle Arrow keys
+      if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+        e.preventDefault();
+        
+        setFloorSelectionFocusedIndex(prev => {
+          let newIndex;
+          if (e.key === "ArrowDown") {
+            newIndex = (prev + 1) % totalOptions;
+          } else {
+            newIndex = (prev - 1 + totalOptions) % totalOptions;
+          }
+
+          // Speak the focused option
+          stop();
+          if (newIndex < floors.length) {
+            speak(t("speech.Floor") + " " + floors[newIndex].title);
+          } else {
+            speak(t("speech.Logout"));
+          }
+
+          return newIndex;
+        });
+      }
+
+      // Handle Enter key
+      if (e.key === "Enter") {
+        e.preventDefault();
+        if (floorSelectionFocusedIndex < floors.length) {
+          handleFloorSelect(floors[floorSelectionFocusedIndex].title);
+        } else {
+          handleFloorSelectionLogout();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isFloorSelectionModalOpen, isFloorSelectionFocused, floorSelectionFocusedIndex, floors, handleFloorSelect, handleFloorSelectionLogout, stop, speak, t]);
+
   // 🔊 VOICE: speak when dashboard focus changes
   useEffect(() => {
     if (!focused) return;
@@ -592,6 +683,86 @@ const Dashboard = () => {
               }`}
           >
             {t("translations.OK")}
+          </button>
+        </div>
+      </Modal>
+
+      {/* ✅ NEW: Floor Selection Modal */}
+      <Modal
+        isOpen={isFloorSelectionModalOpen}
+        onClose={closeFloorSelectionModal}
+        title={t("translations.Select Floor")}
+        size="large"
+        className={isFloorSelectionFocused ? "outline-[6px] outline-[#dc2f02]" : ""}
+      >
+        <div className="flex flex-col gap-6 p-6">
+          <h2 className="text-[32px] font-semibold text-gray-800 text-center capitalize">
+            {t("translations.Please select a desired floor")}
+          </h2>
+          
+          {/* Floor Cards Grid */}
+          <div className="flex justify-center gap-4 flex-wrap">
+            {floors.map((floor, index) => (
+              <button
+                key={floor.id}
+                onClick={() => handleFloorSelect(floor.title)}
+                className={`
+                  flex flex-col
+                  bg-[#FFCA08] hover:bg-[#D7D8D2]
+                  transition rounded-2xl
+                  h-[220px] w-[250px] p-6
+                  ${floorSelectionFocusedIndex === index
+                    ? 'outline outline-[6px] outline-[#dc2f02]'
+                    : ''
+                  }
+                `}
+              >
+                {/* Floor Name */}
+                <div className="text-[50px] font-bold text-[#9A7D4C] leading-tight">
+                  {floor.name || floor.title}
+                </div>
+
+                {/* Progress Bar */}
+                <div className="mt-20 relative">
+                  <div className="w-full h-4 bg-gray-300 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-[#9A7D4C] transition-all duration-300"
+                      style={{ 
+                        width: `${floor.total > 0 ? (floor.occupied / floor.total) * 100 : 0}%` 
+                      }}
+                    />
+                  </div>
+
+                  {/* Used count */}
+                  <div
+                    className="absolute -top-11 -translate-x-1/2 bg-[#9A7D4C] text-white
+                               px-2 rounded-md text-[30px] font-bold shadow-md"
+                    style={{ 
+                      left: `${floor.total > 0 ? (floor.occupied / floor.total) * 100 : 0}%` 
+                    }}
+                  >
+                    {floor.occupied || 0}
+                  </div>
+
+                  {/* Total count */}
+                  <div className="absolute right-2 top-7 -translate-y-1/2 text-gray-600 text-[30px] font-medium">
+                    {floor.total || 0}
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* Logout Button */}
+          <button
+            onClick={handleFloorSelectionLogout}
+            className={`mt-4 w-full p-4 rounded-2xl font-semibold text-lg transition-all
+              ${floorSelectionFocusedIndex === floors.length
+                ? 'bg-red-600 text-white ring-4 ring-red-300 scale-105'
+                : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+              }`}
+          >
+            {t("translations.Logout")}
           </button>
         </div>
       </Modal>
