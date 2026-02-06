@@ -282,12 +282,15 @@ const Dashboard = () => {
   // ✅ NEW: Open Floor Selection Modal
   const openFloorSelectionModal = useCallback(() => {
     setIsFloorSelectionModalOpen(true);
-    setFloorSelectionFocusedIndex(0);
     setIsFloorSelectionFocused(true);
-    
+
+    // 🔥 Start focus from HEADING
+    setFloorSelectionFocusedIndex(-1);
+
     stop();
-    speak(t("speech.Please select a floor"));
+    speak(t("speech.Please select a desired floor"));
   }, [stop, speak, t]);
+
 
   // ✅ NEW: Close Floor Selection Modal
   const closeFloorSelectionModal = useCallback(() => {
@@ -326,17 +329,17 @@ const Dashboard = () => {
 
     try {
       const result = await dispatch(login(value)).unwrap();
-      
+
       // Successfully logged in, result contains userInfo
       const showModal = shouldShowModal(result);
-      
+
       // ✅ NEW: If no booking data available AND no floor selected (login from footer)
       // show floor selection modal
       if ((!result || result.ASSIGN_NO === "0") && !selectedFloor) {
         openFloorSelectionModal();
         return;
       }
-      
+
       // If a specific floor was selected (login from floor card), navigate directly
       if (selectedFloor) {
         if (showModal) {
@@ -528,47 +531,81 @@ const Dashboard = () => {
   useEffect(() => {
     if (!isFloorSelectionModalOpen || !isFloorSelectionFocused) return;
 
-    const totalOptions = floors.length + 1; // floors + logout button
-
+    const totalOptions = floors.length + 2;
     const handleKeyDown = (e) => {
-      // Handle Arrow keys
-      if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-        e.preventDefault();
-        
-        setFloorSelectionFocusedIndex(prev => {
-          let newIndex;
-          if (e.key === "ArrowDown") {
-            newIndex = (prev + 1) % totalOptions;
-          } else {
-            newIndex = (prev - 1 + totalOptions) % totalOptions;
-          }
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
 
-          // Speak the focused option
-          stop();
-          if (newIndex < floors.length) {
-            speak(t("speech.Floor") + " " + floors[newIndex].title);
-          } else {
-            speak(t("speech.Logout"));
-          }
+      e.preventDefault();
 
-          return newIndex;
-        });
-      }
+      setFloorSelectionFocusedIndex((prev) => {
+        let next;
 
-      // Handle Enter key
-      if (e.key === "Enter") {
-        e.preventDefault();
-        if (floorSelectionFocusedIndex < floors.length) {
-          handleFloorSelect(floors[floorSelectionFocusedIndex].title);
+        if (e.key === "ArrowRight") {
+          next = prev + 1;
+          if (next > floors.length + 1) next = -1; // 🔁 loop
         } else {
-          handleFloorSelectionLogout();
+          next = prev - 1;
+          if (next < -1) next = floors.length + 1;
         }
+
+        // 🔊 Speak based on focus
+        stop();
+
+        if (next === -1) {
+          speak(t("speech.Please select a desired floor"));
+        }
+        else if (next < floors.length) {
+          speak(`${t("speech.Floor")} ${floors[next].title}`);
+        }
+        else if (next === floors.length) {
+          speak(t("speech.Logout"));
+        }
+        else {
+          speak(t("speech.Close"));
+        }
+
+        return next;
+      });
+    };
+
+    const handleEnter = (e) => {
+      if (e.key !== "Enter") return;
+
+      e.preventDefault();
+
+      if (floorSelectionFocusedIndex === -1) return;
+
+      if (floorSelectionFocusedIndex < floors.length) {
+        handleFloorSelect(floors[floorSelectionFocusedIndex].title);
+      }
+      else if (floorSelectionFocusedIndex === floors.length) {
+        handleFloorSelectionLogout();
+      }
+      else {
+        closeFloorSelectionModal(); // ❌ close icon
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isFloorSelectionModalOpen, isFloorSelectionFocused, floorSelectionFocusedIndex, floors, handleFloorSelect, handleFloorSelectionLogout, stop, speak, t]);
+    window.addEventListener("keydown", handleEnter);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keydown", handleEnter);
+    };
+  }, [
+    isFloorSelectionModalOpen,
+    isFloorSelectionFocused,
+    floorSelectionFocusedIndex,
+    floors,
+    handleFloorSelect,
+    handleFloorSelectionLogout,
+    closeFloorSelectionModal,
+    stop,
+    speak,
+    t
+  ]);
+
 
   // 🔊 VOICE: speak when dashboard focus changes
   useEffect(() => {
@@ -694,12 +731,17 @@ const Dashboard = () => {
         title={t("translations.Select Floor")}
         size="large"
         className={isFloorSelectionFocused ? "outline-[6px] outline-[#dc2f02]" : ""}
+        closeFocused={floorSelectionFocusedIndex === floors.length + 1}
       >
         <div className="flex flex-col gap-6 p-6">
-          <h2 className="text-[32px] font-semibold text-gray-800 text-center capitalize">
+          <h2
+            className={`text-[32px] font-semibold text-gray-800 text-center capitalize
+    ${floorSelectionFocusedIndex === -1 ? "outline outline-[6px] outline-[#dc2f02]" : ""}
+  `}
+          >
             {t("translations.Please select a desired floor")}
           </h2>
-          
+
           {/* Floor Cards Grid */}
           <div className="flex justify-center gap-4 flex-wrap">
             {floors.map((floor, index) => (
@@ -727,8 +769,8 @@ const Dashboard = () => {
                   <div className="w-full h-4 bg-gray-300 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-[#9A7D4C] transition-all duration-300"
-                      style={{ 
-                        width: `${floor.total > 0 ? (floor.occupied / floor.total) * 100 : 0}%` 
+                      style={{
+                        width: `${floor.total > 0 ? (floor.occupied / floor.total) * 100 : 0}%`
                       }}
                     />
                   </div>
@@ -737,8 +779,8 @@ const Dashboard = () => {
                   <div
                     className="absolute -top-11 -translate-x-1/2 bg-[#9A7D4C] text-white
                                px-2 rounded-md text-[30px] font-bold shadow-md"
-                    style={{ 
-                      left: `${floor.total > 0 ? (floor.occupied / floor.total) * 100 : 0}%` 
+                    style={{
+                      left: `${floor.total > 0 ? (floor.occupied / floor.total) * 100 : 0}%`
                     }}
                   >
                     {floor.occupied || 0}
