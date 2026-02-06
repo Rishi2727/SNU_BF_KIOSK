@@ -736,7 +736,7 @@ const Dashboard = () => {
         <div className="flex flex-col gap-6 p-6">
           <h2
             className={`text-[32px] font-semibold text-gray-800 text-center capitalize
-    ${floorSelectionFocusedIndex === -1 ? "outline outline-[6px] outline-[#dc2f02]" : ""}
+    ${floorSelectionFocusedIndex === -1 ? "outline-[6px] outline-[#dc2f02]" : ""}
   `}
           >
             {t("translations.Please select a desired floor")}

@@ -173,7 +173,8 @@ const enTranslations = {
     "Login Failed": "Login Failed",
     "ERROR_USER_NOT_FOUND":
       "User information not found.<br/>Please check your details and try again.",
-    "OK": "OK"
+    "OK": "OK",
+    "Select Floor":"Select Floor"
   }
 
 }
