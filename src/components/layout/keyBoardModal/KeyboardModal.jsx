@@ -289,6 +289,7 @@ const KeyboardModal = ({
 
   const handleClose = () => {
     setInput("");
+    setLayoutName("default"); // ✅ FIX: Reset keyboard layout to default
     if (keyboardRef.current) keyboardRef.current.clearInput();
     clearTimer();
     onClose();
