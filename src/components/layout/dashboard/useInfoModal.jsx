@@ -157,7 +157,7 @@ useEffect(() => {
       onClose={onClose}
       title={t("translations.User Information")}
       size="large"
-      className="h-[50vh]! outline-[5px] outline-[#dc2f02]!"
+      className="h-[50vh]! outline-[6px] outline-[#dc2f02]!"
     >
       <div className="space-y-7">
         <div className="bg-linear-to-r from-teal-50 to-cyan-50 rounded-lg p-6 border-l-4 border-teal-500">

@@ -31,6 +31,7 @@ const RoomView = ({
   visibleSeatsFromParent,
   onSectorsCalculated,
 }) => {
+  
   const { speak, stop } = useVoice();
   const { t } = useTranslation();
 
@@ -51,6 +52,12 @@ const RoomView = ({
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [refsReady, setRefsReady] = useState(false);
   const [firstSectorSet, setFirstSectorSet] = useState(false);
+
+  const isRoomStillLoading =
+  loadingSeats ||
+  !isImageLoaded ||
+  !seatBounds ||
+  !sectors.length;
 
   /* ================= ROOM CONFIG ================= */
   const roomConfig = useMemo(() => {
@@ -644,7 +651,8 @@ useEffect(() => {
         ref={containerRef}
         className="flex flex-col w-full h-full relative"
       >
-        {loadingSeats && <LoadingSpinner />}
+{isRoomStillLoading && <LoadingSpinner message={t("Loading room and seats")} />}
+
 
         {/* MINIMAP */}
         {canShowMinimap && (

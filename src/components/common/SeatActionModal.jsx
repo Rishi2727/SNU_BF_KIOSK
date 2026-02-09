@@ -876,6 +876,7 @@ const SeatActionModal = ({
                 size="large"
                 footer={mainFooter}
                 showCloseButton={false}
+                className="outline-[6px] outline-[#dc2f02]"
             >
                 {/* ✅ Modal Title with focus highlighting */}
                 <h2 className={`text-[36px] font-extrabold text-center text-[#f7c224] mb-8 tracking-wide ${isFocused('title') ? 'outline-[6px] outline-[#dc2f02] rounded-lg' : ''
@@ -1049,6 +1050,7 @@ const SeatActionModal = ({
                 size="medium"
                 footer={resultFooter}
                 showCloseButton={false}
+                className="outline-[6px] outline-[#dc2f02]"
             >
                 <div className={`text-center py-4 ${isFocused('result-message') ? 'outline-[6px] outline-[#dc2f02] rounded-lg' : ''
                     }`}>
