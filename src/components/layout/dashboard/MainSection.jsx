@@ -186,7 +186,7 @@ const MainSection = ({
           <h2
             className={`text-[32px] font-semibold mb-10 capitalize
               ${focusedRegion === FocusRegion.MAIN_SECTION && cursor === 0
-                ? "outline-[6px] outline-[#dc2f02] rounded-lg px-2 py-2"
+                ? "outline-[6px] outline-[#dc2f02] rounded-lg "
                 : ""
               }`}
           >

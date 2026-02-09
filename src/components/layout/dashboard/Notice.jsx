@@ -89,7 +89,7 @@ const NoticeBanner = ({ isFocused, lang }) => {
           rounded-2xl p-3 shadow-2xl border border-yellow-300/40
           transition-all duration-300
           h-60
-          ${isFocused ? "outline-[6px] outline-[#dc2f02] scale-[1.01]" : ""}
+          ${isFocused ? "outline-[6px] outline-[#dc2f02] " : ""}
         `}
       >
         <div className="shrink-0 bg-white/25 p-2 rounded-xl">

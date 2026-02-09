@@ -61,7 +61,7 @@ const SectorZoomMiniMap = ({
       }}
     >
       {/* Image container */}
-      <div className={`absolute inset-0  ${isMinimapFocused ? focusRing : ""}`}>
+      <div className={`absolute inset-0  ${isMinimapFocused ? focusRing : "border-[6px] border-transparent"}`}>
         <img
           ref={imageRef}
           src={roomImage}
