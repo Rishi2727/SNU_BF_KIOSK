@@ -182,7 +182,9 @@ const koTranslations = {
     "ERROR_USER_NOT_FOUND":
       "사용자 정보가 없습니다.<br/>사용자 정보 확인 후 다시 이용하시길 바랍니다.",
     "OK": "좋아요",
-    "Select Floor":"층 선택"
+    "Select Floor": "층 선택",
+    "Loading...": "로드 중...",
+    "Loading room and seats": "적재 공간 및 좌석"
   }
 }
 export default koTranslations;

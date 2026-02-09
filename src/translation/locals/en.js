@@ -130,8 +130,8 @@ const enTranslations = {
     "Login": "Login",
     "Volume": "Volume",
     "Language": "Language",
-    "Volume Up": "Volume Up",
-    "Volume Down": "Volume Down",
+    "Volume Up": "Vol +",
+    "Volume Down": "Vol -",
     "Mute": "Mute",
     "Info": "Info",
     "Zoom": "Zoom",
@@ -174,7 +174,9 @@ const enTranslations = {
     "ERROR_USER_NOT_FOUND":
       "User information not found.<br/>Please check your details and try again.",
     "OK": "OK",
-    "Select Floor":"Select Floor"
+    "Select Floor": "Select Floor",
+    "Loading...": "Loading...",
+    "Loading room and seats": "Loading room and seats"
   }
 
 }
