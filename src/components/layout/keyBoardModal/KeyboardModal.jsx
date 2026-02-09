@@ -100,6 +100,22 @@ const KeyboardModal = ({
     "=": t("speech.EQUALS"),
   };
 
+  //autofocus on keyboard typehere section 
+  useEffect(() => {
+    if (!isOpen) return;
+    const raf = requestAnimationFrame(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+        inputRef.current.setSelectionRange(
+          inputRef.current.value.length,
+          inputRef.current.value.length
+        );
+      }
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [isOpen]);
+
+
 
   // -----------------------------
   // 🔊 SPEAK ON FOCUS / CURSOR CHANGE
@@ -184,15 +200,15 @@ const KeyboardModal = ({
         e.preventDefault();
         e.stopPropagation();
         startTimer();
-         setKbFocus((prev) => {
-        if (prev === KBFocus.BUTTONS) return KBFocus.HEADING;
-        setButtonCursor(0);
-        return KBFocus.BUTTONS;
-      });
+        setKbFocus((prev) => {
+          if (prev === KBFocus.BUTTONS) return KBFocus.HEADING;
+          setButtonCursor(0);
+          return KBFocus.BUTTONS;
+        });
       }
     };
 
-     const onArrow = (e) => {
+    const onArrow = (e) => {
       if (!["ArrowLeft", "ArrowRight"].includes(e.key)) return;
 
       e.preventDefault();

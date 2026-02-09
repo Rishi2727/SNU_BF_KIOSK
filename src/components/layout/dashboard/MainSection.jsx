@@ -44,10 +44,14 @@ const MainSection = ({
      ✅ CARD CLICK
   ================================ */
   const handleCardClick = async (fl) => {
-    if (!isAuthenticated) {
-      openKeyboard(fl.title);
-      return;
-    }
+ if (!isAuthenticated) {
+  openKeyboard(fl.title);
+  stop();
+  speak(t("speech.Virtual Keyboard"));
+
+  return;
+}
+
 
     try {
       const sectorList = await getSectorList({

@@ -112,17 +112,9 @@ const Dashboard = () => {
   //headphones func
   useEffect(() => {
     if (!earphoneInjected) return;
-
-    // 🔴 FORCE LOGOUT on headphone removal
     dispatch(logout());
-
-    // ❌ reset focus
     setFocused(null);
-
-    // 🔊 speak main screen
     speakMainScreen();
-
-    // 🧹 reset headphone flag
     dispatch(clearHeadphoneFocus());
   }, [earphoneInjected, dispatch]);
 
@@ -258,9 +250,10 @@ const Dashboard = () => {
    * Close keyboard modal
    */
   const closeKeyboard = useCallback(() => {
+    stop();
     setIsKeyboardOpen(false);
     setFocused(null);
-  }, []);
+  }, [stop]);
 
 
   const openLoginErrorModal = useCallback((title, message) => {
@@ -474,26 +467,39 @@ const Dashboard = () => {
     dispatch(logout());
   }, [dispatch]);
 
+
+  // handle close button in new modal
+  const handleFloorSelectionClose = useCallback(() => {
+    closeFloorSelectionModal();
+    handleLogout();
+  }, [closeFloorSelectionModal, handleLogout]);
+
+
   //For keyboard autofocus 
 
   useEffect(() => {
-  if (!isKeyboardOpen) return;
+    if (!isKeyboardOpen) return;
 
-  // 🔥 ALWAYS autofocus keyboard when it opens
-  const timer = setTimeout(() => {
-    setFocused(FocusRegionforKeyboardModal.KEYBOARD);
-  }, 100);
+    // 🔥 ALWAYS autofocus keyboard when it opens
+    const timer = setTimeout(() => {
+      setFocused(FocusRegionforKeyboardModal.KEYBOARD);
+    }, 100);
 
-  return () => clearTimeout(timer);
-}, [isKeyboardOpen]);
+    return () => clearTimeout(timer);
+  }, [isKeyboardOpen]);
 
-useEffect(() => {
-  if (!isKeyboardOpen) return;
-
-  // 🔊 Always speak when keyboard opens
-  stop();
-  speak(t("speech.Virtual Keyboard"));
-}, [isKeyboardOpen, stop, speak, t]);
+  // Speech trigger for keyboard - triggers EVERY time keyboard opens
+  useEffect(() => {
+    if (!isKeyboardOpen) {
+      stop();
+      return;
+    }
+    const timer = setTimeout(() => {
+      stop();
+      speak(t("speech.Virtual Keyboard"));
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [isKeyboardOpen, stop, speak, t]);
 
   // useEffect for login error modal focus and speech
   useEffect(() => {
@@ -602,7 +608,7 @@ useEffect(() => {
         handleFloorSelectionLogout();
       }
       else {
-        closeFloorSelectionModal(); // ❌ close icon
+        handleFloorSelectionClose();
       }
     };
 
@@ -620,7 +626,7 @@ useEffect(() => {
     floors,
     handleFloorSelect,
     handleFloorSelectionLogout,
-    closeFloorSelectionModal,
+    handleFloorSelectionClose,
     stop,
     speak,
     t
@@ -651,6 +657,8 @@ useEffect(() => {
         break;
     }
   }, [focused, stop, t]);
+
+
 
   return (
     <div className="relative h-screen w-screen overflow-hidden font-bold text-white">
@@ -696,11 +704,11 @@ useEffect(() => {
       {/* Keyboard Modal */}
       <KeyboardModal
         isOpen={isKeyboardOpen}
-        onClose={()=>{
-       
+        onClose={() => {
+
           closeKeyboard()
-      
-        } }
+
+        }}
         onSubmit={handleKeyboardSubmit}
         autoCloseTime={30000}
         isFocused={focused === FocusRegionforKeyboardModal.KEYBOARD}
@@ -751,7 +759,7 @@ useEffect(() => {
       {/* ✅ NEW: Floor Selection Modal */}
       <Modal
         isOpen={isFloorSelectionModalOpen}
-        onClose={closeFloorSelectionModal}
+        onClose={handleFloorSelectionClose}
         title={t("translations.Select Floor")}
         size="large"
         className={isFloorSelectionFocused ? "outline-[6px] outline-[#dc2f02]" : ""}
