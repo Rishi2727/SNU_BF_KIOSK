@@ -750,56 +750,54 @@ const Floor = () => {
                 onSectorsCalculated={setMinimapSectorCount}
               />
             ) : (
-              <div className="relative w-full h-full">
-                <div className={`relative w-full h-full`} >
-                  <FloorMapImage
-                    floorImageUrl={floorImageUrl}
-                    currentFloor={currentFloor}
-                    onImageError={handleImageError}
-                    imageError={imageError}
-                  />
+            <div className="relative w-full h-full">
+  <div className={`relative w-full h-full`}>
+    <FloorMapImage
+      floorImageUrl={floorImageUrl}
+      currentFloor={currentFloor}
+      onImageError={handleImageError}
+      imageError={imageError}
+    />
 
-                  {!imageError &&
-                    displayableSectors.map((sector, sectorIndex) => {
-                      const mapStylesList = parseMapPoint(sector.MAPPOINT);
+    {!imageError &&
+      displayableSectors.map((sector, sectorIndex) => {
+        const mapStylesList = parseMapPoint(sector.MAPPOINT);
 
-                      const LEGEND_BAR_COUNT = 4;
-                      const isSectorFocused =
-                        focusedRegion === FocusRegion.MAP &&
-                        mainContentCursor === sectorIndex + LEGEND_BAR_COUNT;
+        const LEGEND_BAR_COUNT = 4;
+        const isSectorFocused =
+          focusedRegion === FocusRegion.MAP &&
+          mainContentCursor === sectorIndex + LEGEND_BAR_COUNT;
+        return mapStylesList.map((mapStyles, idx) => (
+          <button
+            key={`${sector.SECTORNO}-${idx}`}
+            onClick={() => handleSectorClick(sector)}
+            className="group absolute transition-all z-20"
+            aria-selected={isSectorFocused}
+            style={{
+              top: `calc(${mapStyles.top} - 45px)`,
+              left: mapStyles.left,
+              right: mapStyles.right,
+              width: mapStyles.width,
+              height: mapStyles.height,
+            }}
+          >
+            {isSectorFocused && (
+              <div className="pointer-events-none w-full h-full rounded border-[6px] border-[#dc2f02]" />
+            )}
 
-                      return mapStylesList.map((mapStyles, idx) => (
-                        <button
-                          key={`${sector.SECTORNO}-${idx}`}
-                          onClick={() => handleSectorClick(sector)}
-                          className="group absolute transition-all z-20"
-                          aria-selected={isSectorFocused}
-                          style={{
-                            top: mapStyles.top,
-                            left: mapStyles.left,
-                            right: mapStyles.right,
-                            width: mapStyles.width,
-                            height: mapStyles.height,
-                            minHeight: "0px",
-                          }}
-                        >
-                          {isSectorFocused && (
-                            <div className="pointer-events-none -top-14 bottom-6  absolute -inset-2 rounded border-[6px] border-[#dc2f02]" />
-                          )}
+            <div className="pointer-events-none w-full h-full bg-[#FFCA08]/20 border-2 border-[#FFCA08] rounded opacity-0 group-hover:opacity-100 transition-all duration-200" />
 
-                          <div className="pointer-events-none w-full h-full absolute -top-12  bottom-13 bg-[#FFCA08]/20 border-2 border-[#FFCA08] rounded opacity-0 group-hover:opacity-100 transition-all duration-200" />
-
-                          <div className="absolute -top-15 left-1/2 -translate-x-1/2 pointer-events-none">
-                            <span className="bg-[#9A7D4C] text-white px-4 py-1.5 rounded-md text-[30px] font-bold shadow-lg whitespace-nowrap">
-                              {t(getSectorLabel(sector, idx))}
-                            </span>
-                          </div>
-                        </button>
-                      ));
-                    })
-                  }
-                </div>
-              </div>
+            <div className="absolute -top-12 left-1/2 -translate-x-1/2 pointer-events-none">
+              <span className="bg-[#9A7D4C] text-white px-4 py-1.5 rounded-md text-[30px] font-bold shadow-lg whitespace-nowrap">
+                {t(getSectorLabel(sector, idx))}
+              </span>
+            </div>
+          </button>
+        ));
+      })
+    }
+  </div>
+</div>
             )}
           </div>
         )}
