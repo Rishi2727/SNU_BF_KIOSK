@@ -35,6 +35,7 @@ const FooterControls = ({
   isAnyModalOpen,
   showBack,
   onBack,
+  timer,
 }) => {
   const dispatch = useDispatch();
   const { t } = useTranslation()
@@ -161,9 +162,9 @@ const FooterControls = ({
       case 0:
         return;
       case 1:
-      // ✅ Login - with auto-focus
-      openKeyboard(true); // Pass true for auto-focus
-      return;
+        // ✅ Login - with auto-focus
+        openKeyboard(true); // Pass true for auto-focus
+        return;
       case 2:
         // KR
         handleLanguageChange("KR");
@@ -362,7 +363,7 @@ const FooterControls = ({
 
   return (
     <>
-      <div className="footer absolute bottom-px left-0 right-0 z-30 flex items-center justify-between px-7 py-2 bg-black/40 backdrop-blur-md">
+      <div className="footer absolute bottom-px left-0 right-0 z-30 flex items-center justify-between px-7 py-1 bg-black/40 backdrop-blur-md">
         {/* ✅ Footer Focus Border */}
         {isFocused && (
           <div className="pointer-events-none absolute inset-0 border-[6px] border-[#dc2f02]" />
@@ -410,6 +411,7 @@ const FooterControls = ({
                 >
                   <LogOut className="w-7 h-7" />
                   {t("translations.Logout")}
+                  {timer > 0 && <span className="ml-2 font-mono rounded-md px-2 bg-[#ffffffa1]"> {timer}</span>}
                 </button>
 
                 <div
@@ -422,7 +424,7 @@ const FooterControls = ({
               </>
             ) : (
               <button
-               onClick={() => openKeyboard(false)}
+                onClick={() => openKeyboard(false)}
                 className={`px-6 py-2 rounded-full bg-[#D7D8D2] text-white text-[28px]
         ${cursor === 1 + BACK_OFFSET && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}`}
               >

@@ -67,7 +67,7 @@ const RoomView = ({
     };
   }, [selectedSector?.SECTORNO]);
 
-  console.log("🏠 RoomView - Sector:", selectedSector?.SECTORNO, "Seats:", seats?.length);
+
 
   /* ================= COMPLETE RESET ON SECTOR CHANGE ================= */
   useEffect(() => {
@@ -244,7 +244,6 @@ const RoomView = ({
       height: maxY - minY
     };
 
-    console.log("✅ Seat bounds:", bounds);
     setSeatBounds(bounds);
   }, [seats, naturalDimensions, displayDimensions, isImageLoaded, roomConfig]);
 
@@ -285,13 +284,6 @@ const RoomView = ({
     const numHorizontalSectors = Math.ceil(boundsWidth / containerWidth);
     const numVerticalSectors = Math.ceil(boundsHeight / containerHeight);
 
-    console.log("📊 Sector grid:", {
-      horizontal: numHorizontalSectors,
-      vertical: numVerticalSectors,
-      total: numHorizontalSectors * numVerticalSectors,
-      bounds: { width: boundsWidth, height: boundsHeight },
-      container: { width: containerWidth, height: containerHeight }
-    });
 
     const horizontalStep = numHorizontalSectors > 1
       ? (boundsWidth - containerWidth) / (numHorizontalSectors - 1)
@@ -351,9 +343,7 @@ const RoomView = ({
 
           const isComplete = overlapLeft < overlapRight && overlapTop < overlapBottom;
 
-          if (isComplete) {
-            console.log(`  ✓ Seat ${seat.VNAME} found in sector ${sectorId}`);
-          }
+         
 
           return isComplete;
         });
@@ -561,7 +551,7 @@ const RoomView = ({
       return (parseInt(aNum || 0) - parseInt(bNum || 0));
     });
 
-    console.log("👁️ Visible seats:", sorted.length, "->", sorted.map(s => s.VNAME).join(", "));
+
 
     return sorted;
   }, [seats, selectedMiniSectorLocal, imagePanOffset, containerSize]);

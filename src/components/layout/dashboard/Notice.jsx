@@ -22,7 +22,7 @@ const NoticeBanner = ({ isFocused, lang }) => {
         setNoticeIndex(0);
 
         const res = await getNoticeInfo();
-        console.log("NOTICE API FULL RESPONSE:", res);
+ 
 
         const list = res?.body?.NoticeList || [];
 

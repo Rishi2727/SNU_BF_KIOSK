@@ -20,7 +20,7 @@ import {
   getSeatList,
   ImageBaseUrl,
 } from "../../services/api";
-import { MINI_MAP_LAYOUT, MINIMAP_CONFIG } from "../../utils/constant";
+import { MINI_MAP_LAYOUT, MINIMAP_CONFIG, POPUP_TIMERS } from "../../utils/constant";
 import SeatActionModal from "../../components/common/SeatActionModal";
 import { useTranslation } from "react-i18next";
 import { useVoice } from "../../context/voiceContext";
@@ -72,6 +72,10 @@ const Floor = () => {
   const [minimapSectorCount, setMinimapSectorCount] = useState(0);
   // ✅ CENTRALIZED MAIN CONTENT NAVIGATION
   const [mainContentCursor, setMainContentCursor] = useState(null);
+
+  // ✅ Timer State
+  const FLOOR_TIMER_CONFIG = POPUP_TIMERS.find(t => t.name === 'FLOOR PAGE TIMER') || { time: 180, state: true };
+  const [timeLeft, setTimeLeft] = useState(FLOOR_TIMER_CONFIG.time);
 
   const FocusRegion = Object.freeze({
     FLOOR_STATS: "floor_stats",
@@ -635,6 +639,45 @@ const Floor = () => {
     }
   }, [focusedRegion]);
 
+  /* =====================================================
+     IDLE TIMER LOGIC
+  ===================================================== */
+  useEffect(() => {
+    if (!FLOOR_TIMER_CONFIG.state) return;
+
+    // Timer countdown
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          // Auto Logout Logic
+          localStorage.removeItem("authenticated");
+          dispatch(clearUserInfo());
+          navigate("/");
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    // Reset timer on activity
+    const resetTimer = () => setTimeLeft(FLOOR_TIMER_CONFIG.time);
+
+
+    // window.addEventListener("keydown", resetTimer); // Handled by specific keys in UI usually, but global is requested
+  
+    window.addEventListener("click", resetTimer);
+    window.addEventListener("touchstart", resetTimer);
+
+    return () => {
+      clearInterval(interval);
+
+
+      window.removeEventListener("click", resetTimer);
+      window.removeEventListener("touchstart", resetTimer);
+    };
+  }, [FLOOR_TIMER_CONFIG, dispatch, navigate]);
+
 
   // /* =====================================================
   //  RENDER
@@ -782,6 +825,7 @@ const Floor = () => {
           isAnyModalOpen={isAnyModalOpen}
           showBack={showRoomView}
           onBack={backToFloorMap}
+          timer={timeLeft}
         />
       </div>
 

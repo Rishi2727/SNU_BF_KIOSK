@@ -181,7 +181,7 @@ export const MINI_MAP_LAYOUT = {
     seatFontScale: 1.6,
     sectors: [
       { id: "A", row: 0, col: 0, transform: { scale: 3.5, x: 70, y: 130 } },
-      { id: "B", row: 0, col: 1, transform: { scale: 3.5, x:-10, y: 130 } },
+      { id: "B", row: 0, col: 1, transform: { scale: 3.5, x: -10, y: 130 } },
       { id: "C", row: 0, col: 2, transform: { scale: 3.5, x: -85, y: 130 } },
       { id: "G", row: 2, col: 0, transform: { scale: 3.5, x: 100, y: -130 } },
       { id: "H", row: 2, col: 1, transform: { scale: 3.5, x: 10, y: -130 } },
@@ -250,3 +250,13 @@ export const MODE_LABELS = {
   [MODES.MOVE]: "Move",
   [MODES.ASSIGN_CHECK]: "Seat Check",
 };
+
+export const POPUP_TIMERS = [
+  { ID: 1, name: 'KEYBOARD TIMER', time: 30, state: true },
+  { ID: 2, name: 'HISTORY PAGE TIMER', time: 15, state: true },
+  { ID: 3, name: 'SUCCESS TIMER', time: 2, state: true },
+  { ID: 4, name: 'ERROR TIMER', time: 3, state: true },
+  { ID: 5, name: 'WARNING TIMER', time: 3, state: true },
+  { ID: 6, name: 'PRINTER TIMER', time: 5, state: true },
+  { ID: 7, name: 'FLOOR PAGE TIMER', time: 180, state: true }
+];
