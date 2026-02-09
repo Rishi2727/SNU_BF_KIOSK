@@ -474,6 +474,26 @@ const Dashboard = () => {
     dispatch(logout());
   }, [dispatch]);
 
+  //For keyboard autofocus 
+
+  useEffect(() => {
+  if (!isKeyboardOpen) return;
+
+  // 🔥 ALWAYS autofocus keyboard when it opens
+  const timer = setTimeout(() => {
+    setFocused(FocusRegionforKeyboardModal.KEYBOARD);
+  }, 100);
+
+  return () => clearTimeout(timer);
+}, [isKeyboardOpen]);
+
+useEffect(() => {
+  if (!isKeyboardOpen) return;
+
+  // 🔊 Always speak when keyboard opens
+  stop();
+  speak(t("speech.Virtual Keyboard"));
+}, [isKeyboardOpen, stop, speak, t]);
 
   // useEffect for login error modal focus and speech
   useEffect(() => {
@@ -676,7 +696,11 @@ const Dashboard = () => {
       {/* Keyboard Modal */}
       <KeyboardModal
         isOpen={isKeyboardOpen}
-        onClose={closeKeyboard}
+        onClose={()=>{
+       
+          closeKeyboard()
+      
+        } }
         onSubmit={handleKeyboardSubmit}
         autoCloseTime={30000}
         isFocused={focused === FocusRegionforKeyboardModal.KEYBOARD}

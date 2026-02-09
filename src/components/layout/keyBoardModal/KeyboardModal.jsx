@@ -184,37 +184,48 @@ const KeyboardModal = ({
         e.preventDefault();
         e.stopPropagation();
         startTimer();
-        setKbFocus((prev) => {
-          if (prev === KBFocus.HEADING) return KBFocus.INPUT;
-          if (prev === KBFocus.INPUT) return KBFocus.KEYS;
-          if (prev === KBFocus.KEYS) return KBFocus.BUTTONS;
-          if (prev === KBFocus.BUTTONS) return KBFocus.HEADING;
-          return KBFocus.HEADING;
-        });
+         setKbFocus((prev) => {
+        if (prev === KBFocus.BUTTONS) return KBFocus.HEADING;
+        setButtonCursor(0);
+        return KBFocus.BUTTONS;
+      });
       }
     };
 
-    const onArrow = (e) => {
+     const onArrow = (e) => {
       if (!["ArrowLeft", "ArrowRight"].includes(e.key)) return;
-
-      if (kbFocus === KBFocus.INPUT && e.target === inputRef.current) {
-        return;
-      }
 
       e.preventDefault();
       e.stopPropagation();
       startTimer();
 
-      if (kbFocus === KBFocus.KEYS) {
-        setKeyCursor((prev) =>
-          e.key === "ArrowRight"
-            ? (prev + 1) % keyboardKeys.length
-            : (prev - 1 + keyboardKeys.length) % keyboardKeys.length
-        );
+      // BUTTON NAVIGATION
+      if (kbFocus === KBFocus.BUTTONS) {
+        setButtonCursor((prev) => (prev === 0 ? 1 : 0));
+        return;
       }
 
-      if (kbFocus === KBFocus.BUTTONS) {
-        setButtonCursor(e.key === "ArrowRight" ? 1 : 0);
+      // HEADING → KEYS
+      if (kbFocus === KBFocus.HEADING) {
+        setKbFocus(KBFocus.KEYS);
+        setKeyCursor(0);
+        return;
+      }
+
+      // KEYS NAVIGATION
+      if (kbFocus === KBFocus.KEYS) {
+        setKeyCursor((prev) => {
+          const next = e.key === "ArrowRight" ? prev + 1 : prev - 1;
+
+          // LAST / FIRST → BACK TO HEADING
+          if (next >= keyboardKeys.length || next < 0) {
+            setKbFocus(KBFocus.HEADING);
+            return 0;
+          }
+
+          return next;
+        });
+        return;
       }
     };
 
