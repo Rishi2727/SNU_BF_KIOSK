@@ -851,9 +851,12 @@ const SeatActionModal = ({
 
         // 🔒 prevent duplicate speech
         if (speechText && speechText !== lastSpokenRef.current) {
-            lastSpokenRef.current = speechText;
+        lastSpokenRef.current = speechText;
+
+        setTimeout(() => {
             speak(speechText);
-        }
+        }, 100);
+    }
 
     }, [
         isOpen,

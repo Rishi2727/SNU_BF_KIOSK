@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import BgMainImage from "../../assets/images/BgMain.jpg";
@@ -65,10 +65,8 @@ const Floor = () => {
   });
   const [selectedSeat, setSelectedSeat] = useState(null);
   const [showSeatModal, setShowSeatModal] = useState(false);
-  const [hasPanned, setHasPanned] = useState(false);
   const mainImageRef = useRef(null);
   const containerRef = useRef(null);
-  const prevSectorNoRef = useRef(null);
   const [focusedRegion, setFocusedRegion] = useState(null);
   const lang = useSelector((state) => state.lang.current);
   const [visibleSeats, setVisibleSeats] = useState([]);
@@ -84,32 +82,27 @@ const Floor = () => {
   const [sessionCursor, setSessionCursor] = useState(null);
   const SESSION_BUTTON_COUNT = 2;
 
+const timerRef = useRef(null);
+const timeLeftRef = useRef(timeLeft);
+const lastSpokenRef = useRef("");
+    const hasSpokenMainScreen = useRef(false);
+
+    const speakMainScreen = useCallback(() => {
+        if (hasSpokenMainScreen.current) return;
+        hasSpokenMainScreen.current = true;
+        stop();
+        speak(t("speech.This screen is the floor or reading room selection screen."));
+    }, [speak, stop, t]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            speakMainScreen();
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, []);
 
 
-
-  useEffect(() => {
-    const loadTimerConfig = async () => {
-      try {
-        await initializeApi();
-        const timers = getPopupTimers();
-        if (timers && timers.length > 0) {
-          const floorConfig = timers.find(t => t.ID === 8) || timers.find(t => t.name === 'LOG OUT FLOOR TIMER');
-          const reminderConfig = timers.find(t => t.ID === 9) || timers.find(t => t.name === 'SESSION TIMER REMINDER');
-
-          if (floorConfig) {
-            setFloorTimerConfig(floorConfig);
-            setTimeLeft(floorConfig.time);
-          }
-          if (reminderConfig) {
-            setSessionReminderConfig(reminderConfig);
-          }
-        }
-      } catch (error) {
-        console.error("Failed to load timer config:", error);
-      }
-    };
-    loadTimerConfig();
-  }, []);
 
   const FocusRegion = Object.freeze({
     FLOOR_STATS: "floor_stats",
@@ -156,10 +149,10 @@ const Floor = () => {
     setSessionCursor(null);
 
     stop();
-stop();
-setTimeout(() => {
-  speak(t("translations.Do you want to continue this session?"));
-}, 300);
+    stop();
+    setTimeout(() => {
+      speak(t("translations.Do you want to continue this session?"));
+    }, 300);
 
   }, [showSessionReminder, speak, stop, t]);
 
@@ -236,6 +229,30 @@ setTimeout(() => {
   }, [sessionCursor, showSessionReminder, speak, stop, t]);
 
 
+
+  useEffect(() => {
+    const loadTimerConfig = async () => {
+      try {
+        await initializeApi();
+        const timers = getPopupTimers();
+        if (timers && timers.length > 0) {
+          const floorConfig = timers.find(t => t.ID === 8) || timers.find(t => t.name === 'LOG OUT FLOOR TIMER');
+          const reminderConfig = timers.find(t => t.ID === 9) || timers.find(t => t.name === 'SESSION TIMER REMINDER');
+
+          if (floorConfig) {
+            setFloorTimerConfig(floorConfig);
+            setTimeLeft(floorConfig.time);
+          }
+          if (reminderConfig) {
+            setSessionReminderConfig(reminderConfig);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load timer config:", error);
+      }
+    };
+    loadTimerConfig();
+  }, []);
   /* =====================================================
      FLOOR DATA HOOK
   ===================================================== */
@@ -460,8 +477,7 @@ setTimeout(() => {
     displayableSectors,
     seats,
     isAnyModalOpen,
-  ]);
-
+  ])
   // Mini map keyboard navigation:
   // ✅ Mini map keyboard navigation (WITH LOOP)
   useEffect(() => {
@@ -689,13 +705,77 @@ setTimeout(() => {
     }
   }, [isAnyModalOpen, stop]);
 
+
+  /* =====================================================
+     IDLE TIMER LOGIC
+  ===================================================== */
+
+useEffect(() => {
+  if (!floorTimerConfig.state) return;
+
+  // clear previous timer
+  if (timerRef.current) {
+    clearInterval(timerRef.current);
+  }
+
+  timerRef.current = setInterval(() => {
+    timeLeftRef.current -= 1;
+
+    // 🔔 Session reminder
+    if (
+      sessionReminderConfig.state &&
+      timeLeftRef.current === sessionReminderConfig.time
+    ) {
+      setShowSessionReminder(true);
+    }
+
+    // ⛔ Auto logout
+    if (timeLeftRef.current <= 0) {
+      clearInterval(timerRef.current);
+      localStorage.removeItem("authenticated");
+      dispatch(clearUserInfo());
+      navigate("/");
+      return;
+    }
+
+    // ✅ Update UI only (cheap render)
+    setTimeLeft(timeLeftRef.current);
+  }, 1000);
+
+const resetTimer = () => {
+  if (isAnyModalOpen) return;
+  timeLeftRef.current = floorTimerConfig.time;
+  setTimeLeft(floorTimerConfig.time);
+};
+
+
+  window.addEventListener("click", resetTimer, true);
+  window.addEventListener("touchstart", resetTimer, true);
+
+  return () => {
+    clearInterval(timerRef.current);
+    window.removeEventListener("click", resetTimer, true);
+    window.removeEventListener("touchstart", resetTimer, true);
+  };
+}, [floorTimerConfig.state, sessionReminderConfig.state]);
+
+
+
+
   // 🔊 SPEECH: Main content (legend bar + map/room)
+  //=========================================================================================
+ 
   useEffect(() => {
     if (focusedRegion !== FocusRegion.MAP && focusedRegion !== FocusRegion.ROOM)
       return;
     if (mainContentCursor === null) return;
 
-    stop();
+   const speechKey = `${focusedRegion}-${mainContentCursor}`;
+
+  if (lastSpokenRef.current === speechKey) return;
+  lastSpokenRef.current = speechKey;
+
+  stop();
 
     const LEGEND_BAR_COUNT = 4;
 
@@ -757,6 +837,10 @@ setTimeout(() => {
     t,
     lang,
   ]);
+
+
+
+
   // ✅ RESET MINIMAP CURSOR WHEN ENTERING MINIMAP FOCUS
   useEffect(() => {
     if (focusedRegion === FocusRegion.MINI_MAP) {
@@ -765,49 +849,6 @@ setTimeout(() => {
     }
   }, [focusedRegion]);
 
-  /* =====================================================
-     IDLE TIMER LOGIC
-  ===================================================== */
-  useEffect(() => {
-    if (!floorTimerConfig.state) return;
-
-    // Timer countdown
-    const interval = setInterval(() => {
-      setTimeLeft((prev) => {
-        // Check for session reminder
-        if (sessionReminderConfig.state && prev === sessionReminderConfig.time) {
-          setShowSessionReminder(true);
-        }
-
-        if (prev <= 1) {
-          clearInterval(interval);
-          // Auto Logout Logic
-          localStorage.removeItem("authenticated");
-          dispatch(clearUserInfo());
-          navigate("/");
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    // Reset timer on activity
-    const resetTimer = () => setTimeLeft(floorTimerConfig.time);
-
-
-    // window.addEventListener("keydown", resetTimer); // Handled by specific keys in UI usually, but global is requested
-
-    window.addEventListener("click", resetTimer);
-    window.addEventListener("touchstart", resetTimer);
-
-    return () => {
-      clearInterval(interval);
-
-
-      window.removeEventListener("click", resetTimer);
-      window.removeEventListener("touchstart", resetTimer);
-    };
-  }, [floorTimerConfig, sessionReminderConfig, dispatch, navigate]);
 
 
   // /* =====================================================
