@@ -94,9 +94,9 @@ const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused,
       className={`
         floor-stats-bar
       ${isMinimapNearFloorStats ? 'w-[78%]' : 'w-full'}
-    absolute bottom-2.5  z-30
+    absolute bottom-2  z-30
     flex items-center   gap-5
-    px-5   py-1
+    px-5   py-2
     bg-white/90 backdrop-blur-md
    rounded-md shadow-xl
     ${isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}
@@ -107,7 +107,7 @@ const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused,
           key={item.id}
           onClick={() => onFloorClick(item)}
           disabled={loading}
-          className={`w-[35%]  flex items-center rounded-xl overflow-hidden 
+          className={`w-[35%]  flex items-center  rounded-xl overflow-hidden 
             transition-all duration-200  cursor-pointer
             hover:scale-[1.02] hover:shadow-lg 
             disabled:opacity-50 disabled:cursor-not-allowed

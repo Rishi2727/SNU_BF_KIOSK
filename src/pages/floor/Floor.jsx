@@ -81,7 +81,7 @@ const Floor = () => {
   const [showSessionReminder, setShowSessionReminder] = useState(false);
   const [sessionCursor, setSessionCursor] = useState(null);
   const SESSION_BUTTON_COUNT = 2;
-const [resetTimerOnTouch, setResetTimerOnTouch] = useState(true);
+  const [resetTimerOnTouch, setResetTimerOnTouch] = useState(true);
   const timerRef = useRef(null);
   const timeLeftRef = useRef(timeLeft);
   const lastSpokenRef = useRef("");
@@ -203,8 +203,9 @@ const [resetTimerOnTouch, setResetTimerOnTouch] = useState(true);
         return;
 
       case 1:
-        // YES
-        setTimeLeft(floorTimerConfig.time);
+        // YES - Reset timer to full duration
+        timeLeftRef.current = floorTimerConfig.time; // ✅ Update ref first
+        setTimeLeft(floorTimerConfig.time); // ✅ Then update state
         setShowSessionReminder(false);
         setIsAnyModalOpen(false);
         return;
@@ -232,33 +233,34 @@ const [resetTimerOnTouch, setResetTimerOnTouch] = useState(true);
   }, [sessionCursor, showSessionReminder, speak, stop, t]);
 
 
-useEffect(() => {
-  const loadTimerConfig = async () => {
-    try {
-      await initializeApi();
-      const timers = getPopupTimers();
-      if (timers && timers.length > 0) {
-        const floorConfig = timers.find(t => t.ID === 8) || timers.find(t => t.name === 'LOG OUT FLOOR TIMER');
-        const reminderConfig = timers.find(t => t.ID === 9) || timers.find(t => t.name === 'SESSION TIMER REMINDER');
-        const resetOnTouchConfig = timers.find(t => t.ID === 10) && timers.find(t => t.name === 'RESET TIMER ON TOUCH'); 
+  useEffect(() => {
+    const loadTimerConfig = async () => {
+      try {
+        await initializeApi();
+        const timers = getPopupTimers();
+        if (timers && timers.length > 0) {
+          const floorConfig = timers.find(t => t.ID === 8) || timers.find(t => t.name === 'LOG OUT FLOOR TIMER');
+          const reminderConfig = timers.find(t => t.ID === 9) || timers.find(t => t.name === 'SESSION TIMER REMINDER');
+          const resetOnTouchConfig = timers.find(t => t.ID === 10) || timers.find(t => t.name === 'RESET TIMER ON TOUCH');
 
-        if (floorConfig) {
-          setFloorTimerConfig(floorConfig);
-          setTimeLeft(floorConfig.time);
+          if (floorConfig) {
+            setFloorTimerConfig(floorConfig);
+            setTimeLeft(floorConfig.time);
+            timeLeftRef.current = floorConfig.time;
+          }
+          if (reminderConfig) {
+            setSessionReminderConfig(reminderConfig);
+          }
+          if (resetOnTouchConfig) { // ✅ Add this
+            setResetTimerOnTouch(resetOnTouchConfig.state);
+          }
         }
-        if (reminderConfig) {
-          setSessionReminderConfig(reminderConfig);
-        }
-        if (resetOnTouchConfig) { // ✅ Add this
-          setResetTimerOnTouch(resetOnTouchConfig.state);
-        }
+      } catch (error) {
+        console.error("Failed to load timer config:", error);
       }
-    } catch (error) {
-      console.error("Failed to load timer config:", error);
-    }
-  };
-  loadTimerConfig();
-}, []);
+    };
+    loadTimerConfig();
+  }, []);
   /* =====================================================
      FLOOR DATA HOOK
   ===================================================== */
@@ -716,60 +718,60 @@ useEffect(() => {
      IDLE TIMER LOGIC
   ===================================================== */
 
-useEffect(() => {
-  if (!floorTimerConfig.state) return;
+  useEffect(() => {
+    if (!floorTimerConfig.state) return;
 
-  // clear previous timer
-  if (timerRef.current) {
-    clearInterval(timerRef.current);
-  }
-
-  timerRef.current = setInterval(() => {
-    timeLeftRef.current -= 1;
-
-    // 🔔 Session reminder
-    if (
-      sessionReminderConfig.state &&
-      timeLeftRef.current === sessionReminderConfig.time
-    ) {
-      setShowSessionReminder(true);
-    }
-
-    // ⛔ Auto logout
-    if (timeLeftRef.current <= 0) {
+    // clear previous timer
+    if (timerRef.current) {
       clearInterval(timerRef.current);
-      localStorage.removeItem("authenticated");
-      dispatch(clearUserInfo());
-      navigate("/");
-      return;
     }
 
-    // ✅ Update UI only (cheap render)
-    setTimeLeft(timeLeftRef.current);
-  }, 1000);
+    timerRef.current = setInterval(() => {
+      timeLeftRef.current -= 1;
 
-  const resetTimer = () => {
-    if (isAnyModalOpen) return;
-    if (!resetTimerOnTouch) return; // ✅ Add this check - if false, don't reset
-    timeLeftRef.current = floorTimerConfig.time;
-    setTimeLeft(floorTimerConfig.time);
-  };
+      // 🔔 Session reminder
+      if (
+        sessionReminderConfig.state &&
+        timeLeftRef.current === sessionReminderConfig.time
+      ) {
+        setShowSessionReminder(true);
+      }
 
-  // ✅ Only add listeners if resetTimerOnTouch is enabled
-  if (resetTimerOnTouch) {
-    window.addEventListener("click", resetTimer, true);
-    window.addEventListener("touchstart", resetTimer, true);
-  }
+      // ⛔ Auto logout
+      if (timeLeftRef.current <= 0) {
+        clearInterval(timerRef.current);
+        localStorage.removeItem("authenticated");
+        dispatch(clearUserInfo());
+        navigate("/");
+        return;
+      }
 
-  return () => {
-    clearInterval(timerRef.current);
-    // ✅ Only remove if they were added
+      // ✅ Update UI only (cheap render)
+      setTimeLeft(timeLeftRef.current);
+    }, 1000);
+
+    const resetTimer = () => {
+      if (isAnyModalOpen) return;
+      if (!resetTimerOnTouch) return; // ✅ Add this check - if false, don't reset
+      timeLeftRef.current = floorTimerConfig.time;
+      setTimeLeft(floorTimerConfig.time);
+    };
+
+    // ✅ Only add listeners if resetTimerOnTouch is enabled
     if (resetTimerOnTouch) {
-      window.removeEventListener("click", resetTimer, true);
-      window.removeEventListener("touchstart", resetTimer, true);
+      window.addEventListener("click", resetTimer, true);
+      window.addEventListener("touchstart", resetTimer, true);
     }
-  };
-}, [floorTimerConfig.state, sessionReminderConfig.state, resetTimerOnTouch, isAnyModalOpen]);
+
+    return () => {
+      clearInterval(timerRef.current);
+      // ✅ Only remove if they were added
+      if (resetTimerOnTouch) {
+        window.removeEventListener("click", resetTimer, true);
+        window.removeEventListener("touchstart", resetTimer, true);
+      }
+    };
+  }, [floorTimerConfig.state, sessionReminderConfig.state, resetTimerOnTouch, isAnyModalOpen]);
 
 
 
@@ -1020,9 +1022,11 @@ useEffect(() => {
               </button>
               <button
                 onClick={() => {
+                  timeLeftRef.current = floorTimerConfig.time;
                   setTimeLeft(floorTimerConfig.time);
                   setShowSessionReminder(false);
-                  handleSessionEnter(1)
+                  setIsAnyModalOpen(false);
+                  handleSessionEnter(1);
                 }}
                 className={`
     px-8 py-3 rounded-full bg-[#FFCA08] text-white font-bold text-lg
