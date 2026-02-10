@@ -305,7 +305,7 @@ pub fn ensure_config_exists(logger: Arc<Logger>) -> Result<PathBuf, Box<dyn std:
                     ID: 10,
                     name: "RESET TIMER ON TOUCH".to_string(),
                     time: None,
-                    state: true,
+                    state: false,
                 },
             ],
         };

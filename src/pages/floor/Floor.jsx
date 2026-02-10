@@ -81,26 +81,29 @@ const Floor = () => {
   const [showSessionReminder, setShowSessionReminder] = useState(false);
   const [sessionCursor, setSessionCursor] = useState(null);
   const SESSION_BUTTON_COUNT = 2;
+const [resetTimerOnTouch, setResetTimerOnTouch] = useState(true);
+  const timerRef = useRef(null);
+  const timeLeftRef = useRef(timeLeft);
+  const lastSpokenRef = useRef("");
 
-const timerRef = useRef(null);
-const timeLeftRef = useRef(timeLeft);
-const lastSpokenRef = useRef("");
-    const hasSpokenMainScreen = useRef(false);
 
-    const speakMainScreen = useCallback(() => {
-        if (hasSpokenMainScreen.current) return;
-        hasSpokenMainScreen.current = true;
-        stop();
-        speak(t("speech.This screen is the floor or reading room selection screen."));
-    }, [speak, stop, t]);
+  //For Floor Section Speak
+  const hasSpokenMainScreen = useRef(false);
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            speakMainScreen();
-        }, 500);
+  const speakMainScreen = useCallback(() => {
+    if (hasSpokenMainScreen.current) return;
+    hasSpokenMainScreen.current = true;
+    stop();
+    speak(t("speech.This screen is the floor or reading room selection screen."));
+  }, [speak, stop, t]);
 
-        return () => clearTimeout(timer);
-    }, []);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      speakMainScreen();
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, []);
 
 
 
@@ -229,30 +232,33 @@ const lastSpokenRef = useRef("");
   }, [sessionCursor, showSessionReminder, speak, stop, t]);
 
 
+useEffect(() => {
+  const loadTimerConfig = async () => {
+    try {
+      await initializeApi();
+      const timers = getPopupTimers();
+      if (timers && timers.length > 0) {
+        const floorConfig = timers.find(t => t.ID === 8) || timers.find(t => t.name === 'LOG OUT FLOOR TIMER');
+        const reminderConfig = timers.find(t => t.ID === 9) || timers.find(t => t.name === 'SESSION TIMER REMINDER');
+        const resetOnTouchConfig = timers.find(t => t.ID === 10) && timers.find(t => t.name === 'RESET TIMER ON TOUCH'); 
 
-  useEffect(() => {
-    const loadTimerConfig = async () => {
-      try {
-        await initializeApi();
-        const timers = getPopupTimers();
-        if (timers && timers.length > 0) {
-          const floorConfig = timers.find(t => t.ID === 8) || timers.find(t => t.name === 'LOG OUT FLOOR TIMER');
-          const reminderConfig = timers.find(t => t.ID === 9) || timers.find(t => t.name === 'SESSION TIMER REMINDER');
-
-          if (floorConfig) {
-            setFloorTimerConfig(floorConfig);
-            setTimeLeft(floorConfig.time);
-          }
-          if (reminderConfig) {
-            setSessionReminderConfig(reminderConfig);
-          }
+        if (floorConfig) {
+          setFloorTimerConfig(floorConfig);
+          setTimeLeft(floorConfig.time);
         }
-      } catch (error) {
-        console.error("Failed to load timer config:", error);
+        if (reminderConfig) {
+          setSessionReminderConfig(reminderConfig);
+        }
+        if (resetOnTouchConfig) { // ✅ Add this
+          setResetTimerOnTouch(resetOnTouchConfig.state);
+        }
       }
-    };
-    loadTimerConfig();
-  }, []);
+    } catch (error) {
+      console.error("Failed to load timer config:", error);
+    }
+  };
+  loadTimerConfig();
+}, []);
   /* =====================================================
      FLOOR DATA HOOK
   ===================================================== */
@@ -742,40 +748,46 @@ useEffect(() => {
     setTimeLeft(timeLeftRef.current);
   }, 1000);
 
-const resetTimer = () => {
-  if (isAnyModalOpen) return;
-  timeLeftRef.current = floorTimerConfig.time;
-  setTimeLeft(floorTimerConfig.time);
-};
+  const resetTimer = () => {
+    if (isAnyModalOpen) return;
+    if (!resetTimerOnTouch) return; // ✅ Add this check - if false, don't reset
+    timeLeftRef.current = floorTimerConfig.time;
+    setTimeLeft(floorTimerConfig.time);
+  };
 
-
-  window.addEventListener("click", resetTimer, true);
-  window.addEventListener("touchstart", resetTimer, true);
+  // ✅ Only add listeners if resetTimerOnTouch is enabled
+  if (resetTimerOnTouch) {
+    window.addEventListener("click", resetTimer, true);
+    window.addEventListener("touchstart", resetTimer, true);
+  }
 
   return () => {
     clearInterval(timerRef.current);
-    window.removeEventListener("click", resetTimer, true);
-    window.removeEventListener("touchstart", resetTimer, true);
+    // ✅ Only remove if they were added
+    if (resetTimerOnTouch) {
+      window.removeEventListener("click", resetTimer, true);
+      window.removeEventListener("touchstart", resetTimer, true);
+    }
   };
-}, [floorTimerConfig.state, sessionReminderConfig.state]);
+}, [floorTimerConfig.state, sessionReminderConfig.state, resetTimerOnTouch, isAnyModalOpen]);
 
 
 
 
   // 🔊 SPEECH: Main content (legend bar + map/room)
   //=========================================================================================
- 
+
   useEffect(() => {
     if (focusedRegion !== FocusRegion.MAP && focusedRegion !== FocusRegion.ROOM)
       return;
     if (mainContentCursor === null) return;
 
-   const speechKey = `${focusedRegion}-${mainContentCursor}`;
+    const speechKey = `${focusedRegion}-${mainContentCursor}`;
 
-  if (lastSpokenRef.current === speechKey) return;
-  lastSpokenRef.current = speechKey;
+    if (lastSpokenRef.current === speechKey) return;
+    lastSpokenRef.current = speechKey;
 
-  stop();
+    stop();
 
     const LEGEND_BAR_COUNT = 4;
 
@@ -953,18 +965,23 @@ const resetTimer = () => {
                             height: mapStyles.height,
                           }}
                         >
+                          {/* 🔴 Focus border */}
                           {isSectorFocused && (
-                            <div className="pointer-events-none w-full h-full rounded border-[6px] border-[#dc2f02]" />
+                            <div className="pointer-events-none absolute inset-0 rounded border-[6px] border-[#dc2f02] z-30" />
                           )}
 
-                          <div className="pointer-events-none w-full h-full bg-[#FFCA08]/20 border-2 border-[#FFCA08] rounded opacity-0 group-hover:opacity-100 transition-all duration-200" />
+                          {/* 🟡 Hover overlay */}
+                          <div className="pointer-events-none absolute inset-0 bg-[#FFCA08]/20 border-2 border-[#FFCA08] rounded opacity-0 group-hover:opacity-100 transition-all duration-200 z-20" />
 
-                          <div className="absolute -top-12 left-1/2 -translate-x-1/2 pointer-events-none">
+                          {/* 🏷️ Label */}
+                          <div className="absolute -top-12 left-1/2 -translate-x-1/2 pointer-events-none z-40">
                             <span className="bg-[#9A7D4C] text-white px-4 py-1.5 rounded-md text-[30px] font-bold shadow-lg whitespace-nowrap">
                               {t(getSectorLabel(sector, idx))}
                             </span>
                           </div>
+
                         </button>
+
                       ));
                     })
                   }
