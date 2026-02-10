@@ -204,8 +204,8 @@ const Floor = () => {
 
       case 1:
         // YES - Reset timer to full duration
-        timeLeftRef.current = floorTimerConfig.time; // ✅ Update ref first
-        setTimeLeft(floorTimerConfig.time); // ✅ Then update state
+        timeLeftRef.current = floorTimerConfig.time; 
+        setTimeLeft(floorTimerConfig.time); 
         setShowSessionReminder(false);
         setIsAnyModalOpen(false);
         return;
@@ -222,10 +222,10 @@ const Floor = () => {
 
     switch (sessionCursor) {
       case 0:
-        speak(t("No"));
+        speak(t("translations.No"));
         break;
       case 1:
-        speak(t("Yes"));
+        speak(t("translations.Yes"));
         break;
       default:
         break;
@@ -997,7 +997,7 @@ const Floor = () => {
         <Modal
           isOpen={showSessionReminder}
           onClose={() => setShowSessionReminder(false)}
-          title={t("Session Extension")}
+          title={t("translations.Session Extension")}
           size="medium"
           showCloseButton={false}
           className="border-[6px] border-[#dc2f02] rounded"
@@ -1018,7 +1018,7 @@ const Floor = () => {
     ${sessionCursor === 0 ? "outline-[6px] outline-[#dc2f02]" : ""}
   `}
               >
-                {t("No")}
+                {t("translations.No")}
               </button>
               <button
                 onClick={() => {
@@ -1034,7 +1034,7 @@ const Floor = () => {
     ${sessionCursor === 1 ? "outline-[6px] outline-[#dc2f02]" : ""}
   `}
               >
-                {t("Yes")}
+                {t("translations.Yes")}
               </button>
             </div>
           </div>
