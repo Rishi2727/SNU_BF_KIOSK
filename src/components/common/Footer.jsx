@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Volume2,
   ZoomIn,
@@ -55,6 +55,7 @@ const FooterControls = ({
   const [cursor, setCursor] = useState(null);
   const { speak, stop } = useVoice();
   const BACK_OFFSET = showBack ? 1 : 0;
+const prevVolumeRef = useRef(volume);
 
 
   const FOOTER_BUTTON_COUNT =
@@ -360,6 +361,60 @@ const FooterControls = ({
 
 
 
+  //For Magnifier 
+
+useEffect(() => {
+  if (!isFocused || isAnyModalOpen) return;
+
+  stop();
+
+  if (magnifierEnabled) {
+    speak("Magnifier enabled");
+  } else {
+    speak("Magnifier disabled");
+  }
+}, [magnifierEnabled]);
+
+
+// For contrast
+useEffect(() => {
+  if (!isFocused || isAnyModalOpen) return;
+
+  stop();
+
+  if (contrastEnabled) {
+    speak("Contrast enabled");
+  } else {
+    speak("Contrast disabled");
+  }
+}, [contrastEnabled]);
+
+
+
+// 🔊 Speak when volume changes (Up / Down + current percent)
+useEffect(() => {
+  if (!isFocused || isAnyModalOpen) {
+    prevVolumeRef.current = volume;
+    return;
+  }
+
+  const prevVolume = prevVolumeRef.current;
+
+  // Ignore first render
+  if (prevVolume === volume) return;
+
+  stop();
+
+  const percent = Math.round(volume * 100);
+
+  if (volume > prevVolume) {
+    speak(`Volume up. Current percent is ${percent}`);
+  } else {
+    speak(`Volume down. Current percent is ${percent}`);
+  }
+
+  prevVolumeRef.current = volume;
+}, [volume]);
 
   return (
     <>

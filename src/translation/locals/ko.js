@@ -119,6 +119,9 @@ const koTranslations = {
     "Central Library": "중앙도서관",
     "Current Time": "현재 시간",
     "Press OK button": "확인 버튼을 눌러 닫으세요.",
+    "Volume Up With Percent": "볼륨이 증가했습니다. 현재 {{percent}}퍼센트입니다.",
+    "Volume Down With Percent": "볼륨이 감소했습니다. 현재 {{percent}}퍼센트입니다."
+
   },
   translations: {
     "Confirm": "확인",

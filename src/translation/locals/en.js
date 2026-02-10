@@ -111,6 +111,8 @@ const enTranslations = {
     "Central Library": "Central Library",
     "Current Time": "Current Time",
     "Press OK button": "Press OK button to close",
+      "Volume Up With Percent": "Volume up. Current percent is {{percent}}",
+  "Volume Down With Percent": "Volume down. Current percent is {{percent}}"
   },
   translations: {
     "Confirm": "Confirm",
