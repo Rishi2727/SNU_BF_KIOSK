@@ -251,12 +251,3 @@ export const MODE_LABELS = {
   [MODES.ASSIGN_CHECK]: "Seat Check",
 };
 
-export const POPUP_TIMERS = [
-  { ID: 1, name: 'KEYBOARD TIMER', time: 30, state: true },
-  { ID: 2, name: 'HISTORY PAGE TIMER', time: 15, state: true },
-  { ID: 3, name: 'SUCCESS TIMER', time: 2, state: true },
-  { ID: 4, name: 'ERROR TIMER', time: 3, state: true },
-  { ID: 5, name: 'WARNING TIMER', time: 3, state: true },
-  { ID: 6, name: 'PRINTER TIMER', time: 5, state: true },
-  { ID: 7, name: 'FLOOR PAGE TIMER', time: 180, state: true }
-];

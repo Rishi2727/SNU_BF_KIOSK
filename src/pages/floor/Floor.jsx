@@ -19,9 +19,12 @@ import {
   getKioskUserInfo,
   getSeatList,
   ImageBaseUrl,
+  getPopupTimers,
+  initializeApi
 } from "../../services/api";
-import { MINI_MAP_LAYOUT, MINIMAP_CONFIG, POPUP_TIMERS } from "../../utils/constant";
+import { MINI_MAP_LAYOUT, MINIMAP_CONFIG } from "../../utils/constant";
 import SeatActionModal from "../../components/common/SeatActionModal";
+import Modal from "../../components/common/Modal";
 import { useTranslation } from "react-i18next";
 import { useVoice } from "../../context/voiceContext";
 import { formatFloorForSpeech } from "../../utils/speechFormatter";
@@ -74,8 +77,39 @@ const Floor = () => {
   const [mainContentCursor, setMainContentCursor] = useState(null);
 
   // ✅ Timer State
-  const FLOOR_TIMER_CONFIG = POPUP_TIMERS.find(t => t.name === 'FLOOR PAGE TIMER') || { time: 180, state: true };
-  const [timeLeft, setTimeLeft] = useState(FLOOR_TIMER_CONFIG.time);
+  const [floorTimerConfig, setFloorTimerConfig] = useState({ time: 180, state: true });
+  const [sessionReminderConfig, setSessionReminderConfig] = useState({ time: 60, state: true });
+  const [timeLeft, setTimeLeft] = useState(180);
+  const [showSessionReminder, setShowSessionReminder] = useState(false);
+  const [sessionCursor, setSessionCursor] = useState(null);
+  const SESSION_BUTTON_COUNT = 2;
+
+
+
+
+  useEffect(() => {
+    const loadTimerConfig = async () => {
+      try {
+        await initializeApi();
+        const timers = getPopupTimers();
+        if (timers && timers.length > 0) {
+          const floorConfig = timers.find(t => t.ID === 8) || timers.find(t => t.name === 'LOG OUT FLOOR TIMER');
+          const reminderConfig = timers.find(t => t.ID === 9) || timers.find(t => t.name === 'SESSION TIMER REMINDER');
+
+          if (floorConfig) {
+            setFloorTimerConfig(floorConfig);
+            setTimeLeft(floorConfig.time);
+          }
+          if (reminderConfig) {
+            setSessionReminderConfig(reminderConfig);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load timer config:", error);
+      }
+    };
+    loadTimerConfig();
+  }, []);
 
   const FocusRegion = Object.freeze({
     FLOOR_STATS: "floor_stats",
@@ -109,6 +143,98 @@ const Floor = () => {
 
     initializeUser();
   }, [dispatch]);
+
+  //Focus and speech for Session Reminder Modal 
+  useEffect(() => {
+    if (!showSessionReminder) return;
+
+    // lock background
+    setIsAnyModalOpen(true);
+    setFocusedRegion(null);
+
+    // reset cursor
+    setSessionCursor(null);
+
+    stop();
+stop();
+setTimeout(() => {
+  speak(t("translations.Do you want to continue this session?"));
+}, 300);
+
+  }, [showSessionReminder, speak, stop, t]);
+
+  useEffect(() => {
+    if (!showSessionReminder) return;
+
+    const handleKeyDown = (e) => {
+      switch (e.key) {
+        case "ArrowRight":
+          e.preventDefault();
+          setSessionCursor((prev) =>
+            prev === null ? 0 : (prev + 1) % SESSION_BUTTON_COUNT
+          );
+          break;
+
+        case "ArrowLeft":
+          e.preventDefault();
+          setSessionCursor((prev) =>
+            prev === null
+              ? SESSION_BUTTON_COUNT - 1
+              : (prev - 1 + SESSION_BUTTON_COUNT) % SESSION_BUTTON_COUNT
+          );
+          break;
+
+        case "Enter":
+          e.preventDefault();
+          handleSessionEnter(sessionCursor);
+          break;
+
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showSessionReminder, sessionCursor]);
+
+  const handleSessionEnter = (index) => {
+    switch (index) {
+      case 0:
+        // NO
+        setShowSessionReminder(false);
+        setIsAnyModalOpen(false);
+        return;
+
+      case 1:
+        // YES
+        setTimeLeft(floorTimerConfig.time);
+        setShowSessionReminder(false);
+        setIsAnyModalOpen(false);
+        return;
+
+      default:
+        return;
+    }
+  };
+
+  useEffect(() => {
+    if (!showSessionReminder || sessionCursor === null) return;
+
+    stop();
+
+    switch (sessionCursor) {
+      case 0:
+        speak(t("No"));
+        break;
+      case 1:
+        speak(t("Yes"));
+        break;
+      default:
+        break;
+    }
+  }, [sessionCursor, showSessionReminder, speak, stop, t]);
+
 
   /* =====================================================
      FLOOR DATA HOOK
@@ -643,11 +769,16 @@ const Floor = () => {
      IDLE TIMER LOGIC
   ===================================================== */
   useEffect(() => {
-    if (!FLOOR_TIMER_CONFIG.state) return;
+    if (!floorTimerConfig.state) return;
 
     // Timer countdown
     const interval = setInterval(() => {
       setTimeLeft((prev) => {
+        // Check for session reminder
+        if (sessionReminderConfig.state && prev === sessionReminderConfig.time) {
+          setShowSessionReminder(true);
+        }
+
         if (prev <= 1) {
           clearInterval(interval);
           // Auto Logout Logic
@@ -661,11 +792,11 @@ const Floor = () => {
     }, 1000);
 
     // Reset timer on activity
-    const resetTimer = () => setTimeLeft(FLOOR_TIMER_CONFIG.time);
+    const resetTimer = () => setTimeLeft(floorTimerConfig.time);
 
 
     // window.addEventListener("keydown", resetTimer); // Handled by specific keys in UI usually, but global is requested
-  
+
     window.addEventListener("click", resetTimer);
     window.addEventListener("touchstart", resetTimer);
 
@@ -676,7 +807,7 @@ const Floor = () => {
       window.removeEventListener("click", resetTimer);
       window.removeEventListener("touchstart", resetTimer);
     };
-  }, [FLOOR_TIMER_CONFIG, dispatch, navigate]);
+  }, [floorTimerConfig, sessionReminderConfig, dispatch, navigate]);
 
 
   // /* =====================================================
@@ -750,57 +881,105 @@ const Floor = () => {
                 onSectorsCalculated={setMinimapSectorCount}
               />
             ) : (
-            <div className="relative w-full h-full">
-  <div className={`relative w-full h-full`}>
-    <FloorMapImage
-      floorImageUrl={floorImageUrl}
-      currentFloor={currentFloor}
-      onImageError={handleImageError}
-      imageError={imageError}
-    />
+              <div className="relative w-full h-full">
+                <div className={`relative w-full h-full`}>
+                  <FloorMapImage
+                    floorImageUrl={floorImageUrl}
+                    currentFloor={currentFloor}
+                    onImageError={handleImageError}
+                    imageError={imageError}
+                  />
 
-    {!imageError &&
-      displayableSectors.map((sector, sectorIndex) => {
-        const mapStylesList = parseMapPoint(sector.MAPPOINT);
+                  {!imageError &&
+                    displayableSectors.map((sector, sectorIndex) => {
+                      const mapStylesList = parseMapPoint(sector.MAPPOINT);
 
-        const LEGEND_BAR_COUNT = 4;
-        const isSectorFocused =
-          focusedRegion === FocusRegion.MAP &&
-          mainContentCursor === sectorIndex + LEGEND_BAR_COUNT;
-        return mapStylesList.map((mapStyles, idx) => (
-          <button
-            key={`${sector.SECTORNO}-${idx}`}
-            onClick={() => handleSectorClick(sector)}
-            className="group absolute transition-all z-20"
-            aria-selected={isSectorFocused}
-            style={{
-              top: `calc(${mapStyles.top} - 45px)`,
-              left: mapStyles.left,
-              right: mapStyles.right,
-              width: mapStyles.width,
-              height: mapStyles.height,
-            }}
-          >
-            {isSectorFocused && (
-              <div className="pointer-events-none w-full h-full rounded border-[6px] border-[#dc2f02]" />
-            )}
+                      const LEGEND_BAR_COUNT = 4;
+                      const isSectorFocused =
+                        focusedRegion === FocusRegion.MAP &&
+                        mainContentCursor === sectorIndex + LEGEND_BAR_COUNT;
+                      return mapStylesList.map((mapStyles, idx) => (
+                        <button
+                          key={`${sector.SECTORNO}-${idx}`}
+                          onClick={() => handleSectorClick(sector)}
+                          className="group absolute transition-all z-20"
+                          aria-selected={isSectorFocused}
+                          style={{
+                            top: `calc(${mapStyles.top} - 45px)`,
+                            left: mapStyles.left,
+                            right: mapStyles.right,
+                            width: mapStyles.width,
+                            height: mapStyles.height,
+                          }}
+                        >
+                          {isSectorFocused && (
+                            <div className="pointer-events-none w-full h-full rounded border-[6px] border-[#dc2f02]" />
+                          )}
 
-            <div className="pointer-events-none w-full h-full bg-[#FFCA08]/20 border-2 border-[#FFCA08] rounded opacity-0 group-hover:opacity-100 transition-all duration-200" />
+                          <div className="pointer-events-none w-full h-full bg-[#FFCA08]/20 border-2 border-[#FFCA08] rounded opacity-0 group-hover:opacity-100 transition-all duration-200" />
 
-            <div className="absolute -top-12 left-1/2 -translate-x-1/2 pointer-events-none">
-              <span className="bg-[#9A7D4C] text-white px-4 py-1.5 rounded-md text-[30px] font-bold shadow-lg whitespace-nowrap">
-                {t(getSectorLabel(sector, idx))}
-              </span>
-            </div>
-          </button>
-        ));
-      })
-    }
-  </div>
-</div>
+                          <div className="absolute -top-12 left-1/2 -translate-x-1/2 pointer-events-none">
+                            <span className="bg-[#9A7D4C] text-white px-4 py-1.5 rounded-md text-[30px] font-bold shadow-lg whitespace-nowrap">
+                              {t(getSectorLabel(sector, idx))}
+                            </span>
+                          </div>
+                        </button>
+                      ));
+                    })
+                  }
+                </div>
+              </div>
             )}
           </div>
         )}
+
+        {/* ✅ Session Reminder Modal */}
+        <Modal
+          isOpen={showSessionReminder}
+          onClose={() => setShowSessionReminder(false)}
+          title={t("Session Extension")}
+          size="medium"
+          showCloseButton={false}
+          className="border-[6px] border-[#dc2f02] rounded"
+        >
+          <div className="flex flex-col items-center gap-6 p-6">
+            <p className="text-xl text-gray-800 text-center font-medium">
+              {t("translations.Do you want to continue this session?")}
+            </p>
+            <div className="flex gap-4 w-full justify-center">
+              <button
+                onClick={() => {
+                  setShowSessionReminder(false)
+                  handleSessionEnter(0)
+                }}
+                className={`
+    px-8 py-3 rounded-full bg-gray-500 text-white font-bold text-lg
+    min-w-[120px]
+    ${sessionCursor === 0 ? "outline-[6px] outline-[#dc2f02]" : ""}
+  `}
+              >
+                {t("No")}
+              </button>
+              <button
+                onClick={() => {
+                  setTimeLeft(floorTimerConfig.time);
+                  setShowSessionReminder(false);
+                  handleSessionEnter(1)
+                }}
+                className={`
+    px-8 py-3 rounded-full bg-[#FFCA08] text-white font-bold text-lg
+    min-w-[120px]
+    ${sessionCursor === 1 ? "outline-[6px] outline-[#dc2f02]" : ""}
+  `}
+              >
+                {t("Yes")}
+              </button>
+            </div>
+          </div>
+
+        </Modal>
+
+
       </div>
 
       {/* ================= FLOOR STATS ================= */}
@@ -834,7 +1013,7 @@ const Floor = () => {
         isOpen={showSeatModal}
         onClose={handleCloseModal}
       />
-    </div>
+    </div >
   );
 };
 

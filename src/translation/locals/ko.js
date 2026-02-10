@@ -184,7 +184,8 @@ const koTranslations = {
     "OK": "좋아요",
     "Select Floor": "층 선택",
     "Loading...": "로드 중...",
-    "Loading room and seats": "적재 공간 및 좌석"
+    "Loading room and seats": "적재 공간 및 좌석",
+    "Do you want to continue this session?": "이 세션을 계속하시겠습니까?"
   }
 }
 export default koTranslations;

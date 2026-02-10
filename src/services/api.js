@@ -6,31 +6,31 @@ import { fetch as tauriFetch } from '@tauri-apps/plugin-http';
 const customTauriAdapter = async (config) => {
   try {
     const url = config.baseURL ? config.baseURL + config.url : config.url;
-    
+
     // Build query parameters
     let fullUrl = url;
     if (config.params) {
       const params = new URLSearchParams(config.params);
       fullUrl += (url.includes('?') ? '&' : '?') + params.toString();
     }
-    
+
     // Make request using Tauri's fetch
     const response = await tauriFetch(fullUrl, {
       method: config.method?.toUpperCase() || 'GET',
       headers: config.headers || {},
       body: config.data,
     });
-    
+
     // Always get as arrayBuffer to prevent truncation
     const arrayBuffer = await response.arrayBuffer();
-    
+
     // Normalize status code to valid range (handle 999 and other non-standard codes)
     let status = response.status;
     if (status < 200 || status > 599) {
       console.warn(`⚠️ Non-standard HTTP status ${status}, normalizing to 200`);
       status = 200;
     }
-    
+
     return {
       data: arrayBuffer,
       status: status,
@@ -50,24 +50,24 @@ const parseApiResponse = (data) => {
   if (data && typeof data === "object" && !Array.isArray(data) && !(data instanceof ArrayBuffer)) {
     return data;
   }
-  
+
   // ArrayBuffer from Tauri adapter
   if (data instanceof ArrayBuffer) {
     const decoder = new TextDecoder('utf-8');
     data = decoder.decode(data);
   }
-  
+
   // Not a string at this point
   if (typeof data !== "string") {
     return data;
   }
-  
+
   // Clean the string FIRST before parsing
   const cleaned = data
     .replace(/^\uFEFF/, "")  // Remove BOM
     .replace(/\0/g, "")      // Remove ALL null bytes (this is critical!)
     .trim();
-  
+
   // Try JSON parse on cleaned string
   try {
     const parsed = JSON.parse(cleaned);
@@ -77,14 +77,14 @@ const parseApiResponse = (data) => {
     console.warn("⚠️ API Response is not valid JSON, returning raw text.", cleaned.substring(0, 80));
     console.error("Parse error:", e.message);
     console.log("Data length:", cleaned.length, "Original length:", data.length);
-    
+
     // Try to find where the JSON is broken
     const errorPos = e.message.match(/position (\d+)/);
     if (errorPos) {
       const pos = parseInt(errorPos[1]);
       console.log("Error context:", cleaned.substring(Math.max(0, pos - 50), Math.min(cleaned.length, pos + 50)));
     }
-    
+
     return data;
   }
 };
@@ -107,6 +107,9 @@ let PRIMARY_SERVER_URL = "";
 let SECONDARY_SERVER_URL = "";
 let QR_SERVER_URL = "";
 let RFID_SERVER_URL = "";
+let popupTimers = [];
+
+export const getPopupTimers = () => popupTimers;
 
 /* ==================== LANGUAGE MANAGEMENT =================== */
 let runtimeLang = localStorage.getItem("lang") || "en";
@@ -186,17 +189,20 @@ export const initializeApi = async () => {
 
         try {
           const config = await invoke("read_config");
-          const { primary_server_url, secondary_server_url, qr_server_url, rfid_server_url, manager_ip_url } = config;
+          const { primary_server_url, secondary_server_url, qr_server_url, rfid_server_url, manager_ip_url, popup_timers } = config;
           managerIpUrl = manager_ip_url || "";
           PRIMARY_SERVER_URL = primary_server_url;
           SECONDARY_SERVER_URL = secondary_server_url;
           QR_SERVER_URL = qr_server_url || "https://libapp.snu.ac.kr/SNU_MOB/qrCheck.do";
           RFID_SERVER_URL = rfid_server_url || "https://libapp.snu.ac.kr/SNU_MOB/qrCheck.do";
+          popupTimers = popup_timers || [];
 
+          console.log(config, "data")
           console.log("Config Loaded:", {
             PRIMARY_SERVER_URL,
             SECONDARY_SERVER_URL
           });
+
 
           if (PRIMARY_SERVER_URL || SECONDARY_SERVER_URL) {
             ApiClientManagerIP.defaults.baseURL = managerIpUrl;
@@ -231,7 +237,7 @@ export const FloorImageUrl = "http://k-rsv.snu.ac.kr:8012";
 
 export const getFloorList = async (libno) => {
   await ensureInitialized();
-  const res = await ApiClientSecondary.get("/GetFloorUsingCount.asp", { params: { libno }});
+  const res = await ApiClientSecondary.get("/GetFloorUsingCount.asp", { params: { libno } });
   return res.data;
 };
 
@@ -266,7 +272,7 @@ export const QRValidate = async (qrCode) => {
   await ensureInitialized();
   // URL encode the qrCode to handle special characters and spaces
   const encodedQrCode = encodeURIComponent(qrCode);
-  return (await ApiClientQR.get("/qrCheck.do", {params: { code: encodedQrCode },}))?.data;
+  return (await ApiClientQR.get("/qrCheck.do", { params: { code: encodedQrCode }, }))?.data;
 };
 
 /* ===============================
@@ -327,6 +333,6 @@ export const logout = async () => {
 
 export const managerCall = async (message) => {
   await ensureInitialized();
-  const response = await fetch(`${managerIpUrl}/callMan.api?msg=${encodeURIComponent(message)}`, {mode: 'no-cors'});
+  const response = await fetch(`${managerIpUrl}/callMan.api?msg=${encodeURIComponent(message)}`, { mode: 'no-cors' });
   return await response.json();
 }

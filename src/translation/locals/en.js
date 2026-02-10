@@ -176,7 +176,8 @@ const enTranslations = {
     "OK": "OK",
     "Select Floor": "Select Floor",
     "Loading...": "Loading...",
-    "Loading room and seats": "Loading room and seats"
+    "Loading room and seats": "Loading room and seats",
+    "Do you want to continue this session?": "Do you want to continue this session?"
   }
 
 }
