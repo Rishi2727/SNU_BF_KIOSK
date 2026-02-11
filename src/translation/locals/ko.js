@@ -138,14 +138,14 @@ const koTranslations = {
     "How to Request Help": "도움 요청 방법",
     "If you need assistance, you can request help from a staff member by using the guide button on the right side of the keypad.": "도움이 필요하시면 키패드 오른쪽에 있는 안내 버튼을 사용하여 직원에게 도움을 요청할 수 있습니다.",
 
-    "Keypad Direction Button Guide": "방향 버튼 안내",
-     "Right arrow button: Move focus to the right.\nUp arrow button: Increase volume.\nDown arrow button: Decrease volume.\nCenter round button: Select / Enter.": "오른쪽 화살표 버튼: 오른쪽으로 포커스 이동\n위쪽 화살표 버튼: 볼륨 증가\n아래쪽 화살표 버튼: 볼륨 감소\n가운데 원형 버튼: 선택 / 확인",
+    "KEYPAD_DIRECTION_BUTTON_GUIDE": "방향 버튼 안내",
+    "KEYPAD_DIRECTION_BUTTON_GUIDE_MSG": "오른쪽 화살표 버튼: 오른쪽으로 포커스 이동\n위쪽 화살표 버튼: 볼륨 증가\n아래쪽 화살표 버튼: 볼륨 감소\n가운데 원형 버튼: 선택 / 확인",
 
-    "Special Key Guide": "특수 키 안내",
-    "Triangle button: Replay audio guidance.\nX button: Stop audio guidance.": "삼각형 버튼: 음성 안내 다시 듣기\nX 버튼: 음성 안내 중지",
+    "SPECIAL_KEY_GUIDE": "특수 키 안내",
+    "SPECIAL_KEY_GUIDE_MSG": "삼각형 버튼: 음성 안내 다시 듣기\nX 버튼: 음성 안내 중지",
 
-    "Numeric Keypad Usage Guide": "숫자 키패드 사용 안내",
-    "Star (*) button: Move between areas.\nNumber 4 button: Move to the previous available seat.\nNumber 6 button: Move to the next available seat.\nHash (#) button: Replay guidance.": "별표(*) 버튼: 영역 간 이동\n숫자 4 버튼: 이전 사용 가능한 좌석으로 이동\n숫자 6 버튼: 다음 사용 가능한 좌석으로 이동\n샵(#) 버튼: 안내 다시 듣기"
+    "NUMERIC_KEYPAD_USAGE_GUIDE": "숫자 키패드 사용 안내",
+    "NUMERIC_KEYPAD_USAGE_GUIDE_MSG": "별표(*) 버튼: 영역 간 이동\n숫자 4 버튼: 이전 사용 가능한 좌석으로 이동\n숫자 6 버튼: 다음 사용 가능한 좌석으로 이동\n샵(#) 버튼: 안내 다시 듣기"
 
 
   },

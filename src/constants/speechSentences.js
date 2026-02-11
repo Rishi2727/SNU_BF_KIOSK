@@ -23,24 +23,14 @@ export const SPEECH = {
     howToRequestHelpMsg:
       "If you need assistance, you can request help from a staff member by using the guide button on the right side of the keypad.",
 
-    keypadDirectionButtonGuide: "Keypad Direction Button Guide",
-    keypadDirectionButtonGuideMsg:
-      "Right arrow button: Move focus to the right.\n" +
-      "Up arrow button: Increase volume.\n" +
-      "Down arrow button: Decrease volume.\n" +
-      "Center round button: Select / Enter.",
+    keypadDirectionButtonGuide: "KEYPAD_DIRECTION_BUTTON_GUIDE",
+    keypadDirectionButtonGuideMsg: "KEYPAD_DIRECTION_BUTTON_GUIDE_MSG",
 
-    specialKeyGuide: "Special Key Guide",
-    specialKeyGuideMsg:
-      "Triangle button: Replay audio guidance.\n" +
-      "X button: Stop audio guidance.",
+    specialKeyGuide: "SPECIAL_KEY_GUIDE",
+    specialKeyGuideMsg: "SPECIAL_KEY_GUIDE_MSG",
 
-    numericKeypadUsageGuide: "Numeric Keypad Usage Guide",
-    numericKeypadUsageGuideMsg:
-      "Star (*) button: Move between areas.\n" +
-      "Number 4 button: Move to the previous available seat.\n" +
-      "Number 6 button: Move to the next available seat.\n" +
-      "Hash (#) button: Replay guidance."
+    numericKeypadUsageGuide: "NUMERIC_KEYPAD_USAGE_GUIDE",
+    numericKeypadUsageGuideMsg: "NUMERIC_KEYPAD_USAGE_GUIDE_MSG"
 
   },
 

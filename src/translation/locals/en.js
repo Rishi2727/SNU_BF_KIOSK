@@ -130,14 +130,14 @@ const enTranslations = {
     "How to Request Help": "How to Request Help",
     "If you need assistance, you can request help from a staff member by using the guide button on the right side of the keypad.": "If you need assistance, you can request help from a staff member by using the guide button on the right side of the keypad.",
 
-    "Keypad Direction Button Guide": "Keypad Direction Button Guide",
-    "Right arrow button: Move focus to the right.\nUp arrow button: Increase volume.\nDown arrow button: Decrease volume.\nCenter round button: Select / Enter.": "Right arrow button: Move focus to the right.\nUp arrow button: Increase volume.\nDown arrow button: Decrease volume.\nCenter round button: Select / Enter.",
+    "KEYPAD_DIRECTION_BUTTON_GUIDE": "Keypad Direction Button Guide",
+    "KEYPAD_DIRECTION_BUTTON_GUIDE_MSG": "Right arrow button: Move focus to the right.\nUp arrow button: Increase volume.\nDown arrow button: Decrease volume.\nCenter round button: Select / Enter.",
 
-    "Special Key Guide": "Special Key Guide",
-    "Triangle button: Replay audio guidance.\nX button: Stop audio guidance.": "Triangle button: Replay audio guidance.\nX button: Stop audio guidance.",
+    "SPECIAL_KEY_GUIDE": "Special Key Guide",
+    "SPECIAL_KEY_GUIDE_MSG": "Triangle button: Replay audio guidance.\nX button: Stop audio guidance.",
 
-    "Numeric Keypad Usage Guide": "Numeric Keypad Usage Guide",
-    "Star (*) button: Move between areas.\nNumber 4 button: Move to the previous available seat.\nNumber 6 button: Move to the next available seat.\nHash (#) button: Replay guidance.": "Star (*) button: Move between areas.\nNumber 4 button: Move to the previous available seat.\nNumber 6 button: Move to the next available seat.\nHash (#) button: Replay guidance."
+    "NUMERIC_KEYPAD_USAGE_GUIDE": "Numeric Keypad Usage Guide",
+    "NUMERIC_KEYPAD_USAGE_GUIDE_MSG": "Star (*) button: Move between areas.\nNumber 4 button: Move to the previous available seat.\nNumber 6 button: Move to the next available seat.\nHash (#) button: Replay guidance."
   },
   translations: {
     "Confirm": "Confirm",

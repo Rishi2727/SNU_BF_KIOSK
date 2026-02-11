@@ -150,7 +150,7 @@ const keypadGuideItems = [
             speakSafe(logs[newIndex].title);
             return newIndex;
         });
-        setFocusCursor(null); // reset to null on page change
+        setFocusCursor(0); // reset to null on page change
         lastSpokenRef.current = null;
     };
 
