@@ -232,7 +232,14 @@ const enTranslations = {
     "No": "No",
     "Session Extension": "Session Extension",
     "키오스크 번호를 확인하세요.": "Please check the kiosk number.",
-    "Fixed":"Fixed"
+    "Fixed":"Fixed",
+    "Call Administrator":"Call Administrator",
+    "Would you like to call the administrator?":"Would you like to call the administrator?",
+    "Administrator call cancelled":"Administrator call cancelled",
+    "Calling the administrator":"Calling the administrator",
+    "Network error. Unable to contact administrator":"Network error. Unable to contact administrator",
+    "Message sent to administrator":"Message sent to administrator",
+    "Failed to send message to administrator":"Failed to send message to administrator"
   }
 
 }

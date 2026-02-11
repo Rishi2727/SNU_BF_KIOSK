@@ -240,7 +240,15 @@ const koTranslations = {
     "No": "아니요",
     "Session Extension": "세션 확장",
     "키오스크 번호를 확인하세요.": "키오스크 번호를 확인하세요.",
-    "Fixed":"고정석"
+    "Fixed":"고정석",
+     "Call Administrator":"관리자 호출",
+    "Would you like to call the administrator?":"관리자를 호츨 하시겠습니까?",
+    "Administrator call cancelled": "관리자 호출이 취소되었습니다",
+"Calling the administrator": "관리자를 호출하는 중입니다",
+"Network error. Unable to contact administrator": "네트워크 오류로 관리자를 연결할 수 없습니다",
+"Message sent to administrator": "관리자에게 메시지가 전송되었습니다",
+"Failed to send message to administrator": "관리자에게 메시지 전송에 실패했습니다"
+
 
   }
 }

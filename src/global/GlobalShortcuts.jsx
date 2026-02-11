@@ -42,12 +42,12 @@ export default function GlobalShortcuts() {
       console.log("Manager call response:", res);
 
       if (res.status !== 200) {
-        speak(t("Failed to send message to administrator"));
+        speak(t("translations.Failed to send message to administrator"));
         return;
       }
-      speak(t("Message sent to administrator"));
+      speak(t("translations.Message sent to administrator"));
     } catch (err) {
-      speak(t("Network error. Unable to contact administrator"));
+      speak(t("translations.Network error. Unable to contact administrator"));
     } finally {
       sendingRef.current = false;
     }
@@ -58,17 +58,17 @@ export default function GlobalShortcuts() {
   =============================== */
   const openManagerModal = useCallback(() => {
     setShowManagerModal(true);
-    speak(t("Would you like to call the administrator?"));
+    speak(t("translations.Would you like to call the administrator?"));
   }, [speak, t]);
 
   const closeManagerModal = useCallback(() => {
     setShowManagerModal(false);
-    speak(t("Administrator call cancelled"));
+    speak(t("translations.Administrator call cancelled"));
   }, [speak, t]);
 
   const confirmManagerCall = useCallback(() => {
     setShowManagerModal(false);
-    speak(t("Calling the administrator"));
+    speak(t("translations.Calling the administrator"));
     sendToManager();
   }, [sendToManager, speak, t]);
 
@@ -187,11 +187,11 @@ export default function GlobalShortcuts() {
             aria-modal="true"
           >
             <h2 className="text-[34px] font-bold mb-4">
-              {t("Call Administrator")}
+              {t("translations.Call Administrator")}
             </h2>
 
             <p className="text-[28px] mb-8">
-              {t("Would you like to call the administrator?")}
+              {t("translations.Would you like to call the administrator?")}
             </p>
 
             <div className="flex justify-center gap-10">
@@ -200,14 +200,14 @@ export default function GlobalShortcuts() {
                 onClick={confirmManagerCall}
                 className="px-8 py-4 rounded-xl text-white text-[28px] bg-green-600 hover:bg-green-700  "
               >
-                {t("YES")}
+                {t("translations.Yes")}
               </button>
 
               <button
                 onClick={closeManagerModal}
                 className="px-8 py-4 rounded-xl text-white text-[28px] bg-gray-500 hover:bg-gray-600 "
               >
-                {t("NO")}
+                {t("translations.No")}
               </button>
             </div>
           </div>
