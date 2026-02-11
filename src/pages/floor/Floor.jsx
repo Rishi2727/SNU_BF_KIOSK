@@ -205,8 +205,8 @@ const Floor = () => {
 
       case 1:
         // YES - Reset timer to full duration
-        timeLeftRef.current = floorTimerConfig.time; 
-        setTimeLeft(floorTimerConfig.time); 
+        timeLeftRef.current = floorTimerConfig.time;
+        setTimeLeft(floorTimerConfig.time);
         setShowSessionReminder(false);
         setIsAnyModalOpen(false);
         return;
@@ -864,42 +864,42 @@ const Floor = () => {
     }
   }, [focusedRegion]);
 
-// 🔊 VOICE: speak when FLOOR focus changes 
-useEffect(() => {
-  if (!focusedRegion) return;
-  if (isAnyModalOpen) return;
+  // 🔊 VOICE: speak when FLOOR focus changes 
+  useEffect(() => {
+    if (!focusedRegion) return;
+    if (isAnyModalOpen) return;
 
-  stop(); // stop previous speech
+    stop(); // stop previous speech
 
-  switch (focusedRegion) {
-    // 🟡 Floor stats bar
-    case FocusRegion.FLOOR_STATS:
-      speak(t("speech.Floor Selection Section"));
-      break;
+    switch (focusedRegion) {
+      // 🟡 Floor stats bar
+      case FocusRegion.FLOOR_STATS:
+        speak(t("speech.Floor Selection Section"));
+        break;
 
-    // 🟢 Footer
-    case FocusRegion.FOOTER:
-      speak(t("speech.Footer controls"));
-      break;
+      // 🟢 Footer
+      case FocusRegion.FOOTER:
+        speak(t("speech.Footer controls"));
+        break;
 
-    // 🔵 Mini map
-    case FocusRegion.MINI_MAP:
-      speak(t("speech.Mini map"));
-      break;
+      // 🔵 Mini map
+      case FocusRegion.MINI_MAP:
+        speak(t("speech.Mini map"));
+        break;
 
-    // 🟣 Main content (dynamic)
-    case FocusRegion.MAP:
-      speak(t("speech.Floor map section"));
-      break;
+      // 🟣 Main content (dynamic)
+      case FocusRegion.MAP:
+        speak(t("speech.Floor map section"));
+        break;
 
-    case FocusRegion.ROOM:
-      speak(t("speech.Room selection section"));
-      break;
+      case FocusRegion.ROOM:
+        speak(t("speech.Room selection section"));
+        break;
 
-    default:
-      break;
-  }
-}, [focusedRegion, showRoomView, isAnyModalOpen, speak, stop, t]);
+      default:
+        break;
+    }
+  }, [focusedRegion, showRoomView, isAnyModalOpen, speak, stop, t]);
 
 
 
@@ -1014,10 +1014,35 @@ useEffect(() => {
                           <div className="pointer-events-none absolute inset-0 bg-[#FFCA08]/20 border-2 border-[#FFCA08] rounded opacity-0 group-hover:opacity-100 transition-all duration-200 z-20" />
 
                           {/* 🏷️ Label */}
-                          <div className="absolute -top-12 left-1/2 -translate-x-1/2 pointer-events-none z-40">
-                            <span className="bg-[#9A7D4C] text-white px-4 py-1.5 rounded-md text-[30px] font-bold shadow-lg whitespace-nowrap">
-                              {t(getSectorLabel(sector, idx))}
-                            </span>
+                          <div className="absolute bottom-full  left-1/2 -translate-x-1/2 pointer-events-none z-40">
+
+                            {(() => {
+                              const label = getSectorLabel(sector, idx) || "";
+                              const words = label.split(" ");
+                              const isLong = words.length > 3;
+
+                              return (
+                                <span
+                                  className="
+        bg-[#9A7D4C] text-white px-4 py-1.5 rounded-md
+        text-[30px] font-bold shadow-lg text-center
+        whitespace-nowrap inline-block leading-[1.1]
+      "
+                                >
+                                  {isLong ? (
+                                    <>
+                                      {words.slice(0, -2).join(" ")}
+                                      <br />
+                                      {words.slice(-2).join(" ")}
+                                    </>
+                                  ) : (
+                                    <span>{label}</span>
+                                  )}
+                                </span>
+                              );
+                            })()}
+
+
                           </div>
 
                         </button>
