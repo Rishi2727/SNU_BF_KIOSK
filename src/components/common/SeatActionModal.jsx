@@ -829,14 +829,23 @@ const SeatActionModal = ({
 
     //to stop the speech 
     useEffect(() => {
-        // When both modals are closed → stop speech immediately
+        // When both modals are closed → stop speech immediately AND clear ref
         if (!isOpen && !showResultModal) {
             stop();
             lastSpokenRef.current = "";
         }
     }, [isOpen, showResultModal, stop]);
+    useEffect(() => {
+        if (!isOpen && !showResultModal) return;
+        if (!isModalFocused) return;
 
+        // Clear the ref when modal opens to ensure first speech works
+        if (isOpen || showResultModal) {
+            lastSpokenRef.current = "";
+        }
+    }, [isOpen, showResultModal, isModalFocused]);
 
+    // Main speech effect
     useEffect(() => {
         if (!isOpen && !showResultModal) return;
         if (!isModalFocused) return;
@@ -846,17 +855,24 @@ const SeatActionModal = ({
 
         if (!currentElement) return;
 
-        stop();
         const speechText = getSpeechForFocusedElement(currentElement);
 
-        // 🔒 prevent duplicate speech
-        if (speechText && speechText !== lastSpokenRef.current) {
-        lastSpokenRef.current = speechText;
+        // Only proceed if we have speech text
+        if (!speechText) return;
 
-        setTimeout(() => {
-            speak(speechText);
-        }, 100);
-    }
+        // Check if this is different from last spoken
+        const isDifferent = speechText !== lastSpokenRef.current;
+
+        if (isDifferent) {
+            // Stop any ongoing speech first
+            stop();
+
+            // Update ref BEFORE speaking
+            lastSpokenRef.current = speechText;
+            setTimeout(() => {
+                speak(speechText);
+            }, 150);
+        }
 
     }, [
         isOpen,
