@@ -1,32 +1,76 @@
 export const SPEECH = {
+
+  // ============================================================================
+  // INFORMATION MODAL
+  // ============================================================================
   INFO_MODAL: {
-    INFORMATION: "speech.INFORMATION",   
+    INFORMATION: "System User Guide",
+    KEYPAD_INFORMATION: "Keypad Usage Guide",
 
-    LANGUAGE_AND_NOTICES: "speech.LANGUAGE_AND_NOTICES",
-    LANGUAGE_NOTICES_DESC: "speech.LANGUAGE_NOTICES_DESC",
+    wayOfLogin: "Way of Login",
+    wayOfLoginMsg:
+      "Login is performed by scanning a membership card, student ID, or other identification card using the RFID reader, or by scanning a barcode or QR code with the barcode/QR scanner.",
 
-    DATE_TIME_FLOOR: "speech.DATE_TIME_FLOOR",
-    DATE_TIME_FLOOR_DESC: "speech.DATE_TIME_FLOOR_DESC",
+    seatBooking: "Seat Booking",
+    seatBookingMsg:
+      "After logging in, select a reading room from the reading room selection area, then choose your desired seat to receive a seat ticket.",
 
-    LOGIN_METHODS: "speech.LOGIN_METHODS",
-    LOGIN_METHODS_DESC: "speech.LOGIN_METHODS_DESC",
+    wayOfReturningSeat: "Way of Returning the Seat",
+    wayOfReturningSeatMsg:
+      "After logging in, go to the reading room selection area, select the room where you are seated, and follow the instructions to return your seat.",
 
-    NAVIGATION_BOOKING: "speech.NAVIGATION_BOOKING",
-    NAVIGATION_BOOKING_DESC: "speech.NAVIGATION_BOOKING_DESC",
+    howToRequestHelp: "How to Request Help",
+    howToRequestHelpMsg:
+      "If you need assistance, you can request help from a staff member by using the guide button on the right side of the keypad.",
 
-    FOOTER_TOOLS: "speech.FOOTER_TOOLS",
-    FOOTER_TOOLS_DESC: "speech.FOOTER_TOOLS_DESC",
+    keypadDirectionButtonGuide: "Keypad Direction Button Guide",
+    keypadDirectionButtonGuideMsg:
+      "Right arrow button: Move focus to the right.\n" +
+      "Up arrow button: Increase volume.\n" +
+      "Down arrow button: Decrease volume.\n" +
+      "Center round button: Select / Enter.",
 
-    BOOKING_POPUPS: "speech.BOOKING_POPUPS",
-    BOOKING_POPUPS_DESC: "speech.BOOKING_POPUPS_DESC",
+    specialKeyGuide: "Special Key Guide",
+    specialKeyGuideMsg:
+      "Triangle button: Replay audio guidance.\n" +
+      "X button: Stop audio guidance.",
 
-    GATE_CONFIRMATION: "speech.GATE_CONFIRMATION",
-    GATE_CONFIRMATION_DESC: "speech.GATE_CONFIRMATION_DESC",
+    numericKeypadUsageGuide: "Numeric Keypad Usage Guide",
+    numericKeypadUsageGuideMsg:
+      "Star (*) button: Move between areas.\n" +
+      "Number 4 button: Move to the previous available seat.\n" +
+      "Number 6 button: Move to the next available seat.\n" +
+      "Hash (#) button: Replay guidance."
 
-    GROUP_ROOM_BOOKING: "speech.GROUP_ROOM_BOOKING",
-    GROUP_ROOM_BOOKING_DESC: "speech.GROUP_ROOM_BOOKING_DESC",
+  },
 
-    MULTIPLE_BOOKING: "speech.MULTIPLE_BOOKING",
-    MULTIPLE_BOOKING_DESC: "speech.MULTIPLE_BOOKING_DESC",
-  }
 };
+/**
+ * Helper function to get speech text with optional formatting
+ * @param {string} path - Path to speech constant (e.g., 'FOOTER.VOLUME_PERCENT')
+ * @param {object} params - Optional parameters for string interpolation
+ * @returns {string} The speech text
+ */
+export const getSpeechText = (path, params = {}) => {
+  const keys = path.split('.');
+  let value = SPEECH;
+
+  for (const key of keys) {
+    if (value && typeof value === 'object' && key in value) {
+      value = value[key];
+    } else {
+      console.warn(`Speech constant not found: ${path}`);
+      return '';
+    }
+  }
+
+  // Simple parameter interpolation if needed
+  let text = String(value);
+  Object.entries(params).forEach(([key, val]) => {
+    text = text.replace(`{{${key}}}`, val);
+  });
+
+  return text;
+};
+
+export default SPEECH;

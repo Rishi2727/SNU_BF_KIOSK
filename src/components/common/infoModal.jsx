@@ -8,31 +8,41 @@ export default function InfoModal({ isOpen = true, onClose = () => { } }) {
     const { t } = useTranslation();
     const { speak, stop } = useVoice();
 
-    // ORIGINAL CONTENT
-    const allItems = [
-        { header: t(SPEECH.INFO_MODAL.LANGUAGE_AND_NOTICES), text: t(SPEECH.INFO_MODAL.LANGUAGE_NOTICES_DESC) },
-        { header: t(SPEECH.INFO_MODAL.DATE_TIME_FLOOR), text: t(SPEECH.INFO_MODAL.DATE_TIME_FLOOR_DESC) },
-        { header: t(SPEECH.INFO_MODAL.LOGIN_METHODS), text: t(SPEECH.INFO_MODAL.LOGIN_METHODS_DESC) },
-        { header: t(SPEECH.INFO_MODAL.NAVIGATION_BOOKING), text: t(SPEECH.INFO_MODAL.NAVIGATION_BOOKING_DESC) },
-        { header: t(SPEECH.INFO_MODAL.FOOTER_TOOLS), text: t(SPEECH.INFO_MODAL.FOOTER_TOOLS_DESC) },
-        { header: t(SPEECH.INFO_MODAL.BOOKING_POPUPS), text: t(SPEECH.INFO_MODAL.BOOKING_POPUPS_DESC) },
-        { header: t(SPEECH.INFO_MODAL.GATE_CONFIRMATION), text: t(SPEECH.INFO_MODAL.GATE_CONFIRMATION_DESC) },
-        { header: t(SPEECH.INFO_MODAL.GROUP_ROOM_BOOKING), text: t(SPEECH.INFO_MODAL.GROUP_ROOM_BOOKING_DESC) },
-        { header: t(SPEECH.INFO_MODAL.MULTIPLE_BOOKING), text: t(SPEECH.INFO_MODAL.MULTIPLE_BOOKING_DESC) },
+    // =========================
+    // GUIDE CONTENT (SPLIT PAGES)
+    // =========================
+
+   // -------- SYSTEM USER GUIDE --------
+const systemGuideItems = [
+  { header: t(`speech.${SPEECH.INFO_MODAL.wayOfLogin}`), text: t(`speech.${(SPEECH.INFO_MODAL.wayOfLoginMsg)}`) },
+  { header: t(`speech.${SPEECH.INFO_MODAL.seatBooking}`), text: t(`speech.${(SPEECH.INFO_MODAL.seatBookingMsg)}`) },
+  { header: t(`speech.${SPEECH.INFO_MODAL.wayOfReturningSeat}`), text: t(`speech.${(SPEECH.INFO_MODAL.wayOfReturningSeatMsg)}`) },
+  { header: t(`speech.${SPEECH.INFO_MODAL.howToRequestHelp}`), text: t(`speech.${(SPEECH.INFO_MODAL.howToRequestHelpMsg)}`) },
+];
+
+// -------- KEYPAD USAGE GUIDE --------
+const keypadGuideItems = [
+  { header: t(`speech.${SPEECH.INFO_MODAL.keypadDirectionButtonGuide}`), text: t(`speech.${SPEECH.INFO_MODAL.keypadDirectionButtonGuideMsg}`) },
+  { header: t(`speech.${SPEECH.INFO_MODAL.specialKeyGuide}`), text: t(`speech.${SPEECH.INFO_MODAL.specialKeyGuideMsg}`) },
+  { header: t(`speech.${SPEECH.INFO_MODAL.numericKeypadUsageGuide}`), text: t(`speech.${SPEECH.INFO_MODAL.numericKeypadUsageGuideMsg}`) },
+];
+
+
+
+    // -------- FINAL PAGES --------
+    const logs = [
+        {
+            title: t(`speech.${(SPEECH.INFO_MODAL.INFORMATION)}`), // System User Guide
+            content: systemGuideItems
+        },
+        {
+            title: t(`speech.${(SPEECH.INFO_MODAL.KEYPAD_INFORMATION)}`), // Keypad Usage Guide
+            content: keypadGuideItems
+        }
     ];
 
-    // PAGINATION
-    const ITEMS_PER_PAGE = 4;
-    const paginatedPages = [];
 
-    for (let i = 0; i < allItems.length; i += ITEMS_PER_PAGE) {
-        paginatedPages.push({
-            title: t(SPEECH.INFO_MODAL.INFORMATION),
-            content: allItems.slice(i, i + ITEMS_PER_PAGE),
-        });
-    }
 
-    const logs = paginatedPages;
 
     // STATE
     const [pageIndex, setPageIndex] = useState(0);
@@ -123,7 +133,7 @@ export default function InfoModal({ isOpen = true, onClose = () => { } }) {
             return;
         }
         setPageIndex(0);
-        setFocusCursor(null); // start with null per your requirement
+        setFocusCursor(0); // start with null per your requirement
         lastSpokenRef.current = null;
 
         // Speak the current page title once on open even though nothing is highlighted
@@ -150,7 +160,7 @@ export default function InfoModal({ isOpen = true, onClose = () => { } }) {
             speakSafe(logs[newIndex].title);
             return newIndex;
         });
-        setFocusCursor(null); // reset to null on page change
+        setFocusCursor(0); // reset to null on page change
         lastSpokenRef.current = null;
     };
 
@@ -233,10 +243,10 @@ export default function InfoModal({ isOpen = true, onClose = () => { } }) {
     // UI RENDER
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-999 flex justify-center items-center">
-            <div className="info-modal-wrapper bg-white/95 w-[60%] h-[80%] flex flex-col rounded-3xl border shadow-2xl overflow-hidden">
+            <div className="info-modal-wrapper bg-white/95 w-[65%] h-[85%] flex flex-col rounded-3xl border shadow-2xl overflow-hidden">
 
                 {/* HEADER */}
-                <div className="bg-linear-to-r from-[#FFCB35] to-[#cf9e0b] text-white text-[35px] px-8 py-3 font-bold flex justify-between items-center">
+                <div className="bg-linear-to-r from-[#FFCB35] to-[#cf9e0b] text-white text-[35px] px-8 py-3 font-bold flex justify-between items-center ">
                     <span className="info-modal-title cursor-pointer">
                         {logs[pageIndex].title}
                     </span>
@@ -257,7 +267,7 @@ export default function InfoModal({ isOpen = true, onClose = () => { } }) {
                             className="info-detail-item p-4 bg-white rounded-2xl border shadow cursor-pointer hover:shadow-lg transition-shadow leading-10"
                         >
                             <div className="text-[31px] font-bold text-[#EFB637]">{item.header}</div>
-                            <div className="text-[30px] text-gray-700">{item.text}</div>
+                            <div className="text-[30px] text-gray-700 whitespace-pre-line">{item.text}</div>
                         </div>
                     ))}
                 </div>

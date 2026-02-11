@@ -114,7 +114,30 @@ const enTranslations = {
     "Volume Up With Percent": "Volume up. Current percent is {{percent}}",
     "Volume Down With Percent": "Volume down. Current percent is {{percent}}",
     "Room selection section": "Room selection section",
-    "Mini map": "Mini map"
+    "Mini map": "Mini map",
+    "System User Guide": "System User Guide",
+    "Keypad Usage Guide": "Keypad Usage Guide",
+
+    "Way of Login": "Way of Login",
+    "Login is performed by scanning a membership card, student ID, or other identification card using the RFID reader, or by scanning a barcode or QR code with the barcode/QR scanner.": "Login is performed by scanning a membership card, student ID, or other identification card using the RFID reader, or by scanning a barcode or QR code with the barcode/QR scanner.",
+
+    "Seat Booking": "Seat Booking",
+    "After logging in, select a reading room from the reading room selection area, then choose your desired seat to receive a seat ticket.": "After logging in, select a reading room from the reading room selection area, then choose your desired seat to receive a seat ticket.",
+
+    "Way of Returning the Seat": "Way of Returning the Seat",
+    "After logging in, go to the reading room selection area, select the room where you are seated, and follow the instructions to return your seat.": "After logging in, go to the reading room selection area, select the room where you are seated, and follow the instructions to return your seat.",
+
+    "How to Request Help": "How to Request Help",
+    "If you need assistance, you can request help from a staff member by using the guide button on the right side of the keypad.": "If you need assistance, you can request help from a staff member by using the guide button on the right side of the keypad.",
+
+    "Keypad Direction Button Guide": "Keypad Direction Button Guide",
+    "Right arrow button: Move focus to the right.\nUp arrow button: Increase volume.\nDown arrow button: Decrease volume.\nCenter round button: Select / Enter.": "Right arrow button: Move focus to the right.\nUp arrow button: Increase volume.\nDown arrow button: Decrease volume.\nCenter round button: Select / Enter.",
+
+    "Special Key Guide": "Special Key Guide",
+    "Triangle button: Replay audio guidance.\nX button: Stop audio guidance.": "Triangle button: Replay audio guidance.\nX button: Stop audio guidance.",
+
+    "Numeric Keypad Usage Guide": "Numeric Keypad Usage Guide",
+    "Star (*) button: Move between areas.\nNumber 4 button: Move to the previous available seat.\nNumber 6 button: Move to the next available seat.\nHash (#) button: Replay guidance.": "Star (*) button: Move between areas.\nNumber 4 button: Move to the previous available seat.\nNumber 6 button: Move to the next available seat.\nHash (#) button: Replay guidance."
   },
   translations: {
     "Confirm": "Confirm",

@@ -122,7 +122,31 @@ const koTranslations = {
     "Volume Up With Percent": "볼륨이 증가했습니다. 현재 {{percent}}퍼센트입니다.",
     "Volume Down With Percent": "볼륨이 감소했습니다. 현재 {{percent}}퍼센트입니다.",
     "Room selection section": "객실 선택 섹션",
-    "Mini map": "미니맵"
+    "Mini map": "미니맵",
+    "System User Guide": "시스템 사용자 안내",
+    "Keypad Usage Guide": "키패드 사용 안내",
+
+    "Way of Login": "로그인 방법",
+    "Login is performed by scanning a membership card, student ID, or other identification card using the RFID reader, or by scanning a barcode or QR code with the barcode/QR scanner.": "로그인은 RFID 리더기를 사용하여 회원 카드, 학생증 또는 기타 신분증을 스캔하거나, 바코드/QR 스캐너로 바코드 또는 QR 코드를 스캔하여 수행됩니다.",
+
+    "Seat Booking": "좌석 예약",
+    "After logging in, select a reading room from the reading room selection area, then choose your desired seat to receive a seat ticket.": "로그인 후 열람실 선택 영역에서 열람실을 선택한 다음, 원하는 좌석을 선택하여 좌석 티켓을 발급받으십시오.",
+
+    "Way of Returning the Seat": "좌석 반납 방법",
+    "After logging in, go to the reading room selection area, select the room where you are seated, and follow the instructions to return your seat.": "로그인 후 열람실 선택 영역으로 이동하여 현재 이용 중인 열람실을 선택하고 안내에 따라 좌석을 반납하십시오.",
+
+    "How to Request Help": "도움 요청 방법",
+    "If you need assistance, you can request help from a staff member by using the guide button on the right side of the keypad.": "도움이 필요하시면 키패드 오른쪽에 있는 안내 버튼을 사용하여 직원에게 도움을 요청할 수 있습니다.",
+
+    "Keypad Direction Button Guide": "방향 버튼 안내",
+     "Right arrow button: Move focus to the right.\nUp arrow button: Increase volume.\nDown arrow button: Decrease volume.\nCenter round button: Select / Enter.": "오른쪽 화살표 버튼: 오른쪽으로 포커스 이동\n위쪽 화살표 버튼: 볼륨 증가\n아래쪽 화살표 버튼: 볼륨 감소\n가운데 원형 버튼: 선택 / 확인",
+
+    "Special Key Guide": "특수 키 안내",
+    "Triangle button: Replay audio guidance.\nX button: Stop audio guidance.": "삼각형 버튼: 음성 안내 다시 듣기\nX 버튼: 음성 안내 중지",
+
+    "Numeric Keypad Usage Guide": "숫자 키패드 사용 안내",
+    "Star (*) button: Move between areas.\nNumber 4 button: Move to the previous available seat.\nNumber 6 button: Move to the next available seat.\nHash (#) button: Replay guidance.": "별표(*) 버튼: 영역 간 이동\n숫자 4 버튼: 이전 사용 가능한 좌석으로 이동\n숫자 6 버튼: 다음 사용 가능한 좌석으로 이동\n샵(#) 버튼: 안내 다시 듣기"
+
 
   },
   translations: {
@@ -193,7 +217,8 @@ const koTranslations = {
     "Do you want to continue this session?": "이 세션을 계속하시겠습니까?",
     "Yes": "예",
     "No": "아니요",
-    "Session Extension": "세션 확장"
+    "Session Extension": "세션 확장",
+
   }
 }
 export default koTranslations;
