@@ -86,6 +86,8 @@ const Floor = () => {
   const timerRef = useRef(null);
   const timeLeftRef = useRef(timeLeft);
   const lastSpokenRef = useRef("");
+  const lastFocusedRegionRef = useRef(null);
+
 
 
   //For Floor Section Speak
@@ -815,7 +817,7 @@ const Floor = () => {
           speak(t("speech.Booked seats"));
           break;
         case 3:
-          speak(t("speech.Disabled seats"));
+          speak(t("speech.Fixed seats"));
           break;
       }
       return;
@@ -837,7 +839,12 @@ const Floor = () => {
     if (focusedRegion === FocusRegion.ROOM && visibleSeats?.length) {
       const seat = visibleSeats[contentIndex];
       if (seat) {
-        speak(`Seat ${seat.VNAME}`);
+      speak(
+  t("speech.Seat Label", {
+    seat: seat.VNAME,
+  })
+);
+
       }
     }
   }, [
@@ -868,6 +875,9 @@ const Floor = () => {
   useEffect(() => {
     if (!focusedRegion) return;
     if (isAnyModalOpen) return;
+      if (lastFocusedRegionRef.current === focusedRegion) return;
+
+  lastFocusedRegionRef.current = focusedRegion;
 
     stop(); // stop previous speech
 

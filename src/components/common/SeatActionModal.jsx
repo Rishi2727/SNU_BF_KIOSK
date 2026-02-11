@@ -716,7 +716,7 @@ const SeatActionModal = ({
             switch (element.type) {
                 case "title":
                     return t("speech.SEAT_MODAL_TITLE", {
-                        action: MODE_LABELS[mode],
+                         action: t(`translations.${MODE_LABELS[mode]}`),
                     });
                 case "header": {
                     // Assign check mode
@@ -795,7 +795,8 @@ const SeatActionModal = ({
                     if (isMove) return t("speech.SEAT_MODAL_MOVE_CONFIRM");
                     if (isReturn) return t("speech.SEAT_MODAL_RETURN_CONFIRM");
                     return t("speech.SEAT_MODAL_CONFIRM_GENERIC", {
-                        action: MODE_LABELS[mode],
+                     action: t(`translations.${MODE_LABELS[mode]}`),
+
                     });
 
                 case "cancel-button":

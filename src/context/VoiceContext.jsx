@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useState,
   useCallback,
+  useRef,
 } from "react";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
@@ -16,6 +17,12 @@ export const VoiceProvider = ({ children }) => {
   // Get volume from Redux accessibility slice (if you have one)
   // If not, you can manage volume locally with useState
   const volume = useSelector((state) => state.accessibility?.volume) || 1;
+  const volumeRef = useRef(volume);
+
+  useEffect(() => {
+    volumeRef.current = volume;
+  }, [volume]);
+
   const [voice, setVoice] = useState(null);
   const [voices, setVoices] = useState([]);
   const [lastText, setLastText] = useState("");
@@ -51,7 +58,7 @@ export const VoiceProvider = ({ children }) => {
     return () => {
       try {
         window.speechSynthesis.onvoiceschanged = null;
-      } catch {}
+      } catch { }
     };
   }, [i18n.language]);
 
@@ -78,14 +85,14 @@ export const VoiceProvider = ({ children }) => {
       utterance.lang = voice?.lang || "en-US";
       utterance.rate = 0.9;
       utterance.pitch = 0.1;
-      utterance.volume = volume;
+      utterance.volume = volumeRef.current;
       try {
         window.speechSynthesis.speak(utterance);
       } catch (err) {
         console.debug("[VoiceProvider] speak error", err);
       }
     },
-    [voice, volume]
+    [voice]
   );
 
   // Global keyboard listeners for voice control

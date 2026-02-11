@@ -55,7 +55,7 @@ const FooterControls = ({
   const [cursor, setCursor] = useState(null);
   const { speak, stop } = useVoice();
   const BACK_OFFSET = showBack ? 1 : 0;
-const prevVolumeRef = useRef(volume);
+  const prevVolumeRef = useRef(volume);
 
 
   const FOOTER_BUTTON_COUNT =
@@ -287,16 +287,19 @@ const prevVolumeRef = useRef(volume);
           speakText = t("speech.UserID");
           break;
         case 3 + BACK_OFFSET:
-          speakText = t("speech.Language") + " Korean";
+          speakText = t("speech.Language") + t("speech.Korean");
           break;
         case 4 + BACK_OFFSET:
-          speakText = t("speech.Language") + " English";
+          speakText = t("speech.Language") + t("speech.English");
           break;
         case 5 + BACK_OFFSET:
           speakText = t("speech.Volume Down");
           break;
         case 6 + BACK_OFFSET:
-          speakText = `${Math.round(volume * 100)} percent`;
+          speakText = t("speech.Current Volume With Percent", {
+            percent: Math.round(volume * 100),
+          });
+
           break;
         case 7 + BACK_OFFSET:
           speakText = t("speech.Volume Up");
@@ -305,7 +308,7 @@ const prevVolumeRef = useRef(volume);
           speakText = t("speech.Info");
           break;
         case 9 + BACK_OFFSET:
-          speakText = t("speech.Zoom");
+          speakText = t("translations.Magnifier");
           break;
         case 10 + BACK_OFFSET:
           speakText = t("speech.Contrast");
@@ -326,16 +329,19 @@ const prevVolumeRef = useRef(volume);
           speakText = t("speech.Login");
           break;
         case 2:
-          speakText = t("speech.Language") + " Korean";
+          speakText = t("speech.Language") + t("speech.Korean");
           break;
         case 3:
-          speakText = t("speech.Language") + " English";
+          speakText = t("speech.Language") + t("speech.English");
           break;
         case 4:
           speakText = t("speech.Volume Down");
           break;
         case 5:
-          speakText = `${Math.round(volume * 100)} percent`;
+          speakText = t("speech.Current Volume With Percent", {
+            percent: Math.round(volume * 100),
+          });
+
           break;
         case 6:
           speakText = t("speech.Volume Up");
@@ -344,7 +350,7 @@ const prevVolumeRef = useRef(volume);
           speakText = t("speech.Info");
           break;
         case 8:
-          speakText = t("speech.Zoom");
+          speakText = t("translations.Magnifier");
           break;
         case 9:
           speakText = t("speech.Contrast");
@@ -363,58 +369,62 @@ const prevVolumeRef = useRef(volume);
 
   //For Magnifier 
 
-useEffect(() => {
-  if (!isFocused || isAnyModalOpen) return;
+  useEffect(() => {
+    if (!isFocused || isAnyModalOpen) return;
 
-  stop();
+    stop();
 
-  if (magnifierEnabled) {
-    speak("Magnifier enabled");
-  } else {
-    speak("Magnifier disabled");
-  }
-}, [magnifierEnabled]);
-
-
-// For contrast
-useEffect(() => {
-  if (!isFocused || isAnyModalOpen) return;
-
-  stop();
-
-  if (contrastEnabled) {
-    speak("Contrast enabled");
-  } else {
-    speak("Contrast disabled");
-  }
-}, [contrastEnabled]);
+    if (magnifierEnabled) {
+      speak(t("speech.Magnifier enabled"));
+    } else {
+      speak(t("speech.Magnifier disabled"));
+    }
+  }, [magnifierEnabled]);
 
 
+  // For contrast
+  useEffect(() => {
+    if (!isFocused || isAnyModalOpen) return;
 
-// 🔊 Speak when volume changes (Up / Down + current percent)
-useEffect(() => {
-  if (!isFocused || isAnyModalOpen) {
+    stop();
+
+    if (contrastEnabled) {
+      speak(t("speech.Contrast enabled"));
+    } else {
+      speak(t("speech.Contrast disabled"));
+    }
+  }, [contrastEnabled]);
+
+
+
+  // 🔊 Speak when volume changes (Up / Down + current percent)
+  useEffect(() => {
+    if (!isFocused || isAnyModalOpen) {
+      prevVolumeRef.current = volume;
+      return;
+    }
+
+    const prevVolume = prevVolumeRef.current;
+
+    // Ignore first render
+    if (prevVolume === volume) return;
+
+
+
+    const percent = Math.round(volume * 100);
+
+    if (volume > prevVolume) {
+    speak(
+    t("speech.Volume Up With Percent", { percent })
+  );
+    } else {
+   speak(
+    t("speech.Volume Down With Percent", { percent })
+  );
+    }
+
     prevVolumeRef.current = volume;
-    return;
-  }
-
-  const prevVolume = prevVolumeRef.current;
-
-  // Ignore first render
-  if (prevVolume === volume) return;
-
-  stop();
-
-  const percent = Math.round(volume * 100);
-
-  if (volume > prevVolume) {
-    speak(`Volume up. Current percent is ${percent}`);
-  } else {
-    speak(`Volume down. Current percent is ${percent}`);
-  }
-
-  prevVolumeRef.current = volume;
-}, [volume]);
+  }, [volume]);
 
   return (
     <>
@@ -540,7 +550,7 @@ useEffect(() => {
 
           <FooterButton
             icon={<ZoomIn size={28} />}
-            label={t("translations.Zoom")}
+            label={t("translations.Magnifier")}
             active={magnifierEnabled}
             onClick={() => dispatch(toggleMagnifier())}
             isSelected={cursor === (userInfo ? 9 + BACK_OFFSET : 8 + BACK_OFFSET)}

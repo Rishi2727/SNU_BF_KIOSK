@@ -46,7 +46,7 @@ const FloorLegendBar = ({
         break;
 
       case 3:
-        speak(t("speech.Disabled seats"));
+        speak(t("speech.Fixed seats"));
         break;
 
       default:
@@ -127,7 +127,7 @@ const FloorLegendBar = ({
           <div className="w-8 h-8 border-2 border-gray-300 rounded flex items-center justify-center">
             <Armchair className="w-8 h-8 text-gray-300" />
           </div>
-          <span className="text-[28px]">{t("translations.Disabled")}</span>
+          <span className="text-[28px]">{t("translations.Fixed")}</span>
         </div>
       </div>
     </div>

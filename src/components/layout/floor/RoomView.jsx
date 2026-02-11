@@ -580,7 +580,7 @@ useEffect(() => {
   console.log("👀 Minimap focus moved to sector:", sector.id);
 
   // 🔊 SPEAK
-  speak(t("Mini map sector") + " " + sector.id);
+  speak(t("speech.Mini map sector") + " " + sector.id);
 
 }, [
   minimapFocusIndex,
@@ -607,7 +607,7 @@ useEffect(() => {
     setImagePanOffset({ x: -sector.x1, y: -sector.y1 });
 
     // 🔊 SPEAK CONFIRMATION
-    speak(t("Selected mini map sector") + " " + sector.id);
+    speak(t("speech.Selected mini map sector") + " " + sector.id);
 
     if (onMiniSectorClick) onMiniSectorClick(sector);
   };

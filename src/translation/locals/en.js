@@ -137,7 +137,25 @@ const enTranslations = {
     "SPECIAL_KEY_GUIDE_MSG": "Triangle button: Replay audio guidance.\nX button: Stop audio guidance.",
 
     "NUMERIC_KEYPAD_USAGE_GUIDE": "Numeric Keypad Usage Guide",
-    "NUMERIC_KEYPAD_USAGE_GUIDE_MSG": "Star (*) button: Move between areas.\nNumber 4 button: Move to the previous available seat.\nNumber 6 button: Move to the next available seat.\nHash (#) button: Replay guidance."
+    "NUMERIC_KEYPAD_USAGE_GUIDE_MSG": "Star (*) button: Move between areas.\nNumber 4 button: Move to the previous available seat.\nNumber 6 button: Move to the next available seat.\nHash (#) button: Replay guidance.",
+    "Mini map sector": "Mini map sector",
+    "Selected mini map sector": "Selected mini map sector",
+    "Korean": "Korean",
+    "English": "English",
+    "Current Volume With Percent": "Current volume {{percent}} percent",
+    "Magnifier enabled": "Magnifier enabled",
+    "Magnifier disabled": "Magnifier disabled",
+    "Contrast enabled": "contrast enabled",
+    "Contrast disabled": "contrast disabled",
+    "Volume Up With Percent": "Volume up. Current percent is {{percent}}",
+    "Volume Down With Percent": "Volume down. Current percent is {{percent}}",
+    "Floor": "{{floor}}",
+    "Fixed seats":"Fixed seats",
+    "Seat Label": "Seat {{seat}}"
+
+
+
+
   },
   translations: {
     "Confirm": "Confirm",
@@ -161,7 +179,7 @@ const enTranslations = {
     "Volume Down": "Vol -",
     "Mute": "Mute",
     "Info": "Info",
-    "Zoom": "Zoom",
+    "Magnifier": "Magnifier",
     "Contrast": "Contrast",
     "Logout": "Logout",
     "Enter": "Enter",
@@ -213,7 +231,8 @@ const enTranslations = {
     "Yes": "Yes",
     "No": "No",
     "Session Extension": "Session Extension",
-    "키오스크 번호를 확인하세요.": "Please check the kiosk number."
+    "키오스크 번호를 확인하세요.": "Please check the kiosk number.",
+    "Fixed":"Fixed"
   }
 
 }

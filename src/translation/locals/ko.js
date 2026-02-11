@@ -52,7 +52,7 @@ const koTranslations = {
     "Mute": "음소거",
     "Info": "정보",
     "Zoom": "확대",
-    "Contrast": "대비",
+    "Contrast": "고대비",
     "Logout": "로그아웃",
     "Enter": "를 입력하세요.",
     "BACKTICK": "백틱",
@@ -146,6 +146,21 @@ const koTranslations = {
 
     "NUMERIC_KEYPAD_USAGE_GUIDE": "숫자 키패드 사용 안내",
     "NUMERIC_KEYPAD_USAGE_GUIDE_MSG": "별표(*) 버튼: 영역 간 이동\n숫자 4 버튼: 이전 사용 가능한 좌석으로 이동\n숫자 6 버튼: 다음 사용 가능한 좌석으로 이동\n샵(#) 버튼: 안내 다시 듣기",
+    "Mini map sector": "미니맵 부문",
+    "Selected mini map sector": "선택된 미니맵 영역",
+    "Korean": "한국어",
+    "English": "영어",
+    "Current Volume With Percent": "현재 볼륨 {{percent}} 퍼센트",
+    "Magnifier enabled": "돋보기 활성화",
+    "Magnifier disabled": "돋보기 비활성화",
+    "Contrast enabled": "고대비 활성화",
+    "Contrast disabled": "고대비 비활성화",
+    "Volume Up With Percent": "볼륨 높이기. 현재 퍼센트는 {{percent}} 입니다",
+    "Volume Down With Percent": "볼륨 낮추기. 현재 퍼센트는 {{percent}} 입니다",
+   "Floor": "{{floor}}",
+   "Fixed seats":"고정석",
+   "Seat Label": "{{seat}}번 좌석"
+
 
 
 
@@ -168,12 +183,12 @@ const koTranslations = {
     "Login": "로그인",
     "Volume": "볼륨",
     "Language": "언어",
-    "Volume Up": "권 +",
-    "Volume Down": "권 -",
+    "Volume Up": "볼륨 +",
+    "Volume Down": "볼륨 -",
     "Mute": "음소거",
     "Info": "정보",
-    "Zoom": "확대",
-    "Contrast": "대비",
+    "Magnifier": "돋보기",
+    "Contrast": "고대비",
     "Logout": "로그아웃",
     "Enter": "를 입력하세요.",
     "Virtual Keyboard": "가상 키보드",
@@ -225,6 +240,7 @@ const koTranslations = {
     "No": "아니요",
     "Session Extension": "세션 확장",
     "키오스크 번호를 확인하세요.": "키오스크 번호를 확인하세요.",
+    "Fixed":"고정석"
 
   }
 }
