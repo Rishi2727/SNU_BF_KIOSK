@@ -8,6 +8,8 @@ import {
   filterDisplayableSectors,
   parseMapPoint,
 } from "../../utils/mapPointParser";
+import { useTranslation } from "react-i18next";
+
 import { useFloorData } from "../../hooks/useFloorData";
 import RoomView from "../../components/layout/floor/RoomView";
 import FloorMapImage from "../../components/layout/floor/FloorMapImage";
@@ -25,7 +27,6 @@ import {
 import { MINI_MAP_LAYOUT, MINIMAP_CONFIG } from "../../utils/constant";
 import SeatActionModal from "../../components/common/SeatActionModal";
 import Modal from "../../components/common/Modal";
-import { useTranslation } from "react-i18next";
 import { useVoice } from "../../context/voiceContext";
 import { formatFloorForSpeech } from "../../utils/speechFormatter";
 import { getRoomConfig, isMinimapAtBottom } from "../../utils/config";
@@ -862,6 +863,43 @@ const Floor = () => {
       setMiniMapCursor(-1); // important: forces fresh start
     }
   }, [focusedRegion]);
+
+// 🔊 VOICE: speak when FLOOR focus changes 
+useEffect(() => {
+  if (!focusedRegion) return;
+  if (isAnyModalOpen) return;
+
+  stop(); // stop previous speech
+
+  switch (focusedRegion) {
+    // 🟡 Floor stats bar
+    case FocusRegion.FLOOR_STATS:
+      speak(t("speech.Floor Selection Section"));
+      break;
+
+    // 🟢 Footer
+    case FocusRegion.FOOTER:
+      speak(t("speech.Footer controls"));
+      break;
+
+    // 🔵 Mini map
+    case FocusRegion.MINI_MAP:
+      speak(t("speech.Mini map"));
+      break;
+
+    // 🟣 Main content (dynamic)
+    case FocusRegion.MAP:
+      speak(t("speech.Floor map section"));
+      break;
+
+    case FocusRegion.ROOM:
+      speak(t("speech.Room selection section"));
+      break;
+
+    default:
+      break;
+  }
+}, [focusedRegion, showRoomView, isAnyModalOpen, speak, stop, t]);
 
 
 

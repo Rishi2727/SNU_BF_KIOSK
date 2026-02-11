@@ -111,8 +111,10 @@ const enTranslations = {
     "Central Library": "Central Library",
     "Current Time": "Current Time",
     "Press OK button": "Press OK button to close",
-      "Volume Up With Percent": "Volume up. Current percent is {{percent}}",
-  "Volume Down With Percent": "Volume down. Current percent is {{percent}}"
+    "Volume Up With Percent": "Volume up. Current percent is {{percent}}",
+    "Volume Down With Percent": "Volume down. Current percent is {{percent}}",
+    "Room selection section": "Room selection section",
+    "Mini map": "Mini map"
   },
   translations: {
     "Confirm": "Confirm",
@@ -180,9 +182,9 @@ const enTranslations = {
     "Loading...": "Loading...",
     "Loading room and seats": "Loading room and seats",
     "Do you want to continue this session?": "Do you want to continue this session?",
-    "Yes":"Yes",
-    "No":"No",
-    "Session Extension":"Session Extension"
+    "Yes": "Yes",
+    "No": "No",
+    "Session Extension": "Session Extension"
   }
 
 }

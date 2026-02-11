@@ -120,7 +120,9 @@ const koTranslations = {
     "Current Time": "현재 시간",
     "Press OK button": "확인 버튼을 눌러 닫으세요.",
     "Volume Up With Percent": "볼륨이 증가했습니다. 현재 {{percent}}퍼센트입니다.",
-    "Volume Down With Percent": "볼륨이 감소했습니다. 현재 {{percent}}퍼센트입니다."
+    "Volume Down With Percent": "볼륨이 감소했습니다. 현재 {{percent}}퍼센트입니다.",
+    "Room selection section": "객실 선택 섹션",
+    "Mini map": "미니맵"
 
   },
   translations: {
@@ -141,8 +143,8 @@ const koTranslations = {
     "Login": "로그인",
     "Volume": "볼륨",
     "Language": "언어",
-    "Volume Up": "볼륨 높이기",
-    "Volume Down": "볼륨 낮추기",
+    "Volume Up": "권 +",
+    "Volume Down": "권 -",
     "Mute": "음소거",
     "Info": "정보",
     "Zoom": "확대",

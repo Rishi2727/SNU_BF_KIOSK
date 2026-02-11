@@ -113,33 +113,43 @@ export const getPopupTimers = () => popupTimers;
 
 /* ==================== LANGUAGE MANAGEMENT =================== */
 let runtimeLang = localStorage.getItem("lang") || "en";
-let lastSyncedLang = runtimeLang;
-export const setApiLang = (lang) => { runtimeLang = lang; };
-export const getLang = () => runtimeLang;
-const syncServerLocale = async (lang) => {
-  const formData = new URLSearchParams({ locale: lang });
-  await masterClient.post(
-    `${PRIMARY_SERVER_URL}/json/setChangeLocale`,
-    formData
-  );
+let lastSyncedLang = null; // ✅ Start as null to force first sync
+export const setApiLang = (lang) => { 
+  console.log("🌍 setApiLang called with:", lang);
+  runtimeLang = lang;
+  lastSyncedLang = null; // ✅ Force re-sync when language changes
 };
-const KioskLangInterceptor = async (config) => {
-  console.log("KioskLangInterceptor: Setting langcode and locale to", runtimeLang);
-  if (lastSyncedLang !== runtimeLang) {
-    await syncServerLocale(runtimeLang);
-    lastSyncedLang = runtimeLang;
+export const getLang = () => runtimeLang;
+
+const syncServerLocale = async (lang) => {
+  console.log("🔄 Syncing server locale to:", lang);
+  try {
+    const formData = new URLSearchParams({ locale: lang });
+    await masterClient.post(
+      `${PRIMARY_SERVER_URL}/json/setChangeLocale`,
+      formData
+    );
+    console.log("✅ Server locale synced successfully to:", lang);
+    lastSyncedLang = lang; // ✅ Update after successful sync
+  } catch (error) {
+    console.error("❌ Failed to sync server locale:", error);
+    // Don't update lastSyncedLang on error, so it retries next time
   }
+};
+
+const KioskLangInterceptor = async (config) => {
+  console.log("🔍 KioskLangInterceptor: runtimeLang =", runtimeLang, "lastSyncedLang =", lastSyncedLang);
+  
+  // ✅ Always sync if not yet synced or language changed
+  if (lastSyncedLang !== runtimeLang) {
+    console.log("🔄 Language mismatch detected, syncing...");
+    await syncServerLocale(runtimeLang);
+  }
+  
   config.headers.langcode = runtimeLang;
   config.headers.locale = runtimeLang;
   config.headers.os_kind = "KIOSK";
 
-  // if (config.data && config.headers['Content-Type'] === 'application/x-www-form-urlencoded; charset=utf-8') {
-  //   const params = new URLSearchParams();
-  //   Object.keys(config.data).forEach(key => {
-  //     params.append(key, config.data[key]);
-  //   });
-  //   config.data = params.toString();
-  // }
   return config;
 };
 /* ============================================================ */
@@ -186,7 +196,6 @@ export const initializeApi = async () => {
       let isInitialized = false;
 
       do {
-
         try {
           const config = await invoke("read_config");
           const { primary_server_url, secondary_server_url, qr_server_url, rfid_server_url, manager_ip_url, popup_timers } = config;
@@ -203,20 +212,21 @@ export const initializeApi = async () => {
             SECONDARY_SERVER_URL
           });
 
-
           if (PRIMARY_SERVER_URL || SECONDARY_SERVER_URL) {
             ApiClientManagerIP.defaults.baseURL = managerIpUrl;
             ApiClientPrimary.defaults.baseURL = PRIMARY_SERVER_URL;
             ApiClientSecondary.defaults.baseURL = SECONDARY_SERVER_URL;
             ApiClientQR.defaults.baseURL = QR_SERVER_URL;
             ApiClientRFID.defaults.baseURL = RFID_SERVER_URL;
+            
+            // ✅ CRITICAL FIX: Sync server locale immediately after API initialization
+            console.log("🌍 Initializing server locale on startup...");
+            await syncServerLocale(runtimeLang);
           }
 
           isInitialized = true;
         } catch (error) {
           console.error("Failed to fetch configuration:", error);
-        } finally {
-          // hideLoader();
         }
       } while (!isInitialized);
     })();
@@ -225,8 +235,6 @@ export const initializeApi = async () => {
 };
 
 export { PRIMARY_SERVER_URL, SECONDARY_SERVER_URL, QR_SERVER_URL, RFID_SERVER_URL, managerIpUrl };
-
-
 
 export const ImageBaseUrl =
   "http://k-rsv.snu.ac.kr:8011/NEW_SNU_BOOKING/commons/images/kiosk";
@@ -252,7 +260,6 @@ export const getSectorList = async ({ floor, floorno }) => {
   return (await ApiClientPrimary.post("/json/getSectorList", { floor, floorno }))?.data;
 };
 
-
 /* ===============================
    🔐 AUTH
 ================================ */
@@ -270,7 +277,6 @@ export const getKioskUserInfo = async () => {
 
 export const QRValidate = async (qrCode) => {
   await ensureInitialized();
-  // URL encode the qrCode to handle special characters and spaces
   const encodedQrCode = encodeURIComponent(qrCode);
   return (await ApiClientQR.get("/qrCheck.do", { params: { code: encodedQrCode }, }))?.data;
 };
@@ -291,7 +297,6 @@ export const getBookingTimeSeat = async ({ seatno, assignno }) => {
     ...(assignno && { assignno }),
   }))?.data;
 };
-
 
 /* ===============================
    ✅ BOOKING
