@@ -239,7 +239,11 @@ const enTranslations = {
     "Calling the administrator":"Calling the administrator",
     "Network error. Unable to contact administrator":"Network error. Unable to contact administrator",
     "Message sent to administrator":"Message sent to administrator",
-    "Failed to send message to administrator":"Failed to send message to administrator"
+    "Failed to send message to administrator":"Failed to send message to administrator",
+    "Seat Booking Successfully":"Seat booking successfully",
+"Seat Moved Successfully":"Seat moved successfully",
+"Seat Extension Successfully":"Seat Extension successfully",
+"Seat Return Successfully":"Seat returned successfully"
   }
 
 }

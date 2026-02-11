@@ -247,7 +247,11 @@ const koTranslations = {
 "Calling the administrator": "관리자를 호출하는 중입니다",
 "Network error. Unable to contact administrator": "네트워크 오류로 관리자를 연결할 수 없습니다",
 "Message sent to administrator": "관리자에게 메시지가 전송되었습니다",
-"Failed to send message to administrator": "관리자에게 메시지 전송에 실패했습니다"
+"Failed to send message to administrator": "관리자에게 메시지 전송에 실패했습니다",
+"Seat Booking Successfully":"좌석 예약 성공",
+"Seat Moved Successfully":"좌석 이동이 성공적으로 완료되었습니다.",
+"Seat Extension Successfully":"좌석 연장 성공",
+"Seat Return Successfully":"좌석 반납 성공"
 
 
   }
