@@ -145,7 +145,8 @@ const koTranslations = {
     "SPECIAL_KEY_GUIDE_MSG": "삼각형 버튼: 음성 안내 다시 듣기\nX 버튼: 음성 안내 중지",
 
     "NUMERIC_KEYPAD_USAGE_GUIDE": "숫자 키패드 사용 안내",
-    "NUMERIC_KEYPAD_USAGE_GUIDE_MSG": "별표(*) 버튼: 영역 간 이동\n숫자 4 버튼: 이전 사용 가능한 좌석으로 이동\n숫자 6 버튼: 다음 사용 가능한 좌석으로 이동\n샵(#) 버튼: 안내 다시 듣기"
+    "NUMERIC_KEYPAD_USAGE_GUIDE_MSG": "별표(*) 버튼: 영역 간 이동\n숫자 4 버튼: 이전 사용 가능한 좌석으로 이동\n숫자 6 버튼: 다음 사용 가능한 좌석으로 이동\n샵(#) 버튼: 안내 다시 듣기",
+
 
 
   },
@@ -206,7 +207,12 @@ const koTranslations = {
     "You are now logged in. Please select the features you wish to use.": "로그인이 완료되었습니다. 사용하실 기능을 선택해 주세요.",
     "Next": "다음",
     "Previous": "이전의",
-    "Extension": "확대",
+    "Extension": "좌석 연장",
+    "Return": "좌석 반납",
+    "Move": "좌석 이동",
+    "Seat Check": "좌석 확인",
+    "SEAT_ACTION_FAIL": "좌석 처리에 실패했습니다.",
+    "GENERIC_ERROR": "문제가 발생했습니다. 다시 시도해주세요.",
     "Login Failed": "로그인 실패",
     "ERROR_USER_NOT_FOUND":
       "사용자 정보가 없습니다.<br/>사용자 정보 확인 후 다시 이용하시길 바랍니다.",
@@ -218,6 +224,7 @@ const koTranslations = {
     "Yes": "예",
     "No": "아니요",
     "Session Extension": "세션 확장",
+    "키오스크 번호를 확인하세요.": "키오스크 번호를 확인하세요.",
 
   }
 }

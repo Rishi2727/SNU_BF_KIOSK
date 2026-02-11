@@ -397,7 +397,7 @@ const SeatActionModal = ({
             } else {
                 setActionResult({
                     success: false,
-                    message: res?.msg || `좌석 ${MODE_LABELS[mode]}에 실패했습니다.`
+                    message: res?.msg || "translations.SEAT_ACTION_FAIL"
                 });
             }
 
@@ -406,7 +406,7 @@ const SeatActionModal = ({
             onClose();
             setActionResult({
                 success: false,
-                message: err?.response?.data?.msg || "문제가 발생했습니다. 다시 시도해주세요."
+                message: err?.response?.data?.msg || "translations.GENERIC_ERROR"
             });
             setShowResultModal(true);
         } finally {
@@ -805,9 +805,7 @@ const SeatActionModal = ({
                     return t("speech.Confirm");
 
                 case "result-message":
-                    return actionResult?.success
-                        ? t("speech.SEAT_MODAL_SUCCESS")
-                        : t("speech.SEAT_MODAL_FAILURE");
+                    return `${t(`translations.${MODE_LABELS[mode]}`)}. ${t(`translations.${actionResult?.message}`)}`;
 
                 default:
                     return "";
@@ -1071,7 +1069,7 @@ const SeatActionModal = ({
                 showCloseButton={false}
                 className="outline-[6px] outline-[#dc2f02]"
             >
-                <div className={`text-center py-4 ${isFocused('result-message') ? 'outline-[6px] outline-[#dc2f02] rounded-lg' : ''
+                <div className={`text-center py-4 ${isFocused('result-message') ? '' : ''
                     }`}>
                     {/* Success/Error Icon */}
                     <div className="flex justify-center mb-6">
@@ -1092,11 +1090,11 @@ const SeatActionModal = ({
 
                     {/* Result Message */}
                     <h2 className={`text-[36px] font-extrabold mb-4 ${actionResult?.success ? "text-[#F7C233]" : "text-red-600"}`}>
-                        {actionResult?.success ? `${MODE_LABELS[mode]} 완료` : `${MODE_LABELS[mode]} 실패`}
+                        {actionResult?.success ? t(`translations.${MODE_LABELS[mode]}`) : t(`translations.${MODE_LABELS[mode]}`)}
                     </h2>
 
                     <p className="text-[28px] text-gray-700 font-bold mb-4">
-                        {actionResult?.message}
+                        {t(`translations.${actionResult?.message}`)}
                     </p>
 
                     {/* Success Details */}

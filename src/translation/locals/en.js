@@ -197,6 +197,11 @@ const enTranslations = {
     "Next": "Next",
     "Previous": "Previous",
     "Extension": "Extension",
+    "Return": "Return",
+    "Move": "Move",
+    "Seat Check": "Seat Check",
+    "SEAT_ACTION_FAIL": "Seat action failed.",
+    "GENERIC_ERROR": "An error occurred. Please try again.",
     "Login Failed": "Login Failed",
     "ERROR_USER_NOT_FOUND":
       "User information not found.<br/>Please check your details and try again.",
@@ -207,7 +212,8 @@ const enTranslations = {
     "Do you want to continue this session?": "Do you want to continue this session?",
     "Yes": "Yes",
     "No": "No",
-    "Session Extension": "Session Extension"
+    "Session Extension": "Session Extension",
+    "키오스크 번호를 확인하세요.": "Please check the kiosk number."
   }
 
 }
