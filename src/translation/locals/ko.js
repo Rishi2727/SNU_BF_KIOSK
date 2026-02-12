@@ -159,7 +159,8 @@ const koTranslations = {
     "Volume Down With Percent": "볼륨 낮추기. 현재 퍼센트는 {{percent}} 입니다",
    "Floor": "{{floor}}",
    "Fixed seats":"고정석",
-   "Seat Label": "{{seat}}번 좌석"
+   "Seat Label": "{{seat}}번 좌석",
+   "Booking Failed":"예약 실패"
 
 
 
@@ -251,8 +252,8 @@ const koTranslations = {
 "Seat Booking Successfully":"좌석 예약 성공",
 "Seat Moved Successfully":"좌석 이동이 성공적으로 완료되었습니다.",
 "Seat Extension Successfully":"좌석 연장 성공",
-"Seat Return Successfully":"좌석 반납 성공"
-
+"Seat Return Successfully":"좌석 반납 성공",
+"Booking Failed":"예약 실패"
 
   }
 }

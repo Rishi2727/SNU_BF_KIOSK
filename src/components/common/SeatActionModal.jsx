@@ -392,7 +392,7 @@ const SeatActionModal = ({
 
 
             onClose();
-            let msg = 'translations.SEAT_ACTION_FAIL';
+            let msg = t('translations.Booking Failed');
             if (res?.successYN === "Y") {
                 if (isBooking) {
                     msg = 'Seat Booking Successfully'
@@ -407,7 +407,7 @@ const SeatActionModal = ({
             } else {
                 setActionResult({
                     success: false,
-                    message: msg || res?.msg || "translations.SEAT_ACTION_FAIL"
+                    message: msg || res?.msg || t("translations.Booking Failed")
                 });
             }
 

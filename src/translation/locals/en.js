@@ -151,8 +151,8 @@ const enTranslations = {
     "Volume Down With Percent": "Volume down. Current percent is {{percent}}",
     "Floor": "{{floor}}",
     "Fixed seats":"Fixed seats",
-    "Seat Label": "Seat {{seat}}"
-
+    "Seat Label": "Seat {{seat}}",
+    "Booking Failed":"Booking Failed"
 
 
 
@@ -243,7 +243,8 @@ const enTranslations = {
     "Seat Booking Successfully":"Seat booking successfully",
 "Seat Moved Successfully":"Seat moved successfully",
 "Seat Extension Successfully":"Seat Extension successfully",
-"Seat Return Successfully":"Seat returned successfully"
+"Seat Return Successfully":"Seat returned successfully",
+"Booking Failed":"Booking Failed"
   }
 
 }
