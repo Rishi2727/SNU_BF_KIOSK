@@ -72,16 +72,26 @@ const Configuration = () => {
     const fetchConfiguration = async () => {
         try {
             const config = await invoke("read_config");
+
+            // 👇 Convert baudrate to string
+            const formattedSerialDevices = (config.serialdata || []).map(device => ({
+                ...device,
+                baudrate: device.baudrate?.toString() || ""
+            }));
+
             setFormData({
                 managerIpUrl: config.manager_ip_url || "",
                 kioskMode: config.kiosk_mode,
             });
+
             setMachineId(config.machineId);
-            setSerialDevices(config.serialdata || []);
+            setSerialDevices(formattedSerialDevices);
+
         } catch (err) {
             console.error("Failed to fetch config", err);
         }
     };
+
 
     const fetchSerialPorts = async () => {
         try {
