@@ -123,6 +123,8 @@ pub struct PopupTimer {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Config {
     pub machineId: String,
+    #[serde(default)]
+    pub machineName: String,
     #[serde(default = "default_primary_server_url")]
     pub primary_server_url: String,
     #[serde(default = "default_secondary_server_url")]
@@ -174,6 +176,7 @@ pub fn ensure_config_exists(logger: Arc<Logger>) -> Result<PathBuf, Box<dyn std:
     if !config_file_path.exists() {
         let default_config = Config {
             machineId: Uuid::new_v4().to_string(),
+                machineName: "SNU KIOSK".to_string(),
             primary_server_url: "http://k-rsv.snu.ac.kr:8011/NEW_SNU_BOOKING".to_string(),
             secondary_server_url: "http://k-rsv.snu.ac.kr:8012/SEATAPI".to_string(),
             qr_server_url: "https://libapp.snu.ac.kr/SNU_MOB".to_string(),
@@ -391,6 +394,7 @@ pub fn update_config_key(
         "qr_server_url" => config.qr_server_url = value.to_string(),
         "rfid_server_url" => config.rfid_server_url = value.to_string(),
         "manager_ip_url" => config.manager_ip_url = value.to_string(),
+        "machineName" => config.machineName = value.to_string(),
         "serialdata" => {
             let updated_serialdata: Vec<SerialData> = serde_json::from_str(value).map_err(|e| {
                 logger

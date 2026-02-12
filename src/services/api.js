@@ -108,6 +108,9 @@ let SECONDARY_SERVER_URL = "";
 let QR_SERVER_URL = "";
 let RFID_SERVER_URL = "";
 let popupTimers = [];
+let MACHINE_ID = "";
+let MACHINE_NAME = "";
+
 
 export const getPopupTimers = () => popupTimers;
 
@@ -198,13 +201,17 @@ export const initializeApi = async () => {
       do {
         try {
           const config = await invoke("read_config");
-          const { primary_server_url, secondary_server_url, qr_server_url, rfid_server_url, manager_ip_url, popup_timers } = config;
+          const { machineId,  machineName,primary_server_url, secondary_server_url, qr_server_url, rfid_server_url, manager_ip_url, popup_timers } = config;
           managerIpUrl = manager_ip_url || "";
+          MACHINE_ID = machineId || "";
+          MACHINE_NAME = machineName || "";
           PRIMARY_SERVER_URL = primary_server_url;
           SECONDARY_SERVER_URL = secondary_server_url;
           QR_SERVER_URL = qr_server_url || "https://libapp.snu.ac.kr/SNU_MOB/qrCheck.do";
           RFID_SERVER_URL = rfid_server_url || "https://libapp.snu.ac.kr/SNU_MOB/qrCheck.do";
           popupTimers = popup_timers || [];
+          
+      
 
           console.log(config, "data")
           console.log("Config Loaded:", {
@@ -234,7 +241,7 @@ export const initializeApi = async () => {
   return apiInitialized;
 };
 
-export { PRIMARY_SERVER_URL, SECONDARY_SERVER_URL, QR_SERVER_URL, RFID_SERVER_URL, managerIpUrl };
+export { PRIMARY_SERVER_URL, SECONDARY_SERVER_URL, QR_SERVER_URL, RFID_SERVER_URL, managerIpUrl ,MACHINE_ID,MACHINE_NAME  };
 
 export const ImageBaseUrl =
   "http://k-rsv.snu.ac.kr:8011/NEW_SNU_BOOKING/commons/images/kiosk";
@@ -341,3 +348,4 @@ export const managerCall = async (message) => {
   const response = await fetch(`${managerIpUrl}/callMan.api?msg=${encodeURIComponent(message)}`, { mode: 'no-cors' });
   return await response.json();
 }
+

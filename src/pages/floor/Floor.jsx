@@ -196,44 +196,46 @@ const Floor = () => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [showSessionReminder, sessionCursor]);
+  
+const handleSessionEnter = (index) => {
+  switch (index) {
+    case 0:
+      // ✅ YES
+      timeLeftRef.current = floorTimerConfig.time;
+      setTimeLeft(floorTimerConfig.time);
+      setShowSessionReminder(false);
+      setIsAnyModalOpen(false);
+      return;
 
-  const handleSessionEnter = (index) => {
-    switch (index) {
-      case 0:
-        // NO
-        setShowSessionReminder(false);
-        setIsAnyModalOpen(false);
-        return;
+    case 1:
+      // ✅ NO
+      setShowSessionReminder(false);
+      setIsAnyModalOpen(false);
+      return;
 
-      case 1:
-        // YES - Reset timer to full duration
-        timeLeftRef.current = floorTimerConfig.time;
-        setTimeLeft(floorTimerConfig.time);
-        setShowSessionReminder(false);
-        setIsAnyModalOpen(false);
-        return;
+    default:
+      return;
+  }
+};
 
-      default:
-        return;
-    }
-  };
 
-  useEffect(() => {
-    if (!showSessionReminder || sessionCursor === null) return;
+useEffect(() => {
+  if (!showSessionReminder || sessionCursor === null) return;
 
-    stop();
+  stop();
 
-    switch (sessionCursor) {
-      case 0:
-        speak(t("translations.No"));
-        break;
-      case 1:
-        speak(t("translations.Yes"));
-        break;
-      default:
-        break;
-    }
-  }, [sessionCursor, showSessionReminder, speak, stop, t]);
+  switch (sessionCursor) {
+    case 0:
+      speak(t("translations.Yes"));
+      break;
+    case 1:
+      speak(t("translations.No"));
+      break;
+    default:
+      break;
+  }
+}, [sessionCursor, showSessionReminder, speak, stop, t]);
+
 
 
   useEffect(() => {
@@ -839,11 +841,11 @@ const Floor = () => {
     if (focusedRegion === FocusRegion.ROOM && visibleSeats?.length) {
       const seat = visibleSeats[contentIndex];
       if (seat) {
-      speak(
-  t("speech.Seat Label", {
-    seat: seat.VNAME,
-  })
-);
+        speak(
+          t("speech.Seat Label", {
+            seat: seat.VNAME,
+          })
+        );
 
       }
     }
@@ -875,9 +877,9 @@ const Floor = () => {
   useEffect(() => {
     if (!focusedRegion) return;
     if (isAnyModalOpen) return;
-      if (lastFocusedRegionRef.current === focusedRegion) return;
+    if (lastFocusedRegionRef.current === focusedRegion) return;
 
-  lastFocusedRegionRef.current = focusedRegion;
+    lastFocusedRegionRef.current = focusedRegion;
 
     stop(); // stop previous speech
 
@@ -1076,40 +1078,44 @@ const Floor = () => {
           className="border-[6px] border-[#dc2f02] rounded"
         >
           <div className="flex flex-col items-center gap-6 p-6">
-            <p className="text-xl text-gray-800 text-center font-medium">
+            <p className="text-[30px] text-gray-800 text-center font-medium">
               {t("translations.Do you want to continue this session?")}
             </p>
             <div className="flex gap-4 w-full justify-center">
-              <button
-                onClick={() => {
-                  setShowSessionReminder(false)
-                  handleSessionEnter(0)
-                }}
-                className={`
-    px-8 py-3 rounded-full bg-gray-500 text-white font-bold text-lg
-    min-w-[120px]
-    ${sessionCursor === 0 ? "outline-[6px] outline-[#dc2f02]" : ""}
-  `}
-              >
-                {t("translations.No")}
-              </button>
+              {/* ✅ YES LEFT */}
               <button
                 onClick={() => {
                   timeLeftRef.current = floorTimerConfig.time;
                   setTimeLeft(floorTimerConfig.time);
                   setShowSessionReminder(false);
                   setIsAnyModalOpen(false);
-                  handleSessionEnter(1);
+                  handleSessionEnter(0);
                 }}
                 className={`
-    px-8 py-3 rounded-full bg-[#FFCA08] text-white font-bold text-lg
-    min-w-[120px]
-    ${sessionCursor === 1 ? "outline-[6px] outline-[#dc2f02]" : ""}
-  `}
+      px-8 py-3 rounded-full bg-[#FFCA08] text-white font-bold text-[30px]
+      min-w-[120px] focus:outline-none
+      ${sessionCursor === 0 ? "outline-[6px] outline-[#dc2f02]" : ""}
+    `}
               >
                 {t("translations.Yes")}
               </button>
+
+              {/* ✅ NO RIGHT */}
+              <button
+                onClick={() => {
+                  setShowSessionReminder(false);
+                  handleSessionEnter(1);
+                }}
+                className={`
+      px-8 py-3 rounded-full bg-gray-500 text-white font-bold text-[30px]
+      min-w-[120px] focus:outline-none
+      ${sessionCursor === 1 ? "outline-[6px] outline-[#dc2f02]" : ""}
+    `}
+              >
+                {t("translations.No")}
+              </button>
             </div>
+
           </div>
 
         </Modal>
