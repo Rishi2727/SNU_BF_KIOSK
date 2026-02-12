@@ -932,7 +932,7 @@ useEffect(() => {
       >
         <FloorLegendBar
           buildingName="Central Library, Gwanjeong Building"
-          floorName={currentFloor?.title}
+          floorName={currentFloor?.name}
           roomName={selectedSector?.MAPLABEL}
           isFocused={
             focusedRegion === FocusRegion.ROOM ||
