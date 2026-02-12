@@ -76,8 +76,8 @@ const FloorLegendBar = ({
 
   return (
     <div className={`
-        absolute  left-0 right-0 w-full
-        bg-[#b8975e81]  h-[180px] top-0.5
+        absolute  left-0 -top-2! right-0 w-full
+        bg-[#b8975e81]  h-[180px]
         flex items-center justify-between
         text-white shadow-lg z-20 
        

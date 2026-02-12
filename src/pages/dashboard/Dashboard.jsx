@@ -811,7 +811,7 @@ const Dashboard = () => {
         isOpen={loginErrorModal.isOpen}
         onClose={closeLoginErrorModal}
         title={loginErrorModal.title}
-        size="medium"
+        size="large"
         className={isLoginErrorFocused ? "outline-[6px] outline-[#dc2f02]" : ""}
        showCloseButton={false}
       >
@@ -822,12 +822,12 @@ const Dashboard = () => {
 
           </div>
           <div
-            className="text-gray-700 text-xl leading-relaxed font-medium"
+            className="text-gray-700 text-[30px] leading-relaxed font-medium"
             dangerouslySetInnerHTML={{ __html: loginErrorModal.message }}
           />
           <button
             onClick={closeLoginErrorModal}
-            className={`mt-4 px-10 py-3 rounded-full bg-red-600 text-white text-lg font-semibold
+            className={`mt-4 px-10 py-3 rounded-full bg-red-600 text-white text-[30px] font-semibold
          hover:bg-red-700 focus:outline-none transition-all
          ${loginErrorButtonFocused
                 ? "ring-[6px] ring-red-300 scale-105"
