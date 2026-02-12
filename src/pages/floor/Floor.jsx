@@ -91,22 +91,19 @@ const Floor = () => {
 
 
   //For Floor Section Speak
-  const hasSpokenMainScreen = useRef(false);
+ 
 
-  const speakMainScreen = useCallback(() => {
-    if (hasSpokenMainScreen.current) return;
-    hasSpokenMainScreen.current = true;
+  const speakFloorScreen = useCallback(() => {
     stop();
     speak(t("speech.This screen is the floor or reading room selection screen."));
   }, [speak, stop, t]);
-
   useEffect(() => {
     const timer = setTimeout(() => {
-      speakMainScreen();
-    }, 500);
+      speakFloorScreen();
+    }, 500); // small delay so voices are ready
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [speakFloorScreen]);
 
 
 
@@ -667,7 +664,7 @@ useEffect(() => {
     console.log("🧹 Floor: reset minimap navigation");
 
     setMiniMapCursor(-1);
-    setFocusedRegion(FocusRegion.ROOM); // force focus away from minimap
+     // force focus away from minimap
 
   }, [selectedSector]);
 

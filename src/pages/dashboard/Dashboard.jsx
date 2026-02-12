@@ -84,10 +84,19 @@ const Dashboard = () => {
   const prevVolumeRef = useRef(volume);
 
   // Speak on main Screen
-  const speakMainScreen = () => {
+ const speakMainScreen = useCallback(() => {
     stop();
     speak(t("speech.This screen is the main screen."));
-  };
+  }, [speak, stop, t]);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      speakMainScreen();
+    }, 500); // small delay so voices are ready
+
+    return () => clearTimeout(timer);
+  }, [speakMainScreen]);
+
+
   useEffect(() => {
     const onKeyDown = (e) => {
       const isHash =
