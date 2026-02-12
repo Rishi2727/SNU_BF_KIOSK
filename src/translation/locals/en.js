@@ -222,7 +222,7 @@ const enTranslations = {
     "GENERIC_ERROR": "An error occurred. Please try again.",
     "Login Failed": "Login Failed",
     "ERROR_USER_NOT_FOUND":
-      "User information not found.<br/>Please check your details and try again.",
+      "User information not found <br/>Please check your details and try again.",
     "OK": "OK",
     "Select Floor": "Select Floor",
     "Loading...": "Loading...",
@@ -244,7 +244,8 @@ const enTranslations = {
 "Seat Moved Successfully":"Seat moved successfully",
 "Seat Extension Successfully":"Seat Extension successfully",
 "Seat Return Successfully":"Seat returned successfully",
-"Booking Failed":"Booking Failed"
+"Booking Failed":"Booking Failed",
+"Not Found":"Not Found"
   }
 
 }
