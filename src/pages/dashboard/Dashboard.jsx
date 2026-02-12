@@ -7,7 +7,7 @@ import KeyboardModal from "../../components/layout/keyBoardModal/KeyboardModal";
 import FooterControls from "../../components/common/Footer";
 import UserInfoModal from "../../components/layout/dashboard/useInfoModal";
 import SeatActionModal from "../../components/common/SeatActionModal";
-import { getKioskUserInfo } from "../../services/api";
+import { getKioskUserInfo, HUMAN_SENSOR_DETECTION } from "../../services/api";
 import { clearUserInfo, setUserInfo } from "../../redux/slice/userInfo";
 import { login, logout } from "../../redux/slice/authSlice";
 import { fetchBookingTime } from "../../redux/slice/bookingTimeSlice";
@@ -20,6 +20,7 @@ import { fetchFloorList } from "../../redux/slice/floorSlice";
 import { clearHeadphoneFocus } from "../../redux/slice/headphoneSlice";
 import Modal from "../../components/common/Modal";
 import { formatFloorForSpeech } from "../../utils/speechFormatter";
+import { useSerialPort } from "../../context/SerialPortContext";
 import { AlertTriangle } from "lucide-react";
 
 const Dashboard = () => {
@@ -55,7 +56,7 @@ const Dashboard = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
+  const { humanDetected } = useSerialPort();
   const { t } = useTranslation();
   const { earphoneInjected } = useSelector((state) => state.headphone);
   // 🔴 Login error modal state
@@ -69,6 +70,7 @@ const Dashboard = () => {
   const { userInfo, isAuthenticated } = useSelector((state) => state.userInfo);
   const { bookingSeatInfo } = useSelector((state) => state.bookingTime);
   const { floors, loading, error } = useSelector((state) => state.floor);
+  const lastHumanStateRef = useRef(false);
   // ✅ Define focus regions (Logo → MainSection → Notice → Footer)
   const FocusRegion = Object.freeze({
     LOGO: "logo",
@@ -114,6 +116,20 @@ const Dashboard = () => {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [t, speak]); // t is enough, speak/stop are stable in your hook
+  useEffect(() => {
+
+    // 🔥 stop if feature disabled from config
+    if (!HUMAN_SENSOR_DETECTION) return;
+
+    // 🔥 speak ONLY when human appears (false -> true)
+    if (humanDetected && !lastHumanStateRef.current) {
+      speakMainScreen();
+    }
+
+    // update last state
+    lastHumanStateRef.current = humanDetected;
+
+  }, [humanDetected, HUMAN_SENSOR_DETECTION, t]);
 
   useEffect(() => {
     dispatch(fetchFloorList(1)); // libno = 1

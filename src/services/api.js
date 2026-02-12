@@ -110,6 +110,7 @@ let RFID_SERVER_URL = "";
 let popupTimers = [];
 let MACHINE_ID = "";
 let MACHINE_NAME = "";
+let HUMAN_SENSOR_DETECTION = false;
 
 
 export const getPopupTimers = () => popupTimers;
@@ -201,7 +202,7 @@ export const initializeApi = async () => {
       do {
         try {
           const config = await invoke("read_config");
-          const { machineId,  machineName,primary_server_url, secondary_server_url, qr_server_url, rfid_server_url, manager_ip_url, popup_timers } = config;
+          const { machineId,  machineName,primary_server_url, secondary_server_url, qr_server_url, rfid_server_url, manager_ip_url, popup_timers, humanSensorDetection } = config;
           managerIpUrl = manager_ip_url || "";
           MACHINE_ID = machineId || "";
           MACHINE_NAME = machineName || "";
@@ -210,7 +211,7 @@ export const initializeApi = async () => {
           QR_SERVER_URL = qr_server_url || "https://libapp.snu.ac.kr/SNU_MOB/qrCheck.do";
           RFID_SERVER_URL = rfid_server_url || "https://libapp.snu.ac.kr/SNU_MOB/qrCheck.do";
           popupTimers = popup_timers || [];
-          
+          HUMAN_SENSOR_DETECTION = humanSensorDetection ?? false;
       
 
           console.log(config, "data")
@@ -241,7 +242,7 @@ export const initializeApi = async () => {
   return apiInitialized;
 };
 
-export { PRIMARY_SERVER_URL, SECONDARY_SERVER_URL, QR_SERVER_URL, RFID_SERVER_URL, managerIpUrl ,MACHINE_ID,MACHINE_NAME  };
+export { PRIMARY_SERVER_URL, SECONDARY_SERVER_URL, QR_SERVER_URL, RFID_SERVER_URL, managerIpUrl ,MACHINE_ID,MACHINE_NAME, HUMAN_SENSOR_DETECTION };
 
 export const ImageBaseUrl =
   "http://k-rsv.snu.ac.kr:8011/NEW_SNU_BOOKING/commons/images/kiosk";

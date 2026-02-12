@@ -113,11 +113,11 @@ pub struct SerialData {
 /// Manages timeout durations and states for various UI popups/modals
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct PopupTimer {
-    pub ID: u32,                                       // Unique identifier for the timer
-    pub name: String,                                  // Timer name (e.g., "KEYBOARD TIMER", "HISTORY PAGE TIMER")
+    pub ID: u32,      // Unique identifier for the timer
+    pub name: String, // Timer name (e.g., "KEYBOARD TIMER", "HISTORY PAGE TIMER")
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub time: Option<u32>,                             // Timeout duration in seconds (optional - omit if not needed)
-    pub state: bool,                                   // State: true (active) or false (inactive)
+    pub time: Option<u32>, // Timeout duration in seconds (optional - omit if not needed)
+    pub state: bool,  // State: true (active) or false (inactive)
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -140,6 +140,8 @@ pub struct Config {
     pub serialdata: Vec<SerialData>,
     #[serde(default = "default_popup_timers")]
     pub popup_timers: Vec<PopupTimer>,
+    #[serde(default)]
+    pub humanSensorDetection: bool,
 }
 
 // Ensure the config file exists, otherwise create a default one
@@ -176,7 +178,7 @@ pub fn ensure_config_exists(logger: Arc<Logger>) -> Result<PathBuf, Box<dyn std:
     if !config_file_path.exists() {
         let default_config = Config {
             machineId: Uuid::new_v4().to_string(),
-                machineName: "SNU KIOSK".to_string(),
+            machineName: "SNU KIOSK".to_string(),
             primary_server_url: "http://k-rsv.snu.ac.kr:8011/NEW_SNU_BOOKING".to_string(),
             secondary_server_url: "http://k-rsv.snu.ac.kr:8012/SEATAPI".to_string(),
             qr_server_url: "https://libapp.snu.ac.kr/SNU_MOB".to_string(),
@@ -184,6 +186,7 @@ pub fn ensure_config_exists(logger: Arc<Logger>) -> Result<PathBuf, Box<dyn std:
             manager_ip_url: "http://192.168.1.3:5841".to_string(),
             kiosk_mode: true,
             debug_mode: false,
+            humanSensorDetection: true,
             serialdata: vec![
                 SerialData {
                     ID: 1,
@@ -422,6 +425,20 @@ pub fn update_config_key(
                 e
             })?;
         }
+        "humanSensorDetection" => {
+            config.humanSensorDetection = value.parse::<bool>().map_err(|e| {
+                logger
+                    .log_error(
+                        &format!("Failed to parse humanSensorDetection value: {}", e),
+                        file!(),
+                        "update_config_key",
+                        line!(),
+                    )
+                    .unwrap();
+                e
+            })?;
+        }
+
         _ => {
             logger
                 .log(LogLevel::WARN, &format!("Unknown key: {}", key))
