@@ -390,14 +390,24 @@ const SeatActionModal = ({
             setLoading(true);
             const res = await executeApiCall();
 
-            onClose();
 
+            onClose();
+            let msg = 'translations.SEAT_ACTION_FAIL';
             if (res?.successYN === "Y") {
-                setActionResult({ success: true, message: res?.msg });
+                if (isBooking) {
+                    msg = 'Seat Booking Successfully'
+                }else if (isMove) {
+                    msg = 'Seat Moved Successfully'
+                } else if (isExtension) {
+                    msg = 'Seat Extension Successfully'
+                } else if (isReturn) {
+                    msg = 'Seat Return Successfully'
+                }
+                setActionResult({ success: true, message: msg || res?.msg });
             } else {
                 setActionResult({
                     success: false,
-                    message: res?.msg || "translations.SEAT_ACTION_FAIL"
+                    message: msg || res?.msg || "translations.SEAT_ACTION_FAIL"
                 });
             }
 
@@ -716,7 +726,7 @@ const SeatActionModal = ({
             switch (element.type) {
                 case "title":
                     return t("speech.SEAT_MODAL_TITLE", {
-                         action: t(`translations.${MODE_LABELS[mode]}`),
+                        action: t(`translations.${MODE_LABELS[mode]}`),
                     });
                 case "header": {
                     // Assign check mode
@@ -795,7 +805,7 @@ const SeatActionModal = ({
                     if (isMove) return t("speech.SEAT_MODAL_MOVE_CONFIRM");
                     if (isReturn) return t("speech.SEAT_MODAL_RETURN_CONFIRM");
                     return t("speech.SEAT_MODAL_CONFIRM_GENERIC", {
-                     action: t(`translations.${MODE_LABELS[mode]}`),
+                        action: t(`translations.${MODE_LABELS[mode]}`),
 
                     });
 
