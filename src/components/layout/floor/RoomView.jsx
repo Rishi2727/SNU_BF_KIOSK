@@ -52,7 +52,8 @@ const RoomView = ({
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [refsReady, setRefsReady] = useState(false);
   const [firstSectorSet, setFirstSectorSet] = useState(false);
-
+  const imageWrapperRef = useRef(null);
+  
   const isRoomStillLoading =
   loadingSeats ||
   !isImageLoaded ||
@@ -387,6 +388,7 @@ const RoomView = ({
     setAllSectors(allSectors);
 
   }, [seatBounds, containerSize, seats, naturalDimensions, displayDimensions, roomConfig]);
+  
   // 🔄 Geometry changed → allow first sector to be set again
   useEffect(() => {
     if (!seatBounds) return;
@@ -404,6 +406,7 @@ const RoomView = ({
     displayDimensions.width,
     displayDimensions.height
   ]);
+  
   useEffect(() => {
     if (!sectors.length) return;
     if (!isImageLoaded) return;
@@ -468,19 +471,62 @@ const RoomView = ({
   };
 
   /* ================= MINIMAP HIDE CHECK ================= */
-  const isSeatHiddenByMinimap = (seatDiv) => {
-    if (!miniMapRef.current || !seatDiv) return false;
+  const isSeatHiddenByMinimap = (seat) => {
 
-    const s = seatDiv.getBoundingClientRect();
-    const m = miniMapRef.current.getBoundingClientRect();
+    if (!miniMapRef.current || !containerRef.current) return false;
 
-    return !(
-      s.right < m.left ||
-      s.left > m.right ||
-      s.bottom < m.top ||
-      s.top > m.bottom
-    );
+    const position = parseSeatPosition(seat);
+    if (!position) return false;
+
+    const threshold = roomConfig.SEAT_OVERLAP_THRESHOLD || 0.1;
+
+    // Seat position in image coordinates (before pan transform)
+    const seatInImageCoords = {
+      left: position.left,
+      top: position.top,
+      right: position.left + position.width,
+      bottom: position.top + position.height,
+    };
+
+    // Apply pan offset to get seat position in viewport
+    const seatInViewport = {
+      left: seatInImageCoords.left + imagePanOffset.x,
+      top: seatInImageCoords.top + imagePanOffset.y,
+      right: seatInImageCoords.right + imagePanOffset.x,
+      bottom: seatInImageCoords.bottom + imagePanOffset.y,
+    };
+
+    // Get minimap position relative to container
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const miniRect = miniMapRef.current.getBoundingClientRect();
+
+    // Minimap position in viewport (relative to container)
+    const minimapInViewport = {
+      left: miniRect.left - containerRect.left,
+      top: miniRect.top - containerRect.top,
+      right: miniRect.right - containerRect.left,
+      bottom: miniRect.bottom - containerRect.top,
+    };
+
+    // Calculate overlap area
+    const overlapLeft = Math.max(seatInViewport.left, minimapInViewport.left);
+    const overlapTop = Math.max(seatInViewport.top, minimapInViewport.top);
+    const overlapRight = Math.min(seatInViewport.right, minimapInViewport.right);
+    const overlapBottom = Math.min(seatInViewport.bottom, minimapInViewport.bottom);
+
+    // Check if there's any overlap
+    if (overlapLeft < overlapRight && overlapTop < overlapBottom) {
+      const seatArea = position.width * position.height;
+      const overlapArea = (overlapRight - overlapLeft) * (overlapBottom - overlapTop);
+      const overlapPercentage = overlapArea / seatArea;
+
+      // Hide seat if overlap exceeds threshold (e.g., more than 10% of seat is hidden)
+      return overlapPercentage >= threshold;
+    }
+
+    return false;
   };
+
 
   /* ================= HANDLE SECTOR SELECTION ================= */
   const handleSectorSelect = (sectorId) => {
@@ -530,11 +576,12 @@ const RoomView = ({
       if (!isSeatInViewport(seat)) return false;
       if (!isSeatVisibleByOverlap(seat)) return false;
 
-      const seatDiv = seatRefs.current[seat.SEATNO];
-      if (!seatDiv) return true;
+      // 👉 hide if covered by minimap
+      if (isSeatHiddenByMinimap(seat)) return false;
 
-      return !isSeatVisibleByOverlap(seatDiv);
+      return true;
     });
+
 
     const sorted = visible.sort((a1, b1) => {
       const a = a1.VNAME;
@@ -554,7 +601,7 @@ const RoomView = ({
 
 
     return sorted;
-  }, [seats, selectedMiniSectorLocal, imagePanOffset, containerSize]);
+  }, [seats, selectedMiniSectorLocal, imagePanOffset, containerSize, miniMapRef.current]);
 
   /* ================= MARK REFS AS READY ================= */
   useEffect(() => {
@@ -567,55 +614,55 @@ const RoomView = ({
     return () => clearTimeout(timer);
   }, [seats, isImageLoaded]);
 
-/* ================= MINIMAP FOCUS SPEAK ================= */
-useEffect(() => {
-  if (!isMinimapFocused) return;
-  if (!sectors.length) return;
-  if (minimapFocusIndex === -1) return;
-
-  const clampedIndex = Math.min(minimapFocusIndex, sectors.length - 1);
-  const sector = sectors[clampedIndex];
-  if (!sector) return;
-
-  console.log("👀 Minimap focus moved to sector:", sector.id);
-
-  // 🔊 SPEAK
-  speak(t("speech.Mini map sector") + " " + sector.id);
-
-}, [
-  minimapFocusIndex,
-  isMinimapFocused,
-  sectors,
-  speak,
-  t
-]);
-
-useEffect(() => {
-  if (!isMinimapFocused) return;
-
-  const handleKeyDown = (e) => {
-    if (e.key !== "Enter") return;
+  /* ================= MINIMAP FOCUS SPEAK ================= */
+  useEffect(() => {
+    if (!isMinimapFocused) return;
+    if (!sectors.length) return;
     if (minimapFocusIndex === -1) return;
 
     const clampedIndex = Math.min(minimapFocusIndex, sectors.length - 1);
     const sector = sectors[clampedIndex];
     if (!sector) return;
 
-    console.log("✅ ENTER pressed → selecting sector:", sector.id);
+    console.log("👀 Minimap focus moved to sector:", sector.id);
 
-    setSelectedMiniSectorLocal(sector);
-    setImagePanOffset({ x: -sector.x1, y: -sector.y1 });
+    // 🔊 SPEAK
+    speak(t("speech.Mini map sector") + " " + sector.id);
 
-    // 🔊 SPEAK CONFIRMATION
-    speak(t("speech.Selected mini map sector") + " " + sector.id);
+  }, [
+    minimapFocusIndex,
+    isMinimapFocused,
+    sectors,
+    speak,
+    t
+  ]);
 
-    if (onMiniSectorClick) onMiniSectorClick(sector);
-  };
+  useEffect(() => {
+    if (!isMinimapFocused) return;
 
-  window.addEventListener("keydown", handleKeyDown);
-  return () => window.removeEventListener("keydown", handleKeyDown);
+    const handleKeyDown = (e) => {
+      if (e.key !== "Enter") return;
+      if (minimapFocusIndex === -1) return;
 
-}, [isMinimapFocused, minimapFocusIndex, sectors, onMiniSectorClick, speak, t]);
+      const clampedIndex = Math.min(minimapFocusIndex, sectors.length - 1);
+      const sector = sectors[clampedIndex];
+      if (!sector) return;
+
+      console.log("✅ ENTER pressed → selecting sector:", sector.id);
+
+      setSelectedMiniSectorLocal(sector);
+      setImagePanOffset({ x: -sector.x1, y: -sector.y1 });
+
+      // 🔊 SPEAK CONFIRMATION
+      speak(t("speech.Selected mini map sector") + " " + sector.id);
+
+      if (onMiniSectorClick) onMiniSectorClick(sector);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+
+  }, [isMinimapFocused, minimapFocusIndex, sectors, onMiniSectorClick, speak, t]);
 
 
   // Notify parent of sector count and visible seats
@@ -641,7 +688,7 @@ useEffect(() => {
         ref={containerRef}
         className="flex flex-col w-full h-full relative"
       >
-{isRoomStillLoading && <LoadingSpinner message={t("Loading room and seats")} />}
+        {isRoomStillLoading && <LoadingSpinner message={t("Loading room and seats")} />}
 
 
         {/* MINIMAP */}
@@ -677,6 +724,7 @@ useEffect(() => {
           {selectedSector?.SECTOR_IMAGE ? (
             <div className="w-full h-full relative overflow-hidden">
               <div
+                ref={imageWrapperRef}
                 className={`absolute transition-transform duration-500 ease-in-out`}
                 style={{
                   width: displayDimensions.width ? `${displayDimensions.width}px` : 'auto',
@@ -697,15 +745,11 @@ useEffect(() => {
                   draggable={false}
                 />
 
-                {/* SEATS */}
-                {canShowSeats && seats.map((seat) => {
+                {/* SEATS - NOW USING visibleSeats INSTEAD OF seats */}
+                {canShowSeats && visibleSeats.map((seat, visibleIndex) => {
                   const position = parseSeatPosition(seat);
                   if (!position) return null;
 
-                  const isVisibleByOverlap = isSeatVisibleByOverlap(seat);
-                  if (!isVisibleByOverlap) return null;
-
-                  const visibleIndex = visibleSeats.findIndex(s => s.SEATNO === seat.SEATNO);
                   const isFocused = visibleIndex === focusedSeatIndex && focusedRegion === "room";
 
                   const isAvailable = seat.USECNT === 0 && (seat.STATUS === 1 || seat.STATUS === 2);
