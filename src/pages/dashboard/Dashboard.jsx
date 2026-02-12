@@ -20,6 +20,7 @@ import { fetchFloorList } from "../../redux/slice/floorSlice";
 import { clearHeadphoneFocus } from "../../redux/slice/headphoneSlice";
 import Modal from "../../components/common/Modal";
 import { formatFloorForSpeech } from "../../utils/speechFormatter";
+import { AlertTriangle } from "lucide-react";
 
 const Dashboard = () => {
   // State management
@@ -322,13 +323,13 @@ const Dashboard = () => {
   const handleKeyboardSubmit = useCallback(
     async (value) => {
       const mapBackendErrorToKey = (errorText) => {
-        if (!errorText) return "ERROR_GENERIC";
+        if (!errorText) return t("translations.Not Found");
 
         if (errorText.includes("사용자 정보가 없습니다")) {
           return "ERROR_USER_NOT_FOUND";
         }
 
-        return "ERROR_GENERIC";
+        return t("translations.Not Found");
       };
 
       try {
@@ -533,14 +534,14 @@ const Dashboard = () => {
   useEffect(() => {
     if (loginErrorModal.isOpen) {
       setIsLoginErrorFocused(true);
-      setLoginErrorButtonFocused(true);
+      setLoginErrorButtonFocused(false);
       hasSpokenLoginErrorRef.current = false;
 
       stop();
       // Speak the title and message
       const cleanMessage = loginErrorModal.message.replace(/<[^>]*>/g, ""); // Remove HTML tags
       speak(
-        `${loginErrorModal.title} ${cleanMessage}  ${t("speech.Press OK button")}`,
+        `${loginErrorModal.title} ${cleanMessage} `,
       );
     } else {
       setIsLoginErrorFocused(false);
@@ -576,9 +577,13 @@ const Dashboard = () => {
 
           // Speak when button gets focus
           if (newFocus) {
-            stop();
-            speak(t("speech.Press OK button"));
-          }
+          
+        speak(t("translations.OK"))
+          }else {
+      // 👉 Modal focused again
+      const cleanMessage = loginErrorModal.message.replace(/<[^>]*>/g, "");
+      speak(`${loginErrorModal.title} ${cleanMessage}`);
+    }
 
           return newFocus;
         });
@@ -792,22 +797,13 @@ const Dashboard = () => {
         title={loginErrorModal.title}
         size="medium"
         className={isLoginErrorFocused ? "outline-[6px] outline-[#dc2f02]" : ""}
+       showCloseButton={false}
       >
         <div className="flex flex-col items-center text-center gap-4">
           <div className="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center">
-            <svg
-              className="w-12 h-12 text-red-600"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
-              />
-            </svg>
+            
+         <AlertTriangle className="w-12 h-12 text-red-600" strokeWidth={2.5} />
+
           </div>
           <div
             className="text-gray-700 text-xl leading-relaxed font-medium"

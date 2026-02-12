@@ -14,7 +14,7 @@ const koTranslations = {
     "Back to floor map": "층별 지도로 돌아가기",
     "Floor legend location": "{{building}}, {{floor}}, {{room}}",
     "Available seats": "이용 가능한 좌석",
-    "Booked seats": "사용 중 좌석",
+    "Booked seats": "예약됨 좌석",
     "Disabled seats": "사용 불가 좌석",
     "MAP_SECTOR_INFO": "{{sector}} 구역",
     "SEAT_MODAL_TITLE": "좌석 {{action}}",
@@ -232,7 +232,7 @@ const koTranslations = {
     "Login Failed": "로그인 실패",
     "ERROR_USER_NOT_FOUND":
       "사용자 정보가 없습니다.<br/>사용자 정보 확인 후 다시 이용하시길 바랍니다.",
-    "OK": "좋아요",
+    "OK": "확인",
     "Select Floor": "층 선택",
     "Loading...": "로드 중...",
     "Loading room and seats": "적재 공간 및 좌석",
@@ -253,7 +253,8 @@ const koTranslations = {
 "Seat Moved Successfully":"좌석 이동이 성공적으로 완료되었습니다.",
 "Seat Extension Successfully":"좌석 연장 성공",
 "Seat Return Successfully":"좌석 반납 성공",
-"Booking Failed":"예약 실패"
+"Booking Failed":"예약 실패",
+"Not Found":"찾을 수 없음"
 
   }
 }
