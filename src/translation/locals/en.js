@@ -150,9 +150,9 @@ const enTranslations = {
     "Volume Up With Percent": "Volume up. Current percent is {{percent}}",
     "Volume Down With Percent": "Volume down. Current percent is {{percent}}",
     "Floor": "{{floor}}",
-    "Fixed seats":"Fixed seats",
+    "Fixed seats": "Fixed seats",
     "Seat Label": "Seat {{seat}}",
-    "Booking Failed":"Booking Failed"
+    "Booking Failed": "Booking Failed"
 
 
 
@@ -232,20 +232,20 @@ const enTranslations = {
     "No": "No",
     "Session Extension": "Session Extension",
     "키오스크 번호를 확인하세요.": "Please check the kiosk number.",
-    "Fixed":"Fixed",
-    "Call Administrator":"Call Administrator",
-    "Would you like to call the administrator?":"Would you like to call the administrator?",
-    "Administrator call cancelled":"Administrator call cancelled",
-    "Calling the administrator":"Calling the administrator",
-    "Network error. Unable to contact administrator":"Network error. Unable to contact administrator",
-    "Message sent to administrator":"Message sent to administrator",
-    "Failed to send message to administrator":"Failed to send message to administrator",
-    "Seat Booking Successfully":"Seat booking successfully",
-"Seat Moved Successfully":"Seat moved successfully",
-"Seat Extension Successfully":"Seat Extension successfully",
-"Seat Return Successfully":"Seat returned successfully",
-"Booking Failed":"Booking Failed",
-"Not Found":"Not Found"
+    "Fixed": "Fixed",
+    "Call Administrator": "Call Administrator",
+    "Would you like to call the administrator?": "Would you like to call the administrator?",
+    "Administrator call cancelled": "Administrator call cancelled",
+    "Calling the administrator": "Calling the administrator",
+    "Network error. Unable to contact administrator": "Network error. Unable to contact administrator",
+    "Message sent to administrator": "Message sent to administrator",
+    "Failed to send message to administrator": "Failed to send message to administrator",
+    "Seat Booking Successfully": "Seat booking successfully",
+    "Seat Moved Successfully": "Seat moved successfully",
+    "Seat Extension Successfully": "Seat Extension successfully",
+    "Seat Return Successfully": "Seat returned successfully",
+    "Booking Failed": "Booking Failed",
+    "Not Found": "Not Found"
   }
 
 }
