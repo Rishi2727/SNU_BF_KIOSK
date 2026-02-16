@@ -286,7 +286,7 @@ export const getKioskUserInfo = async () => {
 export const QRValidate = async (qrCode) => {
   await ensureInitialized();
   const encodedQrCode = encodeURIComponent(qrCode);
-  return (await ApiClientQR.get("/qrCheck.do", { params: { code: encodedQrCode }, }))?.data;
+  return (await ApiClientQR.get("/qrCheck.do", { params: { code: qrCode }, }));
 };
 
 /* ===============================
