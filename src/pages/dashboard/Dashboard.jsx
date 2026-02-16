@@ -22,6 +22,7 @@ import Modal from "../../components/common/Modal";
 import { formatFloorForSpeech } from "../../utils/speechFormatter";
 import { useSerialPort } from "../../context/SerialPortContext";
 import { AlertTriangle } from "lucide-react";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
 
 const Dashboard = () => {
   // State management
@@ -66,6 +67,8 @@ const Dashboard = () => {
     message: "",
   });
 
+  const [showGlobalLoading, setShowGlobalLoading] = useState(true);
+
   // Redux selectors
   const { userInfo, isAuthenticated } = useSelector((state) => state.userInfo);
   const { bookingSeatInfo } = useSelector((state) => state.bookingTime);
@@ -87,7 +90,7 @@ const Dashboard = () => {
   const prevVolumeRef = useRef(volume);
 
   // Speak on main Screen
- const speakMainScreen = useCallback(() => {
+  const speakMainScreen = useCallback(() => {
     stop();
     speak(t("speech.This screen is the main screen."));
   }, [speak, stop, t]);
@@ -194,6 +197,19 @@ const Dashboard = () => {
     isFloorSelectionModalOpen,
     FocusRegion,
   ]);
+
+  useEffect(() => {
+    // 🔥 Show loading when floors are fetching OR after logout refresh
+    if (loading || !floors || floors.length === 0) {
+      setShowGlobalLoading(true);
+    } else {
+      const timer = setTimeout(() => {
+        setShowGlobalLoading(false);
+      }, 300); // prevents blink
+      return () => clearTimeout(timer);
+    }
+  }, [loading, floors]);
+
 
   /**
    * Check if modal should be shown based on booking info
@@ -593,13 +609,13 @@ const Dashboard = () => {
 
           // Speak when button gets focus
           if (newFocus) {
-          
-        speak(t("translations.OK"))
-          }else {
-      // 👉 Modal focused again
-      const cleanMessage = loginErrorModal.message.replace(/<[^>]*>/g, "");
-      speak(`${loginErrorModal.title} ${cleanMessage}`);
-    }
+
+            speak(t("translations.OK"))
+          } else {
+            // 👉 Modal focused again
+            const cleanMessage = loginErrorModal.message.replace(/<[^>]*>/g, "");
+            speak(`${loginErrorModal.title} ${cleanMessage}`);
+          }
 
           return newFocus;
         });
@@ -756,12 +772,21 @@ const Dashboard = () => {
 
   return (
     <div className="relative h-screen w-screen overflow-hidden font-bold text-white">
+      {/* 🔥 GLOBAL LOADING OVERLAY */}
+      {showGlobalLoading && (
+        <div className="absolute inset-0 z-9999 flex items-center justify-center bg-black/40">
+          <LoadingSpinner showText={false}/>
+        </div>
+      )}
+
       <img
         src={BgMainImage}
         alt="Background"
         className="absolute inset-0 h-full w-full object-cover "
       />
       {/* ✅ Pass focus states to MainSection */}
+
+
       <MainSection
         openKeyboard={openKeyboard}
         userInfo={userInfo}
@@ -813,12 +838,12 @@ const Dashboard = () => {
         title={loginErrorModal.title}
         size="large"
         className={isLoginErrorFocused ? "outline-[6px] outline-[#dc2f02]" : ""}
-       showCloseButton={false}
+        showCloseButton={false}
       >
         <div className="flex flex-col items-center text-center gap-4">
           <div className="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center">
-            
-         <AlertTriangle className="w-12 h-12 text-red-600" strokeWidth={2.5} />
+
+            <AlertTriangle className="w-12 h-12 text-red-600" strokeWidth={2.5} />
 
           </div>
           <div
