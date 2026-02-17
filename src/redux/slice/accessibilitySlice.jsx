@@ -32,6 +32,13 @@ const accessibilitySlice = createSlice({
       state.volume = action.payload;
       localStorage.setItem("volume", action.payload);
     },
+    resetAccessibility(state) {
+      state.magnifierEnabled = false;
+      state.volume = 1;
+
+      localStorage.removeItem("magnifierEnabled");
+      localStorage.removeItem("volume");
+    },
   },
 });
 
@@ -42,6 +49,7 @@ export const {
   increaseVolume,
   decreaseVolume,
   setVolume,
+  resetAccessibility
 } = accessibilitySlice.actions;
 
 export default accessibilitySlice.reducer;

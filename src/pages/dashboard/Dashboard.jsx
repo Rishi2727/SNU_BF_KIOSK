@@ -23,6 +23,7 @@ import { formatFloorForSpeech } from "../../utils/speechFormatter";
 import { useSerialPort } from "../../context/SerialPortContext";
 import { AlertTriangle } from "lucide-react";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
+import { resetAccessibility } from "../../redux/slice/accessibilitySlice";
 
 const Dashboard = () => {
   // State management
@@ -824,6 +825,17 @@ const Dashboard = () => {
 
     prevVolumeRef.current = volume;
   }, [volume, focused, speak, stop]);
+
+    useEffect(() => {
+
+    // Reset redux accessibility state
+    dispatch(resetAccessibility());
+
+    // Reset contrast
+    localStorage.removeItem("contrastMode");
+    document.documentElement.setAttribute("data-contrast", "normal");
+
+  }, []);
 
   return (
     <div className="relative h-screen w-screen overflow-hidden font-bold text-white">
