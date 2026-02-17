@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import BgMainImage from "../../assets/images/BgMain.jpg";
 import MainSection from "../../components/layout/dashboard/MainSection";
@@ -54,7 +54,7 @@ const Dashboard = () => {
 
   // ✅ Focus state
   const [focused, setFocused] = useState(null);
-
+  const location = useLocation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { humanDetected } = useSerialPort();
@@ -94,13 +94,71 @@ const Dashboard = () => {
     stop();
     speak(t("speech.This screen is the main screen."));
   }, [speak, stop, t]);
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      speakMainScreen();
-    }, 500); // small delay so voices are ready
 
-    return () => clearTimeout(timer);
+  const prevModalState = useRef({
+    keyboard: false,
+
+  });
+
+
+  useEffect(() => {
+    // keyboard modal closed
+    if (prevModalState.current.keyboard && !isKeyboardOpen) {
+      speakMainScreen();
+    }
+
+    prevModalState.current = {
+      keyboard: isKeyboardOpen,
+
+    };
+  }, [isKeyboardOpen, speakMainScreen]);
+
+
+
+  useEffect(() => {
+
+    if (location.pathname !== "/") return;
+
+    // speak once ONLY if nothing focused
+    if (focused === null) {
+      speakMainScreen();
+    }
+
+    const interval = setInterval(() => {
+
+      // ⭐ DO NOT SPEAK IF ANY FOCUS EXISTS
+      if (focused !== null) return;
+
+      // also prevent when modals open (recommended)
+      if (isKeyboardOpen) return;
+
+      speakMainScreen();
+
+    }, 60000);
+
+    return () => clearInterval(interval);
+
+  }, [
+    location.pathname,
+    speakMainScreen,
+    focused,
+    isKeyboardOpen,
+
+  ]);
+
+  useEffect(() => {
+    window.__ON_MODAL_CLOSE__ = () => {
+    setTimeout(() => {
+      speakMainScreen();
+    }, 200);
+    };
+
+    return () => {
+      window.__ON_MODAL_CLOSE__ = null;
+    };
   }, [speakMainScreen]);
+
+
 
 
   useEffect(() => {
@@ -551,10 +609,7 @@ const Dashboard = () => {
 
   // Speech trigger for keyboard - triggers EVERY time keyboard opens
   useEffect(() => {
-    if (!isKeyboardOpen) {
-      stop();
-      return;
-    }
+    if (!isKeyboardOpen) return;
     const timer = setTimeout(() => {
       stop();
       speak(t("speech.Virtual Keyboard"));
@@ -775,7 +830,7 @@ const Dashboard = () => {
       {/* 🔥 GLOBAL LOADING OVERLAY */}
       {showGlobalLoading && (
         <div className="absolute inset-0 z-9999 flex items-center justify-center bg-black/40">
-          <LoadingSpinner showText={false}/>
+          <LoadingSpinner showText={false} />
         </div>
       )}
 
@@ -824,7 +879,8 @@ const Dashboard = () => {
       <KeyboardModal
         isOpen={isKeyboardOpen}
         onClose={() => {
-          closeKeyboard();
+          setIsKeyboardOpen(false);
+          setFocused(null)
         }}
         onSubmit={handleKeyboardSubmit}
         autoCloseTime={30000}

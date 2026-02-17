@@ -571,7 +571,11 @@ const FooterControls = ({
       {/* ✅ Info Modal (PLACE IT HERE) */}
       <InfoModal
         isOpen={isInfoOpen}
-        onClose={() => setIsInfoOpen(false)}
+        onClose={() =>{
+           setIsInfoOpen(false);
+            window.__ON_MODAL_CLOSE__?.();
+        }}
+        
       />
     </>
   );

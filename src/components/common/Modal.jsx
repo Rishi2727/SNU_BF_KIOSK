@@ -12,6 +12,16 @@ const Modal = ({
 }) => {
   if (!isOpen) return null;
 
+
+  const handleClose = () => {
+    onClose?.();
+
+    // ⭐ GLOBAL MODAL CLOSE CALLBACK (same behaviour as old Swal)
+    if (window.__ON_MODAL_CLOSE__) {
+      window.__ON_MODAL_CLOSE__();
+    }
+  };
+
   const sizeClasses = {
     small: 'w-[400px]',
     medium: 'w-[800px]',
@@ -21,7 +31,7 @@ const Modal = ({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-      onClick={onClose}
+      onClick={handleClose}
     >
       <div
         className={`bg-white rounded-lg shadow-2xl ${sizeClasses[size]} max-w-[90vw] max-h-[90vh] flex flex-col overflow-hidden  ${className}`}
@@ -32,7 +42,7 @@ const Modal = ({
             <h2 className="text-2xl font-bold text-gray-800">{title}</h2>
             {showCloseButton && (
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 className={`
     text-gray-500 hover:text-gray-700 transition-colors
     ${closeFocused ? " outline-[6px] outline-[#dc2f02] " : ""}
