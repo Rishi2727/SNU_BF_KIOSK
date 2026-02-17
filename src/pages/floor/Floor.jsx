@@ -1065,14 +1065,54 @@ useEffect(() => {
           </div>
         )}
 
-        {/* ✅ Session Reminder Modal */}
+    
+
+
+      </div>
+
+      {/* ================= FLOOR STATS ================= */}
+      <div className="absolute bottom-20 left-0 right-0 z-20 px-4">
+        <FloorStatsBar
+          floors={floors}
+          currentFloor={currentFloor}
+          onFloorClick={handleFloorClick}
+          loading={loading}
+          isFocused={focusedRegion === FocusRegion.FLOOR_STATS}
+          isAnyModalOpen={isAnyModalOpen}
+          isMinimapNearFloorStats={isMinimapNearFloorStats}
+        />
+      </div>
+      <div>
+        <FooterControls
+          userInfo={userInfo}
+          logout={handleLogout}
+          isFocused={focusedRegion === FocusRegion.FOOTER}
+          isAnyModalOpen={isAnyModalOpen}
+          showBack={showRoomView}
+          onBack={backToFloorMap}
+          timer={timeLeft}
+        />
+      </div>
+
+      {/* ================= SEAT BOOKING MODAL ================= */}
+      <SeatActionModal
+        mode={isMoveMode ? "move" : "booking"}
+        seat={selectedSeat}
+        isOpen={showSeatModal}
+        onClose={handleCloseModal}
+          disableFocusAndSpeech={showSessionReminder}
+      />
+
+
+          {/* ✅ Session Reminder Modal */}
         <Modal
           isOpen={showSessionReminder}
           onClose={() => setShowSessionReminder(false)}
           title={t("translations.Session Extension")}
           size="medium"
           showCloseButton={false}
-          className="border-[6px] border-[#dc2f02] rounded"
+            zIndex={9999}
+          className="border-[6px] border-[#dc2f02] rounded "
         >
           <div className="flex flex-col items-center gap-6 p-6">
             <p className="text-[30px] text-gray-800 text-center font-medium">
@@ -1116,41 +1156,6 @@ useEffect(() => {
           </div>
 
         </Modal>
-
-
-      </div>
-
-      {/* ================= FLOOR STATS ================= */}
-      <div className="absolute bottom-20 left-0 right-0 z-20 px-4">
-        <FloorStatsBar
-          floors={floors}
-          currentFloor={currentFloor}
-          onFloorClick={handleFloorClick}
-          loading={loading}
-          isFocused={focusedRegion === FocusRegion.FLOOR_STATS}
-          isAnyModalOpen={isAnyModalOpen}
-          isMinimapNearFloorStats={isMinimapNearFloorStats}
-        />
-      </div>
-      <div>
-        <FooterControls
-          userInfo={userInfo}
-          logout={handleLogout}
-          isFocused={focusedRegion === FocusRegion.FOOTER}
-          isAnyModalOpen={isAnyModalOpen}
-          showBack={showRoomView}
-          onBack={backToFloorMap}
-          timer={timeLeft}
-        />
-      </div>
-
-      {/* ================= SEAT BOOKING MODAL ================= */}
-      <SeatActionModal
-        mode={isMoveMode ? "move" : "booking"}
-        seat={selectedSeat}
-        isOpen={showSeatModal}
-        onClose={handleCloseModal}
-      />
     </div >
   );
 };

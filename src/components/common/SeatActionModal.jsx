@@ -33,7 +33,8 @@ const SeatActionModal = ({
     assignNo,
     isOpen,
     onClose,
-    onBackToUserInfo
+    onBackToUserInfo,
+    disableFocusAndSpeech = false
 }) => {
     // Mode flags
     const modeFlags = useMemo(() => ({
@@ -153,14 +154,15 @@ const SeatActionModal = ({
      * Sets focus to index 0 (title) automatically
      */
     useEffect(() => {
-        if (isOpen) {
+        if (!isOpen) return;
+        if (!disableFocusAndSpeech) {
             setIsModalFocused(true);
-            setFocusIndex(0); // Start at title
+            setFocusIndex(0);
         } else {
             setIsModalFocused(false);
-            setFocusIndex(0);
         }
-    }, [isOpen]);
+    }, [isOpen, disableFocusAndSpeech]);
+
 
     /**
  * ✅ FIX: Auto-focus confirmation message when confirmStep changes
@@ -202,6 +204,7 @@ const SeatActionModal = ({
      * Handles Left/Right arrows and Enter key
      */
     useEffect(() => {
+        if (disableFocusAndSpeech) return;
         if ((!isOpen && !showResultModal) || !isModalFocused) return;
 
         const handleKeyDown = (e) => {
@@ -396,7 +399,7 @@ const SeatActionModal = ({
             if (res?.successYN === "Y") {
                 if (isBooking) {
                     msg = 'Seat Booking Successfully'
-                }else if (isMove) {
+                } else if (isMove) {
                     msg = 'Seat Moved Successfully'
                 } else if (isExtension) {
                     msg = 'Seat Extension Successfully'
@@ -856,6 +859,7 @@ const SeatActionModal = ({
 
     // Main speech effect
     useEffect(() => {
+        if (disableFocusAndSpeech) return;
         if (!isOpen && !showResultModal) return;
         if (!isModalFocused) return;
 
