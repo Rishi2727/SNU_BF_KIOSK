@@ -826,16 +826,20 @@ const Dashboard = () => {
     prevVolumeRef.current = volume;
   }, [volume, focused, speak, stop]);
 
-    useEffect(() => {
+useEffect(() => {
+  // ⭐ run ONLY once when app is opened (not on logout/navigation)
+  const alreadyInitialized = sessionStorage.getItem("appInitialized");
 
-    // Reset redux accessibility state
+  if (!alreadyInitialized) {
     dispatch(resetAccessibility());
 
-    // Reset contrast
     localStorage.removeItem("contrastMode");
     document.documentElement.setAttribute("data-contrast", "normal");
 
-  }, []);
+    sessionStorage.setItem("appInitialized", "true");
+  }
+}, [dispatch]);
+
 
   return (
     <div className="relative h-screen w-screen overflow-hidden font-bold text-white">
