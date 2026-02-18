@@ -245,7 +245,10 @@ const enTranslations = {
     "Seat Extension Successfully": "Seat Extension successfully",
     "Seat Return Successfully": "Seat returned successfully",
     "Booking Failed": "Booking Failed",
-    "Not Found": "Not Found"
+    "Not Found": "Not Found",
+    "Network error. Please check your internet connection and try again.": "Network error. Please check your internet connection and try again.",
+    "Network Error": "Network Error",
+    "Retry": "Retry",
   }
 
 }

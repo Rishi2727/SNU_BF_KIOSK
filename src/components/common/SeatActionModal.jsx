@@ -419,7 +419,7 @@ const SeatActionModal = ({
             onClose();
             setActionResult({
                 success: false,
-                message: err?.response?.data?.msg || "translations.GENERIC_ERROR"
+                message: err?.response?.data?.msg || t("translations.Booking Failed")
             });
             setShowResultModal(true);
         } finally {
