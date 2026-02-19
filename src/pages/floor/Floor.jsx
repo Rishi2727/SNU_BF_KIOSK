@@ -403,12 +403,9 @@ useEffect(() => {
    🔊 SPEAK WHEN ROOM PAGE OPENS
 ===================================================== */
 useEffect(() => {
-  // speak ONLY when entering room view
-  if (showRoomView && selectedSector) {
+  if (showRoomView && selectedSector && !loading && !loadingSeats) {
     if (hasSpokenRoomRef.current) return;
-
     hasSpokenRoomRef.current = true;
-
     stop();
     setTimeout(() => {
       speak(t("speech.This is room page select your desired seat"));
@@ -419,7 +416,16 @@ useEffect(() => {
   if (!showRoomView) {
     hasSpokenRoomRef.current = false;
   }
-}, [showRoomView, selectedSector, speak, stop, t]);
+}, [
+  showRoomView,
+  selectedSector,
+  loading,
+  loadingSeats,
+  speak,
+  stop,
+  t,
+]);
+
 
 
 /* =====================================================
@@ -657,7 +663,7 @@ useEffect(() => {
     setSelectedSector(sector);
     setShowRoomView(true);
 
-    console.log("first--------------------", sector)
+
     navigate(buildFloorPath(sector.FLOOR, sector.SECTORNO), {
       replace: false,
       state: {
@@ -694,9 +700,6 @@ useEffect(() => {
   ===================================================== */
   useEffect(() => {
     if (!selectedSector) return;
-
-    console.log("🧹 Floor: reset minimap navigation");
-
     setMiniMapCursor(-1);
      // force focus away from minimap
 

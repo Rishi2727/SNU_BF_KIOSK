@@ -321,14 +321,39 @@ export const SerialPortProvider = ({ children }) => {
     let mounted = true;
 
     const checkNetwork = async () => {
-      // ✅ Network restored or available → close modal immediately
+
+      // ✅ NEVER show modal on configuration page
+      if (location.pathname === "/configuration") {
+        if (modalShownRef.current) {
+          stop();
+          setNetworkError(false);
+          setIsModalOpen(false);
+          modalShownRef.current = false;
+          networkErrorRef.current = false;
+        }
+        return;
+      }
+
+      // ✅ INTERNET RESTORED → close modal + reload API silently
       if (navigator.onLine && modalShownRef.current) {
         networkErrorRef.current = false;
         modalShownRef.current = false;
-        networkRecoveredRef.current = false;
+        networkRecoveredRef.current = true;
+
         stop();
         setNetworkError(false);
         setIsModalOpen(false);
+        window.dispatchEvent(new Event("NETWORK_RESTORED"));
+
+        // 🔥 reload API automatically after reconnect
+        setTimeout(async () => {
+          try {
+            await invoke("request_kiosk_login");
+          } catch (e) {
+            console.log("Reconnect fetch ignored");
+          }
+        }, 500);
+
         return;
       }
 
@@ -337,52 +362,69 @@ export const SerialPortProvider = ({ children }) => {
 
         if (!mounted) return;
 
-        // ✅ Network restored → close modal
+        // if request success → close modal
         if (networkErrorRef.current) {
           networkErrorRef.current = false;
           modalShownRef.current = false;
-          networkRecoveredRef.current = false;
 
           stop();
           setNetworkError(false);
           setIsModalOpen(false);
         }
+
       } catch (error) {
         if (!mounted) return;
 
         const errorMsg = String(error);
 
         if (
-          !navigator.onLine && // ✅ Only show if actually offline
+          !navigator.onLine &&
           errorMsg ===
           "Network error. Please check your internet connection and try again." &&
           !modalShownRef.current
         ) {
-          if (!modalShownRef.current) {
-            modalShownRef.current = true;
-            networkErrorRef.current = true;
-            setNetworkError(true);
-            setIsModalOpen(true);
+          modalShownRef.current = true;
+          networkErrorRef.current = true;
+          setNetworkError(true);
+          setIsModalOpen(true);
 
-            blockSpeakRef.current = false;
-            speak(t("translations.Network error. Please check your internet connection and try again."));
-          }
+          blockSpeakRef.current = false;
+          speak(
+            t(
+              "translations.Network error. Please check your internet connection and try again."
+            )
+          );
         }
       }
     };
 
+
     // ✅ Listen for online status to immediately retry/close logic
-    window.addEventListener("online", checkNetwork);
+
 
     interval = setInterval(checkNetwork, 5000);
 
     return () => {
       mounted = false;
       if (interval) clearInterval(interval);
-      window.removeEventListener("online", checkNetwork);
+
     };
 
-  }, []);
+  }, [location.pathname]);
+
+
+  // ✅ INSTANTLY CLOSE NETWORK MODAL WHEN ENTERING CONFIGURATION PAGE
+  useEffect(() => {
+    if (location.pathname === "/configuration") {
+      if (modalShownRef.current || isModalOpen) {
+        stop();
+        setNetworkError(false);
+        setIsModalOpen(false);
+        modalShownRef.current = false;
+        networkErrorRef.current = false;
+      }
+    }
+  }, [location.pathname, isModalOpen, stop]);
 
 
 

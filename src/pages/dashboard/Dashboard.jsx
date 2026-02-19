@@ -769,6 +769,34 @@ const Dashboard = () => {
     t,
   ]);
 
+  // 🔥 AUTO RELOAD DATA WHEN INTERNET RESTORES
+useEffect(() => {
+  const handleNetworkRestored = () => {
+    // reload floors
+    dispatch(fetchFloorList(1));
+
+    // optional: reload user info if logged in
+    const isAuth = localStorage.getItem("authenticated");
+    if (isAuth === "true") {
+      getKioskUserInfo()
+        .then((info) => {
+          if (info?.successYN === "Y") {
+            dispatch(setUserInfo(info.bookingInfo));
+          }
+        })
+        .catch(() => {});
+    }
+  };
+
+  window.addEventListener("NETWORK_RESTORED", handleNetworkRestored);
+
+  return () =>
+    window.removeEventListener("NETWORK_RESTORED", handleNetworkRestored);
+}, [dispatch]);
+
+
+
+
   // 🔊 VOICE: speak when dashboard focus changes
   useEffect(() => {
     if (!focused) return;
