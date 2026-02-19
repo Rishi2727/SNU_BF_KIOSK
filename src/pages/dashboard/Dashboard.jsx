@@ -75,6 +75,17 @@ const Dashboard = () => {
   const { bookingSeatInfo } = useSelector((state) => state.bookingTime);
   const { floors, loading, error } = useSelector((state) => state.floor);
   const lastHumanStateRef = useRef(false);
+
+  const isAnyModalOpen =
+    isKeyboardOpen ||
+    isUserInfoModalOpen ||
+    modalStates[MODAL_TYPES.EXTENSION] ||
+    modalStates[MODAL_TYPES.RETURN] ||
+    modalStates[MODAL_TYPES.ASSIGN_CHECK] ||
+    isFloorSelectionModalOpen ||
+    loginErrorModal.isOpen;
+
+
   // ✅ Define focus regions (Logo → MainSection → Notice → Footer)
   const FocusRegion = Object.freeze({
     LOGO: "logo",
@@ -92,9 +103,10 @@ const Dashboard = () => {
 
   // Speak on main Screen
   const speakMainScreen = useCallback(() => {
+    if (isAnyModalOpen) return;
     stop();
     speak(t("speech.This screen is the main screen."));
-  }, [speak, stop, t]);
+  }, [speak, stop, t, isAnyModalOpen]);
 
   const prevModalState = useRef({
     keyboard: false,
@@ -149,9 +161,9 @@ const Dashboard = () => {
 
   useEffect(() => {
     window.__ON_MODAL_CLOSE__ = () => {
-    setTimeout(() => {
-      speakMainScreen();
-    }, 200);
+      setTimeout(() => {
+        speakMainScreen();
+      }, 200);
     };
 
     return () => {
@@ -310,6 +322,8 @@ const Dashboard = () => {
     initializeUser();
   }, [dispatch]);
 
+
+
   /**
    * Navigate to floor page with sector data
    */
@@ -405,8 +419,13 @@ const Dashboard = () => {
   // ✅ NEW: Handle Logout from Floor Selection Modal
   const handleFloorSelectionLogout = useCallback(() => {
     closeFloorSelectionModal();
+    setShowGlobalLoading(true);
     dispatch(logout());
+    setTimeout(() => {
+      setShowGlobalLoading(false);
+    }, 400);
   }, [closeFloorSelectionModal, dispatch]);
+
 
   /**
    * Handle keyboard submission (login)
@@ -424,6 +443,7 @@ const Dashboard = () => {
       };
 
       try {
+        setShowGlobalLoading(true);
         const result = await dispatch(login(value)).unwrap();
 
         // Successfully logged in, result contains userInfo
@@ -454,6 +474,7 @@ const Dashboard = () => {
         openLoginErrorModal(title, message);
       } finally {
         setIsKeyboardOpen(false);
+        setShowGlobalLoading(false);
       }
     },
     [
@@ -770,29 +791,29 @@ const Dashboard = () => {
   ]);
 
   // 🔥 AUTO RELOAD DATA WHEN INTERNET RESTORES
-useEffect(() => {
-  const handleNetworkRestored = () => {
-    // reload floors
-    dispatch(fetchFloorList(1));
+  useEffect(() => {
+    const handleNetworkRestored = () => {
+      // reload floors
+      dispatch(fetchFloorList(1));
 
-    // optional: reload user info if logged in
-    const isAuth = localStorage.getItem("authenticated");
-    if (isAuth === "true") {
-      getKioskUserInfo()
-        .then((info) => {
-          if (info?.successYN === "Y") {
-            dispatch(setUserInfo(info.bookingInfo));
-          }
-        })
-        .catch(() => {});
-    }
-  };
+      // optional: reload user info if logged in
+      const isAuth = localStorage.getItem("authenticated");
+      if (isAuth === "true") {
+        getKioskUserInfo()
+          .then((info) => {
+            if (info?.successYN === "Y") {
+              dispatch(setUserInfo(info.bookingInfo));
+            }
+          })
+          .catch(() => { });
+      }
+    };
 
-  window.addEventListener("NETWORK_RESTORED", handleNetworkRestored);
+    window.addEventListener("NETWORK_RESTORED", handleNetworkRestored);
 
-  return () =>
-    window.removeEventListener("NETWORK_RESTORED", handleNetworkRestored);
-}, [dispatch]);
+    return () =>
+      window.removeEventListener("NETWORK_RESTORED", handleNetworkRestored);
+  }, [dispatch]);
 
 
 
@@ -800,6 +821,7 @@ useEffect(() => {
   // 🔊 VOICE: speak when dashboard focus changes
   useEffect(() => {
     if (!focused) return;
+    if (isAnyModalOpen) return;
     if (focused !== FocusRegion.FOOTER) {
     }
     stop();
@@ -852,22 +874,53 @@ useEffect(() => {
     }
 
     prevVolumeRef.current = volume;
-  }, [volume, focused, speak, stop]);
+  }, [volume, focused, speak, stop, isAnyModalOpen]);
 
-useEffect(() => {
-  // ⭐ run ONLY once when app is opened (not on logout/navigation)
-  const alreadyInitialized = sessionStorage.getItem("appInitialized");
+  useEffect(() => {
+    // ⭐ run ONLY once when app is opened (not on logout/navigation)
+    const alreadyInitialized = sessionStorage.getItem("appInitialized");
 
-  if (!alreadyInitialized) {
-    dispatch(resetAccessibility());
+    if (!alreadyInitialized) {
+      dispatch(resetAccessibility());
 
-    localStorage.removeItem("contrastMode");
-    document.documentElement.setAttribute("data-contrast", "normal");
+      localStorage.removeItem("contrastMode");
+      document.documentElement.setAttribute("data-contrast", "normal");
 
-    sessionStorage.setItem("appInitialized", "true");
-  }
-}, [dispatch]);
+      sessionStorage.setItem("appInitialized", "true");
+    }
+  }, [dispatch]);
 
+  // 🔥 OPEN FLOOR SELECTION MODAL WHEN QR LOGIN HAPPENS
+  useEffect(() => {
+    const handleQRLoginSuccess = () => {
+      const bookingInfo = JSON.parse(localStorage.getItem("bookingInfo") || "null");
+
+      // SAME CONDITION AS KEYBOARD LOGIN
+      if (!bookingInfo || bookingInfo.ASSIGN_NO === "0") {
+        openFloorSelectionModal();
+      }
+    };
+
+    window.addEventListener("QR_LOGIN_SUCCESS", handleQRLoginSuccess);
+
+    return () =>
+      window.removeEventListener("QR_LOGIN_SUCCESS", handleQRLoginSuccess);
+  }, [openFloorSelectionModal]);
+
+
+  //Loading to modal Open by QR
+  useEffect(() => {
+    const startLoading = () => setShowGlobalLoading(true);
+    const stopLoading = () => setShowGlobalLoading(false);
+
+    window.addEventListener("LOGIN_LOADING_START", startLoading);
+    window.addEventListener("LOGIN_LOADING_END", stopLoading);
+
+    return () => {
+      window.removeEventListener("LOGIN_LOADING_START", startLoading);
+      window.removeEventListener("LOGIN_LOADING_END", stopLoading);
+    };
+  }, []);
 
   return (
     <div className="relative h-screen w-screen overflow-hidden font-bold text-white">

@@ -395,6 +395,10 @@ const FooterControls = ({
     }
   }, [contrastEnabled]);
 
+// ⭐ FIX: reset footer cursor when login state changes
+useEffect(() => {
+  setCursor(null);
+}, [userInfo]);
 
 
   // 🔊 Speak when volume changes (Up / Down + current percent)

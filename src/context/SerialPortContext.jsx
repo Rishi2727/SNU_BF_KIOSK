@@ -777,8 +777,12 @@ export const SerialPortProvider = ({ children }) => {
           }
 
           // Login with extracted user ID
+          window.dispatchEvent(new Event("LOGIN_LOADING_START"));
           await dispatch(login(userId)).unwrap();
+
           speak(t("Login successful"));
+          window.dispatchEvent(new Event("LOGIN_LOADING_END"));
+          window.dispatchEvent(new Event("QR_LOGIN_SUCCESS"));
 
         } else {
           console.error("Expected XML string response");
