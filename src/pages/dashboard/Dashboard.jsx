@@ -24,6 +24,7 @@ import { useSerialPort } from "../../context/SerialPortContext";
 import { AlertTriangle } from "lucide-react";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { resetAccessibility } from "../../redux/slice/accessibilitySlice";
+import { logEvent } from "../../logger";
 
 const Dashboard = () => {
   // State management
@@ -310,11 +311,13 @@ const Dashboard = () => {
       if (isAuth !== "true") return;
 
       try {
+        await logEvent("info", "Fetching kiosk user info on dashboard mount");
         const info = await getKioskUserInfo();
         if (info?.successYN === "Y") {
           dispatch(setUserInfo(info.bookingInfo));
         }
       } catch (error) {
+        await logEvent("error", `Failed to fetch kiosk user info: ${error.message}`);
         console.error("Failed to fetch kiosk user info:", error);
       }
     };
@@ -410,6 +413,7 @@ const Dashboard = () => {
   // ✅ NEW: Handle Floor Selection
   const handleFloorSelect = useCallback(
     (floorTitle) => {
+        logEvent("info", `Floor selected: ${floorTitle}`);
       closeFloorSelectionModal();
       navigateToFloor(floorTitle);
     },
@@ -443,15 +447,19 @@ const Dashboard = () => {
       };
 
       try {
+        await logEvent("info", "Keyboard login attempt started");
         setShowGlobalLoading(true);
         const result = await dispatch(login(value)).unwrap();
 
+
+        await logEvent("info", `Login successful, ASSIGN_NO=${result?.ASSIGN_NO}`);
         // Successfully logged in, result contains userInfo
         const showModal = shouldShowModal(result);
 
         // ✅ NEW: If no booking data available AND no floor selected (login from footer)
         // show floor selection modal
         if ((!result || result.ASSIGN_NO === "0") && !selectedFloor) {
+          await logEvent("info", "No booking found, opening floor selection modal");
           openFloorSelectionModal();
           return;
         }
@@ -459,8 +467,10 @@ const Dashboard = () => {
         // If a specific floor was selected (login from floor card), navigate directly
         if (selectedFloor) {
           if (showModal) {
+            await logEvent("info", "Booking found, opening user info modal");
             setIsUserInfoModalOpen(true);
           } else {
+            await logEvent("info", `Navigating to floor: ${selectedFloor}`);
             await navigateToFloor(selectedFloor);
           }
         } else if (showModal) {
@@ -468,6 +478,7 @@ const Dashboard = () => {
         }
       } catch (error) {
         // Handle login error
+        await logEvent("warn", `Login failed: ${error?.errorMessage || error?.message}`);
         const errorKey = mapBackendErrorToKey(error.errorMessage);
         const title = t("translations.Login Failed");
         const message = t(`translations.${errorKey}`);
@@ -540,6 +551,7 @@ const Dashboard = () => {
           },
         });
       } catch (error) {
+          await logEvent("error", `Error fetching booking info for move: ${error.message}`);
         console.error("Error fetching booking info:", error);
       }
     },
@@ -551,6 +563,7 @@ const Dashboard = () => {
    */
   const handleUserAction = useCallback(
     async (actionType, assignNo) => {
+      await logEvent("info", `User action selected: ${actionType}, assignNo=${assignNo}`);
       console.log(`Action selected: ${actionType}`, assignNo);
       setIsUserInfoModalOpen(false);
       setSelectedAssignNo(assignNo);
@@ -607,6 +620,7 @@ const Dashboard = () => {
    * Handle logout
    */
   const handleLogout = useCallback(() => {
+      logEvent("info", "User logged out from dashboard");
     dispatch(logout());
   }, [dispatch]);
 

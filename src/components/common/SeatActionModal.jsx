@@ -393,24 +393,23 @@ const SeatActionModal = ({
             setLoading(true);
             const res = await executeApiCall();
 
-
             onClose();
-            let msg = t('translations.Booking Failed');
+            let msg;
             if (res?.successYN === "Y") {
                 if (isBooking) {
-                    msg = 'Seat Booking Successfully'
+                    msg = t('translations.Seat Booking Successfully')
                 } else if (isMove) {
-                    msg = 'Seat Moved Successfully'
+                    msg = t('translations.Seat Moved Successfully')
                 } else if (isExtension) {
-                    msg = 'Seat Extension Successfully'
+                    msg = t('translations.Seat Extension Successfully')
                 } else if (isReturn) {
-                    msg = 'Seat Return Successfully'
+                    msg = t('translations.Seat Return Successfully')
                 }
                 setActionResult({ success: true, message: msg || res?.msg });
             } else {
                 setActionResult({
                     success: false,
-                    message: msg || res?.msg || t("translations.Booking Failed")
+                    message: msg || res?.msg
                 });
             }
 
@@ -419,7 +418,7 @@ const SeatActionModal = ({
             onClose();
             setActionResult({
                 success: false,
-                message: err?.response?.data?.msg || t("translations.Booking Failed")
+                message: err?.response?.data?.msg
             });
             setShowResultModal(true);
         } finally {
@@ -725,9 +724,14 @@ const SeatActionModal = ({
     // helper for speech 
     const getSpeechForFocusedElement = useCallback(
         (element) => {
+
             if (!element) return "";
             switch (element.type) {
                 case "title":
+                    if (isAssignCheck) {
+                        return t("translations.Seat information");
+                    }
+
                     return t("speech.SEAT_MODAL_TITLE", {
                         action: t(`translations.${MODE_LABELS[mode]}`),
                     });
@@ -834,7 +838,8 @@ const SeatActionModal = ({
             actionResult,
             startTime,
             endTime,
-            bookingSeatInfo
+            bookingSeatInfo,
+            seatInfo
         ]
     );
 
@@ -1030,7 +1035,7 @@ const SeatActionModal = ({
                                         {formatDate(startTime, DATE_FORMATS.ISO)} ~{" "}
                                         {bookingSeatInfo?.USEEXPIRE
                                             ? formatDate(bookingSeatInfo.USEEXPIRE, DATE_FORMATS.ISO)
-                                            : "종료정보 없음"}
+                                            : ""}
                                     </span>
                                 </div>
                             ) : null}
@@ -1113,7 +1118,7 @@ const SeatActionModal = ({
                     </p>
 
                     {/* Success Details */}
-                    {actionResult?.success && !isReturn && !isMove && (
+                    {/* {actionResult?.success && !isReturn && !isMove && (
                         <div className="mt-4 p-4 bg-linear-to-r from-[#FFCB35] to-[#cf9e0bd0] border-4 border-[#cf9e0b] rounded-2xl">
                             {isBooking && seat ? (
                                 <>
@@ -1135,8 +1140,8 @@ const SeatActionModal = ({
                                 </>
                             )}
                         </div>
-                    )}
-
+                    )} */}
+                    {/* 
                     {actionResult?.success && isMove && (
                         <div className="mt-4 p-4 bg-linear-to-r from-[#FFCB35] to-[#cf9e0b] border-4 border-[#cf9e0b] rounded-2xl">
                             <p className="text-[24px] font-bold">
@@ -1146,8 +1151,8 @@ const SeatActionModal = ({
                                 새 좌석: {seat?.ROOM_NAME} - {seat?.VNAME}
                             </p>
                         </div>
-                    )}
-
+                    )} */}
+                    {/* 
                     {actionResult?.success && isReturn && (
                         <div className="mt-4 p-4 bg-linear-to-r from-[#FFCB35] to-[#cf9e0b] border-4 border-[#cf9e0b] rounded-2xl">
                             <p className="text-[24px]  font-bold">
@@ -1157,7 +1162,7 @@ const SeatActionModal = ({
                                 다시 배정받으시려면 로그인해주세요
                             </p>
                         </div>
-                    )}
+                    )} */}
                 </div>
             </Modal>
         </>

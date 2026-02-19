@@ -1,6 +1,7 @@
 import axios from "axios";
 import { invoke } from "@tauri-apps/api/core";
 import { fetch as tauriFetch } from '@tauri-apps/plugin-http';
+import { logEvent } from "../logger";
 
 // Custom Tauri adapter that properly handles large responses and null bytes
 const customTauriAdapter = async (config) => {
@@ -95,6 +96,7 @@ export const masterClient = axios.create({
     Accept: "application/json",
     "X-Requested-With": "XMLHttpRequest",
     "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
+    "x-forwarded-for":"103.83.146.30" //temp comment 
   },
   withCredentials: true,
   timeout: 60000,
@@ -118,7 +120,7 @@ export const getPopupTimers = () => popupTimers;
 /* ==================== LANGUAGE MANAGEMENT =================== */
 let runtimeLang = localStorage.getItem("lang") || "en";
 let lastSyncedLang = null; // ✅ Start as null to force first sync
-export const setApiLang = (lang) => { 
+export const setApiLang = (lang) => {
   console.log("🌍 setApiLang called with:", lang);
   runtimeLang = lang;
   lastSyncedLang = null; // ✅ Force re-sync when language changes
@@ -143,13 +145,13 @@ const syncServerLocale = async (lang) => {
 
 const KioskLangInterceptor = async (config) => {
   console.log("🔍 KioskLangInterceptor: runtimeLang =", runtimeLang, "lastSyncedLang =", lastSyncedLang);
-  
+
   // ✅ Always sync if not yet synced or language changed
   if (lastSyncedLang !== runtimeLang) {
     console.log("🔄 Language mismatch detected, syncing...");
     await syncServerLocale(runtimeLang);
   }
-  
+
   config.headers.langcode = runtimeLang;
   config.headers.locale = runtimeLang;
   config.headers.os_kind = "KIOSK";
@@ -202,7 +204,7 @@ export const initializeApi = async () => {
       do {
         try {
           const config = await invoke("read_config");
-          const { machineId,  machineName,primary_server_url, secondary_server_url, qr_server_url, rfid_server_url, manager_ip_url, popup_timers, humanSensorDetection } = config;
+          const { machineId, machineName, primary_server_url, secondary_server_url, qr_server_url, rfid_server_url, manager_ip_url, popup_timers, humanSensorDetection } = config;
           managerIpUrl = manager_ip_url || "";
           MACHINE_ID = machineId || "";
           MACHINE_NAME = machineName || "";
@@ -212,7 +214,7 @@ export const initializeApi = async () => {
           RFID_SERVER_URL = rfid_server_url || "https://libapp.snu.ac.kr/SNU_MOB/qrCheck.do";
           popupTimers = popup_timers || [];
           HUMAN_SENSOR_DETECTION = humanSensorDetection ?? false;
-      
+
 
           console.log(config, "data")
           console.log("Config Loaded:", {
@@ -226,14 +228,15 @@ export const initializeApi = async () => {
             ApiClientSecondary.defaults.baseURL = SECONDARY_SERVER_URL;
             ApiClientQR.defaults.baseURL = QR_SERVER_URL;
             ApiClientRFID.defaults.baseURL = RFID_SERVER_URL;
-            
+
             // ✅ CRITICAL FIX: Sync server locale immediately after API initialization
             console.log("🌍 Initializing server locale on startup...");
             await syncServerLocale(runtimeLang);
           }
-
+          await logEvent("info", "API initialized successfully");
           isInitialized = true;
         } catch (error) {
+            await logEvent("error", `Failed to initialize API: ${error.message}`);
           console.error("Failed to fetch configuration:", error);
         }
       } while (!isInitialized);
@@ -242,7 +245,7 @@ export const initializeApi = async () => {
   return apiInitialized;
 };
 
-export { PRIMARY_SERVER_URL, SECONDARY_SERVER_URL, QR_SERVER_URL, RFID_SERVER_URL, managerIpUrl ,MACHINE_ID,MACHINE_NAME, HUMAN_SENSOR_DETECTION };
+export { PRIMARY_SERVER_URL, SECONDARY_SERVER_URL, QR_SERVER_URL, RFID_SERVER_URL, managerIpUrl, MACHINE_ID, MACHINE_NAME, HUMAN_SENSOR_DETECTION };
 
 export const ImageBaseUrl =
   "http://k-rsv.snu.ac.kr:8011/NEW_SNU_BOOKING/commons/images/kiosk";
@@ -274,7 +277,10 @@ export const getSectorList = async ({ floor, floorno }) => {
 
 export const loginBySchoolNo = async (schoolno) => {
   await ensureInitialized();
-  return (await ApiClientPrimary.get("/kiosk/login/login", { params: { schoolno } }))?.data;
+  await logEvent("info", `Login attempt for school number: ${schoolno}`);
+  const res = await ApiClientPrimary.get("/kiosk/login/login", { params: { schoolno } });
+  await logEvent("info", `Login response received for: ${schoolno}`); 
+  return res?.data;
 };
 
 export const getKioskUserInfo = async () => {
@@ -285,10 +291,10 @@ export const getKioskUserInfo = async () => {
 
 export const QRValidate = async (qrCode) => {
   await ensureInitialized();
+  await logEvent("info", `QR validation attempt`); 
   const encodedQrCode = encodeURIComponent(qrCode);
-  return (await ApiClientQR.get("/qrCheck.do", { params: { code: qrCode }, }));
+  return (await ApiClientQR.get("/qrCheck.do", { params: { code: qrCode } }));
 };
-
 /* ===============================
    💺 SEAT
 ================================ */
@@ -312,21 +318,25 @@ export const getBookingTimeSeat = async ({ seatno, assignno }) => {
 
 export const setSeatAssign = async (payload) => {
   await ensureInitialized();
+  await logEvent("info", `Assigning seat: ${JSON.stringify(payload)}`); 
   return (await ApiClientPrimary.post("/json/setSeatAssign", payload))?.data;
 };
 
 export const setExtend = async (payload) => {
   await ensureInitialized();
+  await logEvent("info", `Extending seat: ${JSON.stringify(payload)}`);
   return (await ApiClientPrimary.post("/json/setExtend", payload))?.data;
 };
 
 export const setMove = async (payload) => {
   await ensureInitialized();
+  await logEvent("info", `Moving seat: ${JSON.stringify(payload)}`); 
   return (await ApiClientPrimary.post("/json/setMove", payload))?.data;
 };
 
 export const setReturnSeat = async (payload) => {
   await ensureInitialized();
+  await logEvent("info", `Returning seat: ${JSON.stringify(payload)}`); 
   return (await ApiClientPrimary.post("/json/setReturnSeat", payload))?.data;
 };
 
@@ -341,6 +351,7 @@ export const setAssignSeatInfo = async (payload) => {
 
 export const logout = async () => {
   await ensureInitialized();
+  await logEvent("info", "User logout"); 
   return (await ApiClientPrimary.get("/kiosk/login/logout"))?.data;
 };
 

@@ -5,13 +5,13 @@ import { useVoice } from "../../../context/voiceContext";
 import { useTranslation } from "react-i18next";
 
 const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
-  const [focusIndex, setFocusIndex] = useState(0);
+  const [focusIndex, setFocusIndex] = useState(null);
   const [isModalFocused, setIsModalFocused] = useState(false);
   const { speak, stop } = useVoice();
   const { t } = useTranslation();
   const hasSpokenIntroRef = useRef(false);
 
- 
+
   const actions = [
     {
       id: 'extend',
@@ -78,25 +78,25 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
     () => actions.filter(a => a.enabled),
     [actions]
   );
-useEffect(() => {
-  if (isOpen) {
-    setIsModalFocused(true);
-    setFocusIndex(0);
-    hasSpokenIntroRef.current = false;
+  useEffect(() => {
+    if (isOpen) {
+      setIsModalFocused(true);
+      setFocusIndex(null);
+      hasSpokenIntroRef.current = false;
 
-    stop();
-    speak(
-      `${t("speech.User Information")}. ${t(
-        "speech.You are now logged in. Please select the features you wish to use."
-      )}`
-    );
-  } else {
-    setIsModalFocused(false);
-    setFocusIndex(0);
-    hasSpokenIntroRef.current = false;
-    stop();
-  }
-}, [isOpen, stop, speak, t]);
+      stop();
+      speak(
+        `${t("speech.User Information")}. ${t(
+          "speech.You are now logged in. Please select the features you wish to use."
+        )}`
+      );
+    } else {
+      setIsModalFocused(false);
+      setFocusIndex(null);
+      hasSpokenIntroRef.current = false;
+      stop();
+    }
+  }, [isOpen, stop, speak, t]);
 
 
   useEffect(() => {
@@ -131,30 +131,32 @@ useEffect(() => {
 
 
   //Speech Functionality 
-useEffect(() => {
-  if (!isOpen || !isModalFocused) return;
+  useEffect(() => {
+    if (!isOpen || !isModalFocused) return;
 
-  // ⛔ Skip speaking focused element once (right after modal opens)
-  if (!hasSpokenIntroRef.current) {
-    hasSpokenIntroRef.current = true;
-    return;
-  }
+    // ⛔ Skip speaking focused element once (right after modal opens)
+    if (!hasSpokenIntroRef.current) {
+      hasSpokenIntroRef.current = true;
+      return;
+    }
 
-  const currentAction = focusableActions[focusIndex];
-  if (currentAction) {
-    stop();
-    speak(
-      t(`speech.${currentAction.title}`, {
-        defaultValue: currentAction.title
-      })
-    );
-  }
-}, [focusIndex, isOpen, isModalFocused, focusableActions, speak, stop, t]);
+    const currentAction = focusableActions[focusIndex];
+    if (currentAction) {
+      stop();
+      speak(
+        t(`speech.${currentAction.title}`, {
+          defaultValue: currentAction.title
+        })
+      );
+    }
+  }, [focusIndex, isOpen, isModalFocused, focusableActions, speak, stop, t]);
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
+
+      showCloseButton={false}
       title={t("translations.User Information")}
       size="large"
       className="h-[50vh]! outline-[6px] outline-[#dc2f02]!"
