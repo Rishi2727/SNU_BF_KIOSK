@@ -87,23 +87,12 @@ const Floor = () => {
   const timeLeftRef = useRef(timeLeft);
   const lastSpokenRef = useRef("");
   const lastFocusedRegionRef = useRef(null);
-
-
+const hasSpokenRoomRef = useRef(false);
+const hasSpokenFloorRef = useRef(false);
 
   //For Floor Section Speak
  
 
-  const speakFloorScreen = useCallback(() => {
-    stop();
-    speak(t("speech.This screen is the floor or reading room selection screen."));
-  }, [speak, stop, t]);
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      speakFloorScreen();
-    }, 500); // small delay so voices are ready
-
-    return () => clearTimeout(timer);
-  }, [speakFloorScreen]);
 
 
 
@@ -410,6 +399,51 @@ useEffect(() => {
     return LEGEND_BAR_COUNT;
   };
 
+  /* =====================================================
+   🔊 SPEAK WHEN ROOM PAGE OPENS
+===================================================== */
+useEffect(() => {
+  // speak ONLY when entering room view
+  if (showRoomView && selectedSector) {
+    if (hasSpokenRoomRef.current) return;
+
+    hasSpokenRoomRef.current = true;
+
+    stop();
+    setTimeout(() => {
+      speak(t("speech.This is room page select your desired seat"));
+    }, 300);
+  }
+
+  // reset when leaving room page
+  if (!showRoomView) {
+    hasSpokenRoomRef.current = false;
+  }
+}, [showRoomView, selectedSector, speak, stop, t]);
+
+
+/* =====================================================
+   🔊 SPEAK WHEN FLOOR PAGE OPENS (AGAIN & AGAIN)
+===================================================== */
+useEffect(() => {
+  // Speak when entering FLOOR view
+  if (!showRoomView && currentFloor) {
+    if (hasSpokenFloorRef.current) return;
+
+    hasSpokenFloorRef.current = true;
+
+    stop();
+    setTimeout(() => {
+      speak(t("speech.This screen is the floor or reading room selection screen."));
+    }, 300);
+  }
+
+  // Reset when entering room view
+  if (showRoomView) {
+    hasSpokenFloorRef.current = false;
+  }
+
+}, [showRoomView, currentFloor, speak, stop, t]);
 
   // Main content keyboard navigation
   useEffect(() => {

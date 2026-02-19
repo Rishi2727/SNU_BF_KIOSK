@@ -20,6 +20,7 @@ import { useVoice } from "./voiceContext";
 import { logout } from "../redux/slice/authSlice";
 import { QRValidate } from "../services/api";
 import { login } from "../redux/slice/authSlice";
+import Modal from "../components/common/Modal";
 
 /* ========================================================================== */
 /*                           CONTEXT INITIALIZATION                           */
@@ -32,25 +33,25 @@ export const SerialPortProvider = ({ children }) => {
   /* ========================================================================== */
   /*                              STATE MANAGEMENT                              */
   /* ========================================================================== */
-  
+
   // Serial Port States
   const [listedSerialPorts, setListedSerialPorts] = useState([]);           // Available system ports
   const [serialPortsData, setSerialPortsData] = useState([]);               // Configured ports from config
   const [matchedPorts, setMatchedPorts] = useState([]);                     // Ports available in both config and system
   const [activeSerialConnections, setActiveSerialConnections] = useState(new Set()); // Currently connected ports
-  
+  const networkErrorRef = useRef(false);
   // Configuration States
   const [kioskConfiguration, setKioskConfiguration] = useState({});         // Machine UID and version
-  
+
   // Sensor & Device States
   const [humanDetected, setHumanDetected] = useState(false);                // Human presence sensor state
   const [rfidMessages, setRfidMessages] = useState([]);                     // RFID scan history
-  
+
   // UI States (for future modal implementations)
   const [isPolling, setIsPolling] = useState(false);
   const [pollingError, setPollingError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+
   // Refs for Connection Management
   const serialListenerRef = useRef(null);                                   // Serial data event listener
   const connectionTimeoutRef = useRef(null);                                // Connection timeout handler
@@ -58,11 +59,11 @@ export const SerialPortProvider = ({ children }) => {
   const previousMatchedPortsRef = useRef([]);                               // Track port changes
   const isInitializedRef = useRef(false);                                   // Initial connection flag
   const portCheckIntervalRef = useRef(null);                                // Periodic port check interval
-  
+
   // Refs for Accessibility Features
   const blockSpeakRef = useRef(false);                                      // Prevent speech outside modals
   const modalShownRef = useRef(false);                                      // Track modal display state
-  
+  const focusModeRef = useRef("MODAL");
   // System Health Tracking (for long-term stability)
   const systemHealthRef = useRef({
     startTime: Date.now(),
@@ -70,18 +71,22 @@ export const SerialPortProvider = ({ children }) => {
     errorCount: 0,
     lastCleanup: Date.now()
   });
-  
+
   // Hooks
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const location = useLocation();
   const { speak, stop } = useVoice();
   const navigate = useNavigate();
+  const [networkError, setNetworkError] = useState(false);
+  const [networkModalButtonFocused, setNetworkModalButtonFocused] = useState(false);
+  const networkRecoveredRef = useRef(false);
+
 
   /* ========================================================================== */
   /*                      ACCESSIBILITY HELPER FUNCTIONS                        */
   /* ========================================================================== */
-  
+
   /**
    * Enable focus and speech accessibility for SweetAlert modals
    * 
@@ -178,7 +183,7 @@ export const SerialPortProvider = ({ children }) => {
   /* ========================================================================== */
   /*                    SERIAL PORT CONFIGURATION FUNCTIONS                     */
   /* ========================================================================== */
-  
+
   /**
    * List all available serial ports from the system
    * Called from Rust backend via Tauri invoke
@@ -200,7 +205,7 @@ export const SerialPortProvider = ({ children }) => {
     try {
       const config = await invoke("read_config");
       setSerialPortsData(config.serialdata || []);
-      
+
       // Store machine metadata for API headers
       if (config) {
         setKioskConfiguration({
@@ -230,7 +235,7 @@ export const SerialPortProvider = ({ children }) => {
   /* ========================================================================== */
   /*                    SERIAL PORT CONNECTION MANAGEMENT                       */
   /* ========================================================================== */
-  
+
   /**
    * Stop all active serial port connections
    * Called during system cleanup or application shutdown
@@ -248,7 +253,7 @@ export const SerialPortProvider = ({ children }) => {
       systemHealthRef.current.errorCount++;
     }
   };
-  
+
   // Stop serial reading only when window/app closes
   useEffect(() => {
     const handleBeforeUnload = () => {
@@ -300,6 +305,138 @@ export const SerialPortProvider = ({ children }) => {
       }
     }
   };
+
+
+  /* ========================================================================== */
+  /*                     KIOSK LOGIN POLLING (NETWORK CHECK)                    */
+  /* ========================================================================== */
+
+
+  useEffect(() => {
+    networkErrorRef.current = networkError;
+  }, [networkError]);
+
+  useEffect(() => {
+    let interval;
+    let mounted = true;
+
+    const checkNetwork = async () => {
+      // ✅ Network restored or available → close modal immediately
+      if (navigator.onLine && modalShownRef.current) {
+        networkErrorRef.current = false;
+        modalShownRef.current = false;
+        networkRecoveredRef.current = false;
+        stop();
+        setNetworkError(false);
+        setIsModalOpen(false);
+        return;
+      }
+
+      try {
+        await invoke("request_kiosk_login");
+
+        if (!mounted) return;
+
+        // ✅ Network restored → close modal
+        if (networkErrorRef.current) {
+          networkErrorRef.current = false;
+          modalShownRef.current = false;
+          networkRecoveredRef.current = false;
+
+          stop();
+          setNetworkError(false);
+          setIsModalOpen(false);
+        }
+      } catch (error) {
+        if (!mounted) return;
+
+        const errorMsg = String(error);
+
+        if (
+          !navigator.onLine && // ✅ Only show if actually offline
+          errorMsg ===
+          "Network error. Please check your internet connection and try again." &&
+          !modalShownRef.current
+        ) {
+          if (!modalShownRef.current) {
+            modalShownRef.current = true;
+            networkErrorRef.current = true;
+            setNetworkError(true);
+            setIsModalOpen(true);
+
+            blockSpeakRef.current = false;
+            speak(t("translations.Network error. Please check your internet connection and try again."));
+          }
+        }
+      }
+    };
+
+    // ✅ Listen for online status to immediately retry/close logic
+    window.addEventListener("online", checkNetwork);
+
+    interval = setInterval(checkNetwork, 5000);
+
+    return () => {
+      mounted = false;
+      if (interval) clearInterval(interval);
+      window.removeEventListener("online", checkNetwork);
+    };
+
+  }, []);
+
+
+
+  /* ========================================================================== */
+  /*                    NETWORK MODAL ACCESSIBILITY (DASHBOARD STYLE)           */
+  /* ========================================================================== */
+
+  useEffect(() => {
+    if (!networkError || !isModalOpen) return;
+
+    // 🔥 When modal opens → focus TEXT first (same as dashboard)
+    setNetworkModalButtonFocused(false);
+
+    stop();
+    speak(t("translations.Network error. Please check your internet connection and try again."));
+
+  }, [networkError, isModalOpen, stop, speak, t]);
+
+
+  useEffect(() => {
+    if (!networkError || !isModalOpen) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        e.preventDefault();
+
+        setNetworkModalButtonFocused((prev) => {
+          const next = !prev;
+
+          stop();
+
+          if (next) {
+            speak(t("translations.Retry"));
+          } else {
+            speak(t("translations.Network error. Please check your internet connection and try again."));
+          }
+
+          return next;
+        });
+      }
+
+      // ✅ ENTER triggers retry (same as dashboard modal)
+      if (e.key === "Enter") {
+        if (networkModalButtonFocused) {
+          e.preventDefault();
+          retryKioskLogin();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+
+  }, [networkError, isModalOpen, networkModalButtonFocused, speak, stop, t]);
 
   /**
    * Start continuous reading from a serial port
@@ -441,7 +578,7 @@ export const SerialPortProvider = ({ children }) => {
   /* ========================================================================== */
   /*                   EFFECTS - CONNECTION MANAGEMENT                          */
   /* ========================================================================== */
-  
+
   /**
    * Connect to new matched ports and maintain active connections
    * Implements debouncing and periodic checks to prevent memory leaks
@@ -483,12 +620,12 @@ export const SerialPortProvider = ({ children }) => {
         if (matchedPorts.length > 0) {
           for (const portConfig of matchedPorts) {
             const portKey = `${portConfig.port}_${portConfig.name}`;
-            
+
             // Skip if already connected
             if (activeSerialConnections.has(portKey)) {
               continue;
             }
-            
+
             await startContinuousRead(portConfig);
             await new Promise(resolve => setTimeout(resolve, 300));
           }
@@ -528,7 +665,7 @@ export const SerialPortProvider = ({ children }) => {
   /* ========================================================================== */
   /*                      EFFECTS - SERIAL DATA LISTENERS                       */
   /* ========================================================================== */
-  
+
   /**
    * Listen for serial data events from QR, RFID, and other devices
    * Handles automatic QR-based authentication
@@ -547,10 +684,10 @@ export const SerialPortProvider = ({ children }) => {
     const handleQRLogin = async (qrCode) => {
       try {
         const cleanedQrCode = qrCode.trim();
-        
+
         // Validate QR code
         const qrResponse = await QRValidate(cleanedQrCode);
-        
+
         // Parse XML response to JSON
         if (typeof qrResponse.data === 'string') {
           // Extract values from CDATA sections using regex
@@ -561,7 +698,7 @@ export const SerialPortProvider = ({ children }) => {
           const patNmMatch = qrResponse.data.match(/<patNm><!\[CDATA\[(.*?)\]\]><\/patNm>/);
           const deptCdMatch = qrResponse.data.match(/<deptCd><!\[CDATA\[(.*?)\]\]><\/deptCd>/);
           const deptNmMatch = qrResponse.data.match(/<deptNm><!\[CDATA\[(.*?)\]\]><\/deptNm>/);
-          
+
           // Build JSON object from extracted data
           const jsonData = {
             resultCode: resultCodeMatch ? resultCodeMatch[1].trim() : "",
@@ -574,23 +711,23 @@ export const SerialPortProvider = ({ children }) => {
               deptNm: deptNmMatch ? deptNmMatch[1].trim() : ""
             }
           };
-          
+
           const { resultCode, resultMsg, item } = jsonData;
           const userId = item.userID;
-          
+
           // Validate result code
           if (resultCode === "1") {
             console.error("QR validation failed:", resultMsg);
             speak(resultMsg || t("QR code validation failed"));
             return;
           }
-          
+
           if (resultCode !== "0") {
             console.error("Unexpected result code:", resultCode);
             speak(t("Unexpected response from server"));
             return;
           }
-          
+
           if (!userId) {
             console.error("No user ID found in QR response");
             speak(t("Unable to extract user information"));
@@ -600,7 +737,7 @@ export const SerialPortProvider = ({ children }) => {
           // Login with extracted user ID
           await dispatch(login(userId)).unwrap();
           speak(t("Login successful"));
-          
+
         } else {
           console.error("Expected XML string response");
           speak(t("Invalid response format"));
@@ -629,7 +766,7 @@ export const SerialPortProvider = ({ children }) => {
           if (!isMounted) return;
 
           const { device_name, data } = event.payload;
-          
+
           // Store serial data in Redux
           dispatch(setSerialData({ deviceName: device_name, data }));
 
@@ -637,7 +774,7 @@ export const SerialPortProvider = ({ children }) => {
           if (device_name === "QR" && data && data.trim()) {
             await handleQRLogin(data.trim());
           }
-          
+
           // Handle RFID data (placeholder for future implementation)
           if (device_name === "RFID" && data && data.trim()) {
             // Add RFID login logic here if needed
@@ -737,6 +874,34 @@ export const SerialPortProvider = ({ children }) => {
     };
   };
 
+  /* ========================================================================== */
+  /*                            RETRY NETWORK REQUEST                            */
+  /* ========================================================================== */
+  const retryKioskLogin = async () => {
+    try {
+      await invoke("request_kiosk_login");
+      // ✅ Success → close modal cleanly, no page refresh
+      blockSpeakRef.current = true;
+      stop();
+      setNetworkError(false);
+      setIsModalOpen(false);
+      modalShownRef.current = false;
+    } catch (error) {
+      // ✅ If internet is available but request failed, close modal anyway
+      if (navigator.onLine) {
+        blockSpeakRef.current = true;
+        stop();
+        setNetworkError(false);
+        setIsModalOpen(false);
+        modalShownRef.current = false;
+      } else {
+        blockSpeakRef.current = false;
+        speak(t("translations.Network Error"));
+      }
+    }
+  };
+
+
   return (
     <SerialPortContext.Provider
       value={{
@@ -745,25 +910,63 @@ export const SerialPortProvider = ({ children }) => {
         serialPortsData,
         matchedPorts,
         activeSerialConnections: Array.from(activeSerialConnections),
-        
+
         // Configuration
         kioskConfiguration,
-        
+
         // Sensor Data
         humanDetected,
         rfidMessages,
-        
+
         // Functions
         writeToSerialPort,
         stopSerialReading,
         performSystemCleanup,
-        
+
         // Debug Information
         isSerialInitialized: isInitializedRef.current,
         connectionCount: activeSerialConnections.size,
         systemHealth: getSystemHealth(),
       }}
     >
+      {networkError && (
+        <Modal
+          isOpen={isModalOpen}
+          title={t("translations.Network Error")}
+          onClose={() => { }}
+          size="medium"
+          showCloseButton={false}
+          closeFocused={false}
+
+          className="outline-[6px] outline-[#dc2f02]"
+          footer={
+            <div className="flex justify-center">
+              <button
+                onClick={retryKioskLogin}
+                className={`
+px-10 py-3 text-2xl bg-orange-600 text-white rounded-lg
+hover:bg-orange-700 transition-all
+${networkModalButtonFocused ? "outline-[6px] outline-[#dc2f02]" : ""}
+`}
+              >
+                {t("translations.Retry")}
+              </button>
+            </div>
+          }
+        >
+          <div
+            className={`text-center py-4 outline-none ${!networkModalButtonFocused ? "outline-[6px] outline-[#dc2f02]" : ""
+              }`}
+          >
+
+            <p className="text-2xl">
+              {t("translations.Network error. Please check your internet connection and try again.")}
+            </p>
+          </div>
+        </Modal>
+      )}
+
+
       {children}
     </SerialPortContext.Provider>
   );

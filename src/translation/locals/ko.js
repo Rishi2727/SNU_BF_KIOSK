@@ -160,7 +160,8 @@ const koTranslations = {
     "Floor": "{{floor}}",
     "Fixed seats": "고정석",
     "Seat Label": "{{seat}}번 좌석",
-    "Booking Failed": "예약 실패"
+    "Booking Failed": "예약 실패",
+    "This is room page select your desired seat":"This is room page select your desired seat"
 
 
 
