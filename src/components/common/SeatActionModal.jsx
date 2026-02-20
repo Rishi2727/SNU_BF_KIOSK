@@ -319,7 +319,7 @@ const SeatActionModal = ({
         dispatch, lang
     ]);
 
-    console.log("BOOKING API DATA", bookingSeatInfo);
+   
     /**
      * Set default time option using moment
      */
@@ -349,6 +349,7 @@ const SeatActionModal = ({
      * Execute API call based on mode
      */
     const executeApiCall = useCallback(async () => {
+        
         if (isBooking) {
             const payload = {
                 seatno: seat.SEATNO,
@@ -418,6 +419,7 @@ const SeatActionModal = ({
                     message: msg || res?.msg
                 });
             }
+            console.log("response of error",res?.msg)
 
             setShowResultModal(true);
         } catch (err) {
@@ -432,7 +434,7 @@ const SeatActionModal = ({
         }
     }, [
         isReturn, isMove, isBooking, selectedIndex,
-        isAvailable, executeApiCall, onClose, mode
+        isAvailable, executeApiCall, onClose, mode,lang
     ]);
 
     //helper function to hours and minutes 
@@ -543,11 +545,7 @@ const SeatActionModal = ({
             }`;
         const textClass = "text-center text-[30px] text-[#DDAB2C] font-bold";
 
-        console.log("HEADER SOURCE", {
-            room: seat?.ROOM_NAME,
-            floor: bookingSeatInfo?.FLOOR_NAME,
-            sector: bookingSeatInfo?.SECTOR_NAME,
-        });
+
 
         if (isAssignCheck && seatInfo) {
             return (

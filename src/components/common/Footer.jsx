@@ -476,7 +476,7 @@ useEffect(() => {
                 <button
                   onClick={logout}
                   className={`flex items-center gap-2 bg-red-500 px-5 py-2 rounded-full text-white text-[26px]
-          ${cursor === 1 + BACK_OFFSET && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}`}
+          ${cursor === 1 + BACK_OFFSET && isFocused ? "outline-[6px] outline-[#f3efef]" : ""}`}
                 >
                   <LogOut className="w-7 h-7" />
                   {t("translations.Logout")}
@@ -503,15 +503,15 @@ useEffect(() => {
           </div>
 
           {/* 🌐 LANGUAGE */}
-          <div className="flex rounded-xl border-2 border-white">
+          <div className="flex rounded-xl border-2  border-white ">
             {["KR", "EN"].map((lang, i) => (
               <button
                 key={lang}
                 onClick={() => handleLanguageChange(lang)}
-                className={`min-w-17 h-14 text-[28px] font-bold
+                className={`min-w-17 h-14 text-[28px] p-0.5 font-bold
         ${language === lang ? "bg-[#FFCA08] rounded-lg text-white" : "bg-white text-black"}
         ${cursor === (userInfo ? 3 + i + BACK_OFFSET : 2 + i + BACK_OFFSET)
-                    && isFocused ? "outline-[6px] outline-[#dc2f02]" : ""}`}
+                    && isFocused ? "border-[6px] border-[#dc2f02]" : "border-[6px] border-transparent"}`}
               >
                 {lang}
               </button>

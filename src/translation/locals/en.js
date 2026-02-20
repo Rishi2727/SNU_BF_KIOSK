@@ -253,7 +253,8 @@ const enTranslations = {
     "Network Error": "Network Error",
     "Retry": "Retry",
      "Another seat is already in use (reserved).":"Another seat is already in use (reserved).",
-      "이미 다른 좌석을 사용(예약)중입니다.":"Another seat is already in use (reserved)"
+      "이미 다른 좌석을 사용(예약)중입니다.":"Another seat is already in use (reserved)",
+      "다른 구역으로는 좌석을 이동할 수 없습니다.<br/>관리자에게 문의하세요.":"You cannot move your seat to another area.Please contact the administrator."
   }
 
 }

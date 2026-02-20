@@ -514,13 +514,16 @@ const Floor = () => {
         if (focusedRegion === FocusRegion.MAP && displayableSectors?.length) {
           handleSectorClick(displayableSectors[contentIndex]);
         }
-
         if (focusedRegion === FocusRegion.ROOM) {
-          // Handle seat click - will be implemented with visible seats
-          const visibleSeats = seats; // This will be refined
-          if (visibleSeats[contentIndex]) {
-            handleSeatClick(visibleSeats[contentIndex]);
-          }
+          const seat = visibleSeats[contentIndex];
+
+          if (!seat) return;
+          const isAvailable =
+            seat.USECNT === 0 && (seat.STATUS === 1 || seat.STATUS === 2);
+
+          if (!isAvailable) return; 
+
+          handleSeatClick(seat);
         }
       }
     };
