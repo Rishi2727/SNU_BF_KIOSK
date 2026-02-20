@@ -252,6 +252,8 @@ const enTranslations = {
     "Network error. Please check your internet connection and try again.": "Network error. Please check your internet connection and try again.",
     "Network Error": "Network Error",
     "Retry": "Retry",
+     "Another seat is already in use (reserved).":"Another seat is already in use (reserved).",
+      "이미 다른 좌석을 사용(예약)중입니다.":"Another seat is already in use (reserved)"
   }
 
 }

@@ -7,7 +7,7 @@ import KeyboardModal from "../../components/layout/keyBoardModal/KeyboardModal";
 import FooterControls from "../../components/common/Footer";
 import UserInfoModal from "../../components/layout/dashboard/useInfoModal";
 import SeatActionModal from "../../components/common/SeatActionModal";
-import { getKioskUserInfo, HUMAN_SENSOR_DETECTION } from "../../services/api";
+import { getKioskUserInfo, HUMAN_SENSOR_DETECTION, setApiLang } from "../../services/api";
 import { clearUserInfo, setUserInfo } from "../../redux/slice/userInfo";
 import { login, logout } from "../../redux/slice/authSlice";
 import { fetchBookingTime } from "../../redux/slice/bookingTimeSlice";
@@ -34,6 +34,12 @@ const Dashboard = () => {
   const { speak, stop } = useVoice();
   const { setCurrentFloor } = useFloorData(null, null);
   const lang = useSelector((state) => state.lang.current);
+
+  // Update API language whenever redux lang changes
+  useEffect(() => {
+    setApiLang(lang);
+  }, [lang]);
+
   const [modalStates, setModalStates] = useState({
     [MODAL_TYPES.EXTENSION]: false,
     [MODAL_TYPES.RETURN]: false,
@@ -413,7 +419,7 @@ const Dashboard = () => {
   // ✅ NEW: Handle Floor Selection
   const handleFloorSelect = useCallback(
     (floorTitle) => {
-        logEvent("info", `Floor selected: ${floorTitle}`);
+      logEvent("info", `Floor selected: ${floorTitle}`);
       closeFloorSelectionModal();
       navigateToFloor(floorTitle);
     },
@@ -551,7 +557,7 @@ const Dashboard = () => {
           },
         });
       } catch (error) {
-          await logEvent("error", `Error fetching booking info for move: ${error.message}`);
+        await logEvent("error", `Error fetching booking info for move: ${error.message}`);
         console.error("Error fetching booking info:", error);
       }
     },
@@ -620,7 +626,7 @@ const Dashboard = () => {
    * Handle logout
    */
   const handleLogout = useCallback(() => {
-      logEvent("info", "User logged out from dashboard");
+    logEvent("info", "User logged out from dashboard");
     dispatch(logout());
   }, [dispatch]);
 

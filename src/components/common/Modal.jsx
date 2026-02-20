@@ -8,7 +8,8 @@ const Modal = ({
   showCloseButton = true,
   className = "",
   closeFocused = false,
-    zIndex = 50  
+    zIndex = 50,
+      closeOnBackdrop = false 
 
 }) => {
   if (!isOpen) return null;
@@ -33,7 +34,9 @@ const Modal = ({
     <div
       className="fixed inset-0  flex items-center justify-center bg-black/50 backdrop-blur-sm"
         style={{ zIndex }}
-      onClick={handleClose}
+      onClick={() => {
+  if (closeOnBackdrop) handleClose();
+}}
     >
       <div
         className={`bg-white rounded-lg shadow-2xl ${sizeClasses[size]} max-w-[90vw] max-h-[90vh] flex flex-col overflow-hidden  ${className}`}

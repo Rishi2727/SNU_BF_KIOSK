@@ -107,12 +107,18 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
       switch (e.key) {
         case "ArrowRight":
           e.preventDefault();
-          setFocusIndex(prev => (prev + 1) % (maxIndex + 1));
+          setFocusIndex(prev =>
+            prev === null ? 0 : (prev + 1) % (maxIndex + 1)
+          );
           break;
+
         case "ArrowLeft":
           e.preventDefault();
-          setFocusIndex(prev => (prev - 1 + maxIndex + 1) % (maxIndex + 1));
+          setFocusIndex(prev =>
+            prev === null ? maxIndex : (prev - 1 + maxIndex + 1) % (maxIndex + 1)
+          );
           break;
+
         case "Enter":
           e.preventDefault();
           focusableActions[focusIndex]?.action();
@@ -155,7 +161,7 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-
+ closeOnBackdrop={false} 
       showCloseButton={false}
       title={t("translations.User Information")}
       size="large"

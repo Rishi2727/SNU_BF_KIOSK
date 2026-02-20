@@ -8,7 +8,8 @@ import {
     setExtend,
     setReturnSeat,
     setMove,
-    setAssignSeatInfo
+    setAssignSeatInfo,
+    setApiLang
 } from "../../services/api";
 import { clearUserInfo } from "../../redux/slice/userInfo";
 import { clearBookingTime, fetchBookingTime } from "../../redux/slice/bookingTimeSlice";
@@ -49,6 +50,7 @@ const SeatActionModal = ({
     const { t } = useTranslation();
     const lastSpokenRef = useRef("");
     const { isBooking, isExtension, isReturn, isMove, isAssignCheck } = modeFlags;
+    const lang = useSelector((state) => state.lang.current);
 
     // Check seat availability
     const isAvailable = useMemo(() => {
@@ -75,6 +77,7 @@ const SeatActionModal = ({
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const isInitialLoading = isOpen && loading && !showResultModal;
 
     /**
      * ✅ STEP 1: Define focusable elements based on modal state
@@ -264,7 +267,7 @@ const SeatActionModal = ({
             try {
                 setLoading(true);
                 setSeatInfo(null);
-
+                setApiLang(lang); // Ensure API lang is synced
                 const res = await setAssignSeatInfo({ bseqno: assignNo });
 
                 if (res?.successYN === "Y") {
@@ -280,7 +283,7 @@ const SeatActionModal = ({
         };
 
         fetchInfo();
-    }, [isOpen, isAssignCheck, assignNo]);
+    }, [isOpen, isAssignCheck, assignNo, lang]);
 
     /**
      * Reset state and fetch time options on modal open
@@ -302,18 +305,21 @@ const SeatActionModal = ({
         setSeatInfo(null);
 
         // Fetch booking time for booking and extension modes only
-        if (!isReturn && !isMove) {
+        if (!isMove) {
+            setApiLang(lang); // Ensure API lang is synced
             if (isBooking) {
                 dispatch(fetchBookingTime({ seatno: seat.SEATNO }));
-            } else if (isExtension) {
+            } else if (isExtension || isReturn) {
                 dispatch(fetchBookingTime({ assignno: assignNo }));
             }
         }
     }, [
         isOpen, seat, assignNo, isAvailable,
         isBooking, isExtension, isReturn, isMove, isAssignCheck,
-        dispatch
+        dispatch, lang
     ]);
+
+    console.log("BOOKING API DATA", bookingSeatInfo);
     /**
      * Set default time option using moment
      */
@@ -537,6 +543,12 @@ const SeatActionModal = ({
             }`;
         const textClass = "text-center text-[30px] text-[#DDAB2C] font-bold";
 
+        console.log("HEADER SOURCE", {
+            room: seat?.ROOM_NAME,
+            floor: bookingSeatInfo?.FLOOR_NAME,
+            sector: bookingSeatInfo?.SECTOR_NAME,
+        });
+
         if (isAssignCheck && seatInfo) {
             return (
                 <div className={headerClass}>
@@ -571,10 +583,13 @@ const SeatActionModal = ({
                 </p>
             </div>
         );
+
     }, [
         isAssignCheck, isBooking, isMove, isExtension, isReturn,
-        seatInfo, seat, bookingSeatInfo, mode, isFocused
+        seatInfo, seat, bookingSeatInfo, mode, isFocused, t, lang
     ]);
+
+
 
     /**
      * ✅ STEP 7: Render time selection grid with focus highlighting
@@ -602,6 +617,8 @@ const SeatActionModal = ({
             ))}
         </div>
     ), [timeOptions, selectedIndex, handleTimeSelect, isFocused]);
+
+
 
     /**
      * Render confirmation message
@@ -906,8 +923,13 @@ const SeatActionModal = ({
     return (
         <>
             {/* Main Action Modal */}
+            {isInitialLoading && (
+                <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                    <LoadingSpinner size={120} />
+                </div>
+            )}
             <Modal
-                isOpen={isOpen}
+                isOpen={isOpen && !isInitialLoading}
                 onClose={onClose}
                 title=""
                 size=""

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { Home, Users, Armchair, ArrowLeft } from 'lucide-react';
 import { useVoice } from "../../../context/voiceContext";
 import { useTranslation } from "react-i18next";
@@ -32,7 +32,7 @@ const FloorLegendBar = ({
           t("speech.Floor legend location", {
             building: t(`translations.${buildingName}`),
             floor: formatFloorForSpeech(floorName, lang),
-            room: roomName,
+            room: formattedRoomName,
           })
         );
         break;
@@ -64,6 +64,15 @@ const FloorLegendBar = ({
     lang,
   ]);
 
+
+
+  // --------------------------
+  // FORMAT ROOM NAME (Translate specific English terms like QUIET ZONE)
+  // --------------------------
+  const formattedRoomName = useMemo(() => {
+    if (!roomName) return "";
+    return roomName.replace(/\(QUIET ZONE\)/gi, `(${t("translations.Quiet Zone")})`);
+  }, [roomName, t]);
 
 
   // --------------------------
@@ -101,8 +110,8 @@ const FloorLegendBar = ({
           <span className="text-[28px] font-semibold text-nowrap">
             {buildingName && `${t(`translations.${buildingName}`)} `}
             {floorName && `( ${t(`translations.${floorName}`)} `}
-            {roomName && `: ${roomName} `}
-            {(floorName || roomName) && ')'}
+            {formattedRoomName && `: ${formattedRoomName} `}
+            {(floorName || formattedRoomName) && ')'}
           </span>
 
         </div>
