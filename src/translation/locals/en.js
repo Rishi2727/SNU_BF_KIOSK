@@ -302,7 +302,10 @@ const enTranslations = {
     "Success": "Success",
     "Confirm Changes": "Confirm Changes",
     "Save": "Save",
-    "좌석 이동이 성공적으로 완료되었습니다.":"Seat moved successfully."
+    "좌석 이동이 성공적으로 완료되었습니다.":"Seat moved successfully.",
+    "ABOUT":"ABOUT",
+    "This self-service kiosk by Wise Neosco India Pvt. Ltd. simplifies seat reservations, confirmations, cancellations, returns, and extensions. It also works with RFID, QR codes, and barcodes for fast, secure access.":"This self-service kiosk by Wise Neosco India Pvt. Ltd. simplifies seat reservations, confirmations, cancellations, returns, and extensions. It also works with RFID, QR codes, and barcodes for fast, secure access.",
+    "Date":"Date",
 
   }
 

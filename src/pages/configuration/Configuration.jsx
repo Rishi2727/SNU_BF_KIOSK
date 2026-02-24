@@ -50,12 +50,12 @@ const Configuration = () => {
 
 
 
-      // ✅ Load saved language
-  useEffect(() => {
-    const saved = localStorage.getItem("lang") || "ko";
-    setLanguage(saved === "ko" ? "KR" : "EN");
-     i18n.changeLanguage(saved);
-  }, []);
+    // ✅ Load saved language
+    useEffect(() => {
+        const saved = localStorage.getItem("lang") || "ko";
+        setLanguage(saved === "ko" ? "KR" : "EN");
+        i18n.changeLanguage(saved);
+    }, []);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
