@@ -306,6 +306,7 @@ const enTranslations = {
     "ABOUT":"ABOUT",
     "This self-service kiosk by Wise Neosco India Pvt. Ltd. simplifies seat reservations, confirmations, cancellations, returns, and extensions. It also works with RFID, QR codes, and barcodes for fast, secure access.":"This self-service kiosk by Wise Neosco India Pvt. Ltd. simplifies seat reservations, confirmations, cancellations, returns, and extensions. It also works with RFID, QR codes, and barcodes for fast, secure access.",
     "Date":"Date",
+    "Print Receipt":"Print Receipt"
 
   }
 

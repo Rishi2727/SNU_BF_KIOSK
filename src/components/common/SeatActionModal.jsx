@@ -47,6 +47,7 @@ const getPrintData = (formattedData, t) => {
             return padLabel(translated, width);
         };
 
+
         commands.push(
             { type: "alignment", value: "center" },
             { type: "medium_text" },
@@ -120,9 +121,9 @@ const getPrintData = (formattedData, t) => {
         commands.push(
             { type: "alignment", value: "center" },
             { type: "medium_text" },
-            { type: "korean_text", value: t("SEOUL NATIONAL") },
+            { type: "korean_text", value: t("translations.SEOUL NATIONAL UNIVERSITY") },
             { type: "blank_line" },
-            { type: "korean_text", value: t("UNIVERSITY") },
+            { type: "korean_text", value: t("translations.UNIVERSITY") },
             { type: "normal_text" },
             { type: "blank_line" },
             { type: "blank_line" },
