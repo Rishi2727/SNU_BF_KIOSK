@@ -279,8 +279,6 @@ const koTranslations = {
     "-check out.": "-체크아웃하세요.",
     "Please return the seat assignment when you": "좌석 배정표는 도착 시 반납해 주시기 바랍니다.",
     "*It helps other people use it.": "*다른 사람들이 사용하는 데 도움이 됩니다.",
-    "SEOUL NATIONAL": "서울 국립",
-    "UNIVERSITY": "대학교",
     "Server Information": "서버 정보",
     "Configuration Settings": "구성 설정",
     "Manager Call PC": "관리자콜PC",

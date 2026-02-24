@@ -29,7 +29,7 @@ import { useSerialPort } from "../../context/SerialPortContext";
 
 
 const getPrintData = (formattedData, t) => {
-    const languageCode = localStorage.getItem("language") === "ko" ? "ko" : "en";
+    const languageCode = localStorage.getItem("lang") === "ko" ? "ko" : "en";
     const commands = [];
     const padLabel = (label, width = 21) => label.padEnd(width, " ") + ": ";
     if (languageCode === "ko") {
@@ -121,7 +121,7 @@ const getPrintData = (formattedData, t) => {
         commands.push(
             { type: "alignment", value: "center" },
             { type: "medium_text" },
-            { type: "korean_text", value: t("translations.SEOUL NATIONAL UNIVERSITY") },
+            { type: "korean_text", value: t("translations.SEOUL NATIONAL") },
             { type: "blank_line" },
             { type: "korean_text", value: t("translations.UNIVERSITY") },
             { type: "normal_text" },
@@ -464,36 +464,42 @@ const SeatActionModal = ({
     /**
      * Reset state and fetch time options on modal open
      */
-    useEffect(() => {
-        if (!isOpen) return;
-        if (isAssignCheck) return;
-        if ((isBooking || isMove) && (!seat?.SEATNO || !isAvailable)) return;
-        if ((isExtension || isReturn) && !assignNo) return;
+      useEffect(() => {
 
-        // Reset state
-        dispatch(clearBookingTime());
-        setConfirmStep(false);
-        setStartTime(new Date());
-        setEndTime(null);
-        setShowResultModal(false);
-        setActionResult(null);
-        setSelectedIndex(null);
-        setSeatInfo(null);
+    if (!isOpen) return;
+    if (isAssignCheck) return;
+    if ((isBooking || isMove) && (!seat?.SEATNO || !isAvailable)) return;
+    if ((isExtension || isReturn) && !assignNo) return;
 
-        // Fetch booking time for booking and extension modes only
-        if (!isMove) {
-            setApiLang(lang); // Ensure API lang is synced
-            if (isBooking) {
-                dispatch(fetchBookingTime({ seatno: seat.SEATNO }));
-            } else if (isExtension || isReturn) {
-                dispatch(fetchBookingTime({ assignno: assignNo }));
-            }
-        }
-    }, [
-        isOpen, seat, assignNo, isAvailable,
-        isBooking, isExtension, isReturn, isMove, isAssignCheck,
-        dispatch, lang
-    ]);
+    dispatch(clearBookingTime());
+
+    // 🔥 Update API language
+    setApiLang(lang);
+
+    // 🔥 Re-fetch automatically when language changes
+    if (isBooking) {
+        dispatch(fetchBookingTime({ seatno: seat.SEATNO }));
+    } 
+    else if (isExtension || isReturn) {
+        dispatch(fetchBookingTime({ assignno: assignNo }));
+    }
+    else if (isMove && assignNo) {
+        dispatch(fetchBookingTime({ assignno: assignNo }));
+    }
+
+}, [
+    isOpen,
+    lang,   // ⭐ IMPORTANT
+    seat,
+    assignNo,
+    isAvailable,
+    isBooking,
+    isExtension,
+    isReturn,
+    isMove,
+    isAssignCheck
+]);
+
 
 
     /**
@@ -650,14 +656,14 @@ const SeatActionModal = ({
      */
     const handlePrint = useCallback(async () => {
         try {
-            const languageCode = localStorage.getItem("language") === "ko" ? "ko" : "en";
+            const languageCode = localStorage.getItem("lang") === "ko" ? "ko" : "en";
             const isKorean = languageCode === "ko";
 
             // ✅ FIX: For booking mode, seat prop is null after onClose(); use captured seatInfo as fallback
             const roomName = seat?.ROOM_NAME || bookingSeatInfo?.FLOOR_NAME || seatInfo?.FLOOR_NAME || "";
             const sectorName = seat?.NAME || bookingSeatInfo?.SECTOR_NAME || seatInfo?.SECTOR_NAME || "";
             const roomDisplay = [roomName, sectorName].filter(Boolean).join(", ");
-
+    console.log("seat", seat?.ROOM_NAME, "bookingSeatInfo", bookingSeatInfo?.FLOOR_NAME, "seatInfo", seatInfo?.FLOOR_NAME);
             const formattedData = {
                 USER_NAME: userInfo?.NAME || userInfo?.SCHOOLNO || "",
                 SCHOOL_NO: userInfo?.SCHOOLNO || "",

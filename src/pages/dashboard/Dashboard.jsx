@@ -523,6 +523,7 @@ const Dashboard = () => {
         let bookingData = bookingSeatInfo;
 
         if (!bookingData) {
+           setApiLang(lang);
           const result = await dispatch(
             fetchBookingTime({
               assignno: assignNo,
@@ -561,7 +562,7 @@ const Dashboard = () => {
         console.error("Error fetching booking info:", error);
       }
     },
-    [userInfo, bookingSeatInfo, dispatch, navigate, setCurrentFloor],
+    [userInfo, bookingSeatInfo, dispatch, navigate, setCurrentFloor, lang],
   );
 
   /**
