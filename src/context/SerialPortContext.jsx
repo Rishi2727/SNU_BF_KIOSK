@@ -561,6 +561,7 @@ export const SerialPortProvider = ({ children }) => {
    */
   const writeToSerialPort = async (portConfig, printOptions) => {
     try {
+      await invoke("stop_serial_reading");
       await invoke("print_with_options", { printOptions });
       return true;
     } catch (error) {

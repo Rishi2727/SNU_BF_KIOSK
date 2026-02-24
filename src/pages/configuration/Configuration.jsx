@@ -20,12 +20,13 @@ import {
 import './Configuration.css';
 import Dropdown from '../../components/common/dropdown';
 import Modal from '../../components/common/Modal';
-
+import { logout } from "../../redux/slice/authSlice";
+import { setLanguage as setLanguageAction } from "../../redux/slice/langSlice";
 
 const Configuration = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [language, setLanguage] = useState("KR");
     const [formData, setFormData] = useState({
         managerIpUrl: '',
@@ -47,6 +48,14 @@ const Configuration = () => {
     const [errorMessage, setErrorMessage] = useState("");
     const [isSaving, setIsSaving] = useState(false);
 
+
+
+      // ✅ Load saved language
+  useEffect(() => {
+    const saved = localStorage.getItem("lang") || "ko";
+    setLanguage(saved === "ko" ? "KR" : "EN");
+     i18n.changeLanguage(saved);
+  }, []);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -158,6 +167,7 @@ const Configuration = () => {
         setShowConfirmationModal(true);
     };
     const handleBack = () => {
+        dispatch(logout());
         navigate('/');
     };
     const handleSave = async () => {
@@ -232,7 +242,7 @@ const Configuration = () => {
 
                     <h1 className="config-title">
                         <Settings className="w-7 h-7" />
-                        {t('Configuration Settings')}
+                        {t('translations.Configuration Settings')}
                     </h1>
 
                     <div className="config-header-spacer">
@@ -247,7 +257,7 @@ const Configuration = () => {
                     <section className="config-section">
                         <div className="config-section-header">
                             <Server className="w-6 h-6 text-[#FFCA08]" />
-                            <h2>{t('Server Information')}</h2>
+                            <h2>{t('translations.Server Information')}</h2>
                         </div>
 
                         <div className="config-grid">
@@ -255,7 +265,7 @@ const Configuration = () => {
                             <div className="config-field">
                                 <label className="config-label">
                                     <Monitor className="w-5 h-5" />
-                                    {t('Manager Call PC')}
+                                    {t('translations.Manager Call PC')}
                                 </label>
                                 <input
                                     type="text"
@@ -273,40 +283,40 @@ const Configuration = () => {
                     <section className="config-section">
                         <div className="config-section-header">
                             <Wifi className="w-6 h-6 text-[#FFCA08]" />
-                            <h2>{t('Peripheral Settings')}</h2>
+                            <h2>{t('translations.Peripheral Settings')}</h2>
                         </div>
 
                         {serialDevices.map((device) => {
                             return (
                                 <div key={device.ID} className="config-device-card">
-                                    <h3 className="config-device-title">{t(device.name)}</h3>
+                                    <h3 className="config-device-title">{t(`translations.${device.name}`)}</h3>
 
                                     {portErrors[device.ID] && (
                                         <div className="flex items-center gap-2 p-3 mb-3 bg-red-50 border border-red-200 rounded-lg">
-                                            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                                            <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
                                             <p className="text-red-700 text-sm">{portErrors[device.ID]}</p>
                                         </div>
                                     )}
 
                                     <div className="config-grid-2">
                                         <Dropdown
-                                            label={t('Port')}
+                                            label={t('translations.Port')}
                                             options={serialPorts}
                                             value={device.port}
                                             onChange={(value) =>
                                                 handleSerialDeviceChange(device.ID, "port", value)
                                             }
-                                            placeholder={t('Select Port')}
+                                            placeholder={t('translations.Select Port')}
                                         />
 
                                         <Dropdown
-                                            label={t('Baud Rate')}
+                                            label={t('translations.Baud Rate')}
                                             options={baudrateOptions}
                                             value={device.baudrate}
                                             onChange={(value) =>
                                                 handleSerialDeviceChange(device.ID, "baudrate", value)
                                             }
-                                            placeholder={t('Select Baud Rate')}
+                                            placeholder={t('translations.Select Baud Rate')}
                                         />
                                     </div>
                                 </div>
@@ -318,11 +328,11 @@ const Configuration = () => {
                     <section className="config-section">
                         <div className="config-section-header">
                             <Settings className="w-6 h-6 text-[#FFCA08]" />
-                            <h2>{t('System Settings')}</h2>
+                            <h2>{t('translations.System Settings')}</h2>
                         </div>
 
                         <div className="config-device-card">
-                            <h3 className="config-device-title">{t('Kiosk Mode')}</h3>
+                            <h3 className="config-device-title">{t('translations.Kiosk Mode')}</h3>
 
                             <div className="config-radio-group">
                                 <label className="config-radio-option">
@@ -333,7 +343,7 @@ const Configuration = () => {
                                         onChange={() => handleKioskModeChange(true)}
                                         className="config-radio-input"
                                     />
-                                    <span className="config-radio-label">{t('Enabled')}</span>
+                                    <span className="config-radio-label">{t('translations.Enabled')}</span>
                                     <span className="config-radio-indicator"></span>
                                 </label>
 
@@ -345,7 +355,7 @@ const Configuration = () => {
                                         onChange={() => handleKioskModeChange(false)}
                                         className="config-radio-input"
                                     />
-                                    <span className="config-radio-label">{t('Disabled')}</span>
+                                    <span className="config-radio-label">{t('translations.Disabled')}</span>
                                     <span className="config-radio-indicator"></span>
                                 </label>
                             </div>
@@ -360,7 +370,7 @@ const Configuration = () => {
                         <div className="config-info-item">
                             <Cpu className="w-6 h-6 text-[#FFCA08]" />
                             <div>
-                                <strong className="config-info-label">{t('Device ID')}</strong>
+                                <strong className="config-info-label">{t('translations.Device ID')}</strong>
                                 <span className="config-info-value">{machineId}</span>
                             </div>
                         </div>
@@ -370,7 +380,7 @@ const Configuration = () => {
                         <div className="config-info-item">
                             <HardDrive className="w-6 h-6 text-[#FFCA08]" />
                             <div>
-                                <strong className="config-info-label">{t('App Version')}</strong>
+                                <strong className="config-info-label">{t('translations.App Version')}</strong>
                                 <span className="config-info-value">{appInfo.version}</span>
                             </div>
                         </div>
@@ -380,7 +390,7 @@ const Configuration = () => {
                         <div className="config-info-item">
                             <Calendar className="w-6 h-6 text-[#FFCA08]" />
                             <div>
-                                <strong className="config-info-label">{t('Release Date')}</strong>
+                                <strong className="config-info-label">{t('translations.Release Date')}</strong>
                                 <span className="config-info-value">{appInfo.release_date}</span>
                             </div>
                         </div>
@@ -407,7 +417,7 @@ const Configuration = () => {
                         className="config-save-button group disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <Save className="w-6 h-6 transition-transform group-hover:scale-110" />
-                        {isSaving ? t('Saving...') : t('Save')}
+                        {isSaving ? t('translations.Saving...') : t('translations.Save')}
                     </button>
                 </div>
 
@@ -417,7 +427,7 @@ const Configuration = () => {
             <Modal
                 isOpen={showConfirmationModal}
                 onClose={() => !isSaving && setShowConfirmationModal(false)}
-                title={t('Confirm Changes')}
+                title={t('translations.Confirm Changes')}
                 size="medium"
                 showCloseButton={!isSaving}
                 footer={
@@ -427,26 +437,26 @@ const Configuration = () => {
                             disabled={isSaving}
                             className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {t('No')}
+                            {t('translations.No')}
                         </button>
                         <button
                             onClick={handleSave}
                             disabled={isSaving}
                             className="px-6 py-2 bg-[#FFCA08] text-white rounded-lg hover:bg-[#e5b607] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {isSaving ? t('Saving...') : t('Yes')}
+                            {isSaving ? t('translations.Saving...') : t('translations.Yes')}
                         </button>
                     </div>
                 }
             >
-                <p className="text-gray-700 text-lg">{t('Are you sure you want to save changes?')}</p>
+                <p className="text-gray-700 text-lg">{t('translations.Are you sure you want to save changes?')}</p>
             </Modal>
 
             {/* Success Modal */}
             <Modal
                 isOpen={showSuccessModal}
                 onClose={() => { }}
-                title={t('Success')}
+                title={t('translations.Success')}
                 size="small"
                 showCloseButton={false}
                 footer={
@@ -455,19 +465,19 @@ const Configuration = () => {
                             onClick={handleRestart}
                             className="px-6 py-2 bg-[#FFCA08] text-white rounded-lg hover:bg-[#e5b607] transition-colors"
                         >
-                            {t('Restart')}
+                            {t('translations.Restart')}
                         </button>
                     </div>
                 }
             >
                 <div className="flex items-start gap-4">
-                    <CheckCircle className="w-12 h-12 text-green-500 flex-shrink-0" />
+                    <CheckCircle className="w-12 h-12 text-green-500 shrink-0" />
                     <div>
                         <p className="text-gray-700 text-lg font-medium mb-2">
-                            {t('Changes saved successfully!')}
+                            {t('translations.Changes saved successfully!')}
                         </p>
                         <p className="text-gray-600 text-sm">
-                            {t('Please restart the application to apply the changes.')}
+                            {t('translations.Please restart the application to apply the changes.')}
                         </p>
                     </div>
                 </div>

@@ -23,6 +23,177 @@ import {
 import { MODE_LABELS, MODES } from "../../utils/constant";
 import { useTranslation } from "react-i18next";
 import { useVoice } from "../../context/voiceContext";
+import { useSerialPort } from "../../context/SerialPortContext";
+
+
+
+
+const getPrintData = (formattedData, t) => {
+    const languageCode = localStorage.getItem("language") === "ko" ? "ko" : "en";
+    const commands = [];
+    const padLabel = (label, width = 21) => label.padEnd(width, " ") + ": ";
+    if (languageCode === "ko") {
+
+ 
+        const labelWidths = {
+            Room: 11,
+            "School No": 12,
+            Name: 12,
+        };
+
+        const getPaddedLabel = (labelKey) => {
+            const translated = t(`translations.${labelKey}`);
+            const width = labelWidths[labelKey] || 10;
+            return padLabel(translated, width);
+        };
+
+        commands.push(
+            { type: "alignment", value: "center" },
+            { type: "medium_text" },
+            { type: "korean_text", value: t("translations.SEOUL NATIONAL UNIVERSITY") },
+            { type: "normal_text" },
+            { type: "blank_line" },
+            { type: "blank_line" },
+            { type: "blank_line" },
+            { type: "alignment", value: "left" },
+
+            { type: "bold" },
+            { type: "korean_text", value: getPaddedLabel("Name") },
+            { type: "unbold" },
+            { type: "korean_text", value: formattedData.USER_NAME },
+            { type: "blank_line" },
+
+            { type: "bold" },
+            { type: "korean_text", value: getPaddedLabel("Room") },
+            { type: "unbold" },
+            { type: "korean_text", value: formattedData.ROOM },
+            { type: "blank_line" },
+
+            { type: "bold" },
+            { type: "korean_text", value: getPaddedLabel("Seat No") },
+            { type: "unbold" },
+            { type: "korean_text", value: formattedData.SEAT_NO },
+            { type: "blank_line" },
+
+            { type: "bold" },
+            { type: "korean_text", value: getPaddedLabel("Check in Time") },
+            { type: "unbold" },
+            { type: "korean_text", value: formattedData.CHECKIN_TIME },
+            { type: "blank_line" },
+
+            { type: "bold" },
+            { type: "korean_text", value: getPaddedLabel("Check out Time") },
+            { type: "unbold" },
+            { type: "korean_text", value: formattedData.CHECKOUT_TIME },
+            { type: "blank_line" },
+
+            { type: "bold" },
+            { type: "korean_text", value: getPaddedLabel("School No") },
+            { type: "unbold" },
+            { type: "korean_text", value: formattedData.SCHOOL_NO },
+            { type: "blank_line" },
+
+            { type: "bold" },
+            { type: "korean_text", value: getPaddedLabel("Booking Date") },
+            { type: "unbold" },
+            { type: "korean_text", value: formattedData.BOOKING_DATE },
+            { type: "blank_line" },
+            { type: "blank_line" },
+
+            { type: "qr_code", value: formattedData.BARCODE },
+            { type: "blank_line" },
+
+            { type: "alignment", value: "left" },
+            { type: "korean_text", value: t("translations.*Please return the seat assignment when you") },
+            { type: "blank_line" },
+            { type: "korean_text", value: t("translations.*It helps other people use it.") },
+            { type: "blank_line" },
+            { type: "blank_line" },
+            { type: "blank_line" },
+            { type: "blank_line" },
+            { type: "blank_line" },
+            { type: "blank_line" },
+            { type: "full_cut" },
+            { type: "clear_all" }
+        );
+    } else {
+        commands.push(
+            { type: "alignment", value: "center" },
+            { type: "medium_text" },
+            { type: "korean_text", value: t("SEOUL NATIONAL") },
+            { type: "blank_line" },
+            { type: "korean_text", value: t("UNIVERSITY") },
+            { type: "normal_text" },
+            { type: "blank_line" },
+            { type: "blank_line" },
+            { type: "blank_line" },
+            { type: "alignment", value: "left" },
+
+            { type: "bold" },
+            { type: "korean_text", value: padLabel(t("translations.Name")) },
+            { type: "unbold" },
+            { type: "korean_text", value: formattedData.USER_NAME },
+            { type: "blank_line" },
+
+            { type: "bold" },
+            { type: "korean_text", value: padLabel(t("translations.Room")) },
+            { type: "unbold" },
+            { type: "korean_text", value: formattedData.ROOM },
+            { type: "blank_line" },
+
+            { type: "bold" },
+            { type: "korean_text", value: padLabel(t("translations.Seat No")) },
+            { type: "unbold" },
+            { type: "korean_text", value: formattedData.SEAT_NO },
+            { type: "blank_line" },
+
+
+            { type: "bold" },
+            { type: "korean_text", value: padLabel(t("translations.Check in Time")) },
+            { type: "unbold" },
+            { type: "korean_text", value: formattedData.CHECKIN_TIME },
+            { type: "blank_line" },
+
+            { type: "bold" },
+            { type: "korean_text", value: padLabel(t("translations.Check out Time")) },
+            { type: "unbold" },
+            { type: "korean_text", value: formattedData.CHECKOUT_TIME },
+            { type: "blank_line" },
+
+            { type: "bold" },
+            { type: "korean_text", value: padLabel(t("translations.School No")) },
+            { type: "unbold" },
+            { type: "korean_text", value: formattedData.SCHOOL_NO },
+            { type: "blank_line" },
+
+            { type: "bold" },
+            { type: "korean_text", value: padLabel(t("translations.Booking Date")) },
+            { type: "unbold" },
+            { type: "korean_text", value: formattedData.BOOKING_DATE },
+            { type: "blank_line" },
+            { type: "blank_line" },
+
+            { type: "qr_code", value: formattedData.USER_ID_QR },
+            { type: "blank_line" },
+
+            { type: "alignment", value: "left" },
+            { type: "korean_text", value: t("translations.Please return the seat assignment when you") },
+            { type: "blank_line" },
+            { type: "korean_text", value: t("translations.-check out.") },
+            { type: "blank_line" },
+            { type: "korean_text", value: t("translations.*It helps other people use it.") },
+            { type: "blank_line" },
+            { type: "blank_line" },
+            { type: "blank_line" },
+            { type: "blank_line" },
+            { type: "blank_line" },
+            { type: "blank_line" },
+            { type: "full_cut" },
+            { type: "clear_all" }
+        );
+    }
+    return { commands };
+};
 
 /**
  * Common component for seat booking, extension, return, move, and assign check
@@ -49,6 +220,7 @@ const SeatActionModal = ({
     const { speak, stop } = useVoice();
     const { t } = useTranslation();
     const lastSpokenRef = useRef("");
+    const { writeToSerialPort, serialPortsData } = useSerialPort();
     const { isBooking, isExtension, isReturn, isMove, isAssignCheck } = modeFlags;
     const lang = useSelector((state) => state.lang.current);
 
@@ -90,6 +262,9 @@ const SeatActionModal = ({
         if (showResultModal) {
             elements.push({ type: 'result-message', label: 'Result Message' });
             elements.push({ type: 'confirm-button', label: 'Confirm Button' });
+            if (actionResult?.success) {
+                elements.push({ type: 'print-button', label: 'Print Button' });
+            }
             return elements;
         }
 
@@ -237,7 +412,7 @@ const SeatActionModal = ({
 
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [isOpen, isModalFocused, focusIndex, getFocusableElements, showResultModal,]);
+    }, [isOpen, isModalFocused, focusIndex, getFocusableElements, showResultModal,disableFocusAndSpeech]);
 
     /**
      * ✅ STEP 5: Helper to check if element is focused
@@ -319,7 +494,7 @@ const SeatActionModal = ({
         dispatch, lang
     ]);
 
-   
+
     /**
      * Set default time option using moment
      */
@@ -349,7 +524,7 @@ const SeatActionModal = ({
      * Execute API call based on mode
      */
     const executeApiCall = useCallback(async () => {
-        
+
         if (isBooking) {
             const payload = {
                 seatno: seat.SEATNO,
@@ -398,6 +573,16 @@ const SeatActionModal = ({
 
         try {
             setLoading(true);
+
+            // ✅ FIX: Snapshot seat data BEFORE onClose() clears the prop (needed for booking & move print)
+            if ((isBooking || isMove) && seat) {
+                setSeatInfo({
+                    FLOOR_NAME: seat.ROOM_NAME || "",
+                    SECTOR_NAME: seat.NAME || "",
+                    SEAT_VNAME: seat.VNAME || "",
+                });
+            }
+
             const res = await executeApiCall();
 
             onClose();
@@ -419,7 +604,7 @@ const SeatActionModal = ({
                     message: msg || res?.msg
                 });
             }
-            console.log("response of error",res?.msg)
+
 
             setShowResultModal(true);
         } catch (err) {
@@ -434,7 +619,7 @@ const SeatActionModal = ({
         }
     }, [
         isReturn, isMove, isBooking, selectedIndex,
-        isAvailable, executeApiCall, onClose, mode,lang
+        isAvailable, executeApiCall, onClose, mode, lang
     ]);
 
     //helper function to hours and minutes 
@@ -457,6 +642,65 @@ const SeatActionModal = ({
         return `${mins}${t("translations.minutes")}`;
     };
 
+
+    /**
+     * Handle Print Receipt
+     * First logs to console to verify button is working, then sends print commands
+     */
+    const handlePrint = useCallback(async () => {
+        try {
+            const languageCode = localStorage.getItem("language") === "ko" ? "ko" : "en";
+            const isKorean = languageCode === "ko";
+
+            // ✅ FIX: For booking mode, seat prop is null after onClose(); use captured seatInfo as fallback
+            const roomName = seat?.ROOM_NAME || bookingSeatInfo?.FLOOR_NAME || seatInfo?.FLOOR_NAME || "";
+            const sectorName = seat?.NAME || bookingSeatInfo?.SECTOR_NAME || seatInfo?.SECTOR_NAME || "";
+            const roomDisplay = [roomName, sectorName].filter(Boolean).join(", ");
+
+            const formattedData = {
+                USER_NAME: userInfo?.NAME || userInfo?.SCHOOLNO || "",
+                SCHOOL_NO: userInfo?.SCHOOLNO || "",
+                BOOKING_DATE: formatDate(startTime, DATE_FORMATS.ISO),
+                ROOM: roomDisplay,
+                SEAT_NO: seat?.VNAME || bookingSeatInfo?.SEAT_VNAME || seatInfo?.SEAT_VNAME || "",
+                CHECKIN_TIME: formatDate(startTime, DATE_FORMATS.ISO),
+                CHECKOUT_TIME: endTime
+                    ? formatDate(endTime, DATE_FORMATS.ISO)
+                    : bookingSeatInfo?.USEEXPIRE
+                        ? formatDate(bookingSeatInfo.USEEXPIRE, DATE_FORMATS.ISO)
+                        : "",
+                BARCODE: userInfo?.SCHOOLNO || "",
+                USER_ID_QR: userInfo?.SCHOOLNO || "",
+            };
+
+            console.log("🖨️ formattedData:", formattedData);
+
+            const printerConfig = Array.isArray(serialPortsData)
+                ? serialPortsData.find((port) => port.name === "PRINTER")
+                : null;
+
+            console.log("🖨️ printerConfig:", printerConfig);
+
+            const printData = getPrintData(formattedData, t);
+
+            const printOptions = {
+                port_name: printerConfig?.port,
+                baud_rate: printerConfig?.baudrate,
+                commands: printData.commands.map((c) => ({
+                    type: c.type,
+                    value: c.value || null,
+                })),
+            };
+
+            console.log("🖨️ printOptions:", printOptions);
+
+            const printed = await writeToSerialPort(printerConfig, printOptions);
+            console.log("🖨️ Print result:", printed);
+
+        } catch (err) {
+            console.error("Error printing:", err);
+        }
+    }, [userInfo, seat, bookingSeatInfo, startTime, endTime, serialPortsData, writeToSerialPort, t]);
 
     // ===================HANDLE BY ENTER KEY ================
     const handleEnterPress = useCallback((focusedElement) => {
@@ -502,10 +746,14 @@ const SeatActionModal = ({
                 }
                 break;
 
+            case 'print-button':
+                handlePrint();
+                break;
+
             default:
                 break;
         }
-    }, [showResultModal, isReturn, isMove, confirmStep, handleFinalConfirm]);
+    }, [showResultModal, isReturn, isMove, confirmStep, handleFinalConfirm, handlePrint]);
     /**
      * Handle result modal close
      */
@@ -586,9 +834,6 @@ const SeatActionModal = ({
         isAssignCheck, isBooking, isMove, isExtension, isReturn,
         seatInfo, seat, bookingSeatInfo, mode, isFocused, t, lang
     ]);
-
-
-
     /**
      * ✅ STEP 7: Render time selection grid with focus highlighting
      */
@@ -712,7 +957,7 @@ const SeatActionModal = ({
      * ✅ STEP 9: Result modal footer with focus highlighting
      */
     const resultFooter = useMemo(() => (
-        <div className="flex justify-center">
+        <div className="flex gap-10 justify-center">
             <button
                 onClick={handleResultModalClose}
                 className={`px-12 py-4 bg-linear-to-r from-[#FFCB35] to-[#cf9e0b] hover:from-[#fccc3b] hover:to-[#c79706] text-white rounded-lg font-bold text-lg ${isFocused('confirm-button') ? 'outline-[6px] outline-[#dc2f02]' : ''
@@ -720,8 +965,19 @@ const SeatActionModal = ({
             >
                 {t("translations.Confirm")}
             </button>
+            {actionResult?.success && (
+                <button
+                    onClick={handlePrint}
+                    className={`px-15 py-4 bg-linear-to-r from-[#FFCB35] to-[#cf9e0b] hover:from-[#fccc3b] hover:to-[#c79706] text-white rounded-lg font-bold text-lg ${isFocused('print-button') ? 'outline-[6px] outline-[#dc2f02]' : ''
+                        }`}
+                >
+                    {t("translations.Print Receipt")}
+                </button>
+            )}
         </div>
-    ), [handleResultModalClose, isFocused]);
+    ), [handleResultModalClose, handlePrint, actionResult, isFocused]);
+
+
 
     // Helper function to get the value and label focus together 
     const isGroupFocused = useCallback((types = []) => {
@@ -836,6 +1092,9 @@ const SeatActionModal = ({
 
                 case "confirm-button":
                     return t("speech.Confirm");
+
+                case "print-button":
+                    return t("translations.Print Receipt");
 
                 case "result-message":
                     return `${t(`translations.${MODE_LABELS[mode]}`)}. ${t(`translations.${actionResult?.message}`)}`;

@@ -96,7 +96,7 @@ export const masterClient = axios.create({
     Accept: "application/json",
     "X-Requested-With": "XMLHttpRequest",
     "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
-   
+    "x-forwarded-for": "103.83.146.30" //temp comment for IP Address
   },
   withCredentials: true,
   timeout: 60000,
@@ -236,7 +236,7 @@ export const initializeApi = async () => {
           await logEvent("info", "API initialized successfully");
           isInitialized = true;
         } catch (error) {
-            await logEvent("error", `Failed to initialize API: ${error.message}`);
+          await logEvent("error", `Failed to initialize API: ${error.message}`);
           console.error("Failed to fetch configuration:", error);
         }
       } while (!isInitialized);
@@ -279,7 +279,7 @@ export const loginBySchoolNo = async (schoolno) => {
   await ensureInitialized();
   await logEvent("info", `Login attempt for school number: ${schoolno}`);
   const res = await ApiClientPrimary.get("/kiosk/login/login", { params: { schoolno } });
-  await logEvent("info", `Login response received for: ${schoolno}`); 
+  await logEvent("info", `Login response received for: ${schoolno}`);
   return res?.data;
 };
 
@@ -291,7 +291,7 @@ export const getKioskUserInfo = async () => {
 
 export const QRValidate = async (qrCode) => {
   await ensureInitialized();
-  await logEvent("info", `QR validation attempt`); 
+  await logEvent("info", `QR validation attempt`);
   const encodedQrCode = encodeURIComponent(qrCode);
   return (await ApiClientQR.get("/qrCheck.do", { params: { code: qrCode } }));
 };
@@ -318,7 +318,7 @@ export const getBookingTimeSeat = async ({ seatno, assignno }) => {
 
 export const setSeatAssign = async (payload) => {
   await ensureInitialized();
-  await logEvent("info", `Assigning seat: ${JSON.stringify(payload)}`); 
+  await logEvent("info", `Assigning seat: ${JSON.stringify(payload)}`);
   return (await ApiClientPrimary.post("/json/setSeatAssign", payload))?.data;
 };
 
@@ -330,13 +330,13 @@ export const setExtend = async (payload) => {
 
 export const setMove = async (payload) => {
   await ensureInitialized();
-  await logEvent("info", `Moving seat: ${JSON.stringify(payload)}`); 
+  await logEvent("info", `Moving seat: ${JSON.stringify(payload)}`);
   return (await ApiClientPrimary.post("/json/setMove", payload))?.data;
 };
 
 export const setReturnSeat = async (payload) => {
   await ensureInitialized();
-  await logEvent("info", `Returning seat: ${JSON.stringify(payload)}`); 
+  await logEvent("info", `Returning seat: ${JSON.stringify(payload)}`);
   return (await ApiClientPrimary.post("/json/setReturnSeat", payload))?.data;
 };
 
@@ -351,7 +351,7 @@ export const setAssignSeatInfo = async (payload) => {
 
 export const logout = async () => {
   await ensureInitialized();
-  await logEvent("info", "User logout"); 
+  await logEvent("info", "User logout");
   return (await ApiClientPrimary.get("/kiosk/login/logout"))?.data;
 };
 

@@ -162,7 +162,7 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
       isOpen={isOpen}
       onClose={onClose}
  closeOnBackdrop={false} 
-      showCloseButton={false}
+      showCloseButton={true}
       title={t("translations.User Information")}
       size="large"
       className="h-[50vh]! outline-[6px] outline-[#dc2f02]!"
