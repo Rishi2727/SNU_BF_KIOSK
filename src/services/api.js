@@ -96,7 +96,7 @@ export const masterClient = axios.create({
     Accept: "application/json",
     "X-Requested-With": "XMLHttpRequest",
     "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
-    "x-forwarded-for": "103.83.146.30" //temp comment for IP Address
+    // "x-forwarded-for": "103.83.146.30" //temp comment for IP Address
   },
   withCredentials: true,
   timeout: 60000,
