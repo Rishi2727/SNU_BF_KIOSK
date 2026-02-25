@@ -570,7 +570,8 @@ const SeatActionModal = ({
             if ((isBooking || isMove) && seat) {
                 console.log("FLOOR_NAME", seat)
                 setSeatInfo({
-                    SECTOR_NAME: seat.SECTOR_NAME || "",
+                    
+                    FLOOR_NAME: seat.SECTOR_NAME || "",
                     SECTOR_NAME: seat.NAME || "",
                     SEAT_VNAME: seat.VNAME || "",
                 });
@@ -647,7 +648,7 @@ const SeatActionModal = ({
                 languageCode === "ko"
                     ? DATE_FORMATS.KO_DATETIME
                     : DATE_FORMATS.DATETIME;
-            const roomName = seatInfo?.SECTOR_NAME || "";
+            const roomName = seatInfo?.FLOOR_NAME || "";
             const formattedData = {
                 USER_NAME: userInfo?.NAME || userInfo?.SCHOOLNO || "",
                 SCHOOL_NO: userInfo?.SCHOOLNO || "",
@@ -680,13 +681,14 @@ const SeatActionModal = ({
 
 
             const printed = await writeToSerialPort(printerConfig, printOptions);
+            dispatch(logout());
             navigate("/");
             console.log("🖨️ Print result:", printed);
 
         } catch (err) {
             console.error("Error printing:", err);
         }
-    }, [userInfo, seat, bookingSeatInfo, startTime, endTime, serialPortsData, writeToSerialPort, t]);
+    }, [userInfo, seat, bookingSeatInfo, startTime, endTime, serialPortsData, writeToSerialPort, t,logout]);
 
     // ===================HANDLE BY ENTER KEY ================
     const handleEnterPress = useCallback((focusedElement) => {
