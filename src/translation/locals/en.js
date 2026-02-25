@@ -154,7 +154,10 @@ const enTranslations = {
     "Seat Label": "Seat {{seat}}",
     "Booking Failed": "Booking Failed",
     "This is room page select your desired seat": "This is room page select your desired seat",
-
+"Seat Label": "seat {{seat}} {{state}}",
+"available": "available",
+"booked": "booked",
+"fixed": "fixed"
 
 
 

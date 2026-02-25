@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from "react";
-import { Home, Users, Armchair, ArrowLeft } from 'lucide-react';
+import { Home, Users, Armchair, ArrowLeft, Accessibility } from 'lucide-react';
 import { useVoice } from "../../../context/voiceContext";
 import { useTranslation } from "react-i18next";
 import i18n from "../../../translation/language/i18n";
@@ -121,20 +121,20 @@ const FloorLegendBar = ({
       <div className="flex items-center gap-6 mr-3">
         <div className={`flex items-center gap-2 ${isFocusedAt(1) ? focusRing : ""}`}
           aria-selected={isFocusedAt(1)}>
-          <div className="w-8 h-8 bg-[#FFCA08] rounded"></div>
+          <div className="w-8 h-8 bg-gradient-to-b from-[#ffc477] to-[#fb9e25] rounded"></div>
           <span className="text-[30px]">{t("translations.Available")}</span>
         </div>
 
         <div className={`flex items-center gap-2 ${isFocusedAt(2) ? focusRing : ""}`}
           aria-selected={isFocusedAt(2)}>
-          <Users className="w-8 h-8 text-blue-400" />
+          <Users className="w-8 h-8 text-[#e5e1c4]" />
           <span className="text-[28px]">{t("translations.Booked")}</span>
         </div>
 
         <div className={`flex items-center gap-2 ${isFocusedAt(3) ? focusRing : ""}`}
           aria-selected={isFocusedAt(3)}>
           <div className="w-8 h-8 border-2 border-gray-300 rounded flex items-center justify-center">
-            <Armchair className="w-8 h-8 text-gray-300" />
+            <Accessibility className="w-8 h-8 text-gray-200" />
           </div>
           <span className="text-[28px]">{t("translations.Fixed")}</span>
         </div>

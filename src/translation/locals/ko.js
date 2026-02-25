@@ -185,7 +185,10 @@ const koTranslations = {
     "Seat Label": "{{seat}}번 좌석",
     "Booking Failed": "예약 실패",
     "This is room page select your desired seat": "여기는 열람실 페이지입니다. 원하시는 좌석을 선택하세요.",
-
+"Seat Label": "좌석 번호 {{seat}} {{state}}",
+"available": "이용 가능",
+"booked": "사용 중",
+"fixed": "고정 좌석"
 
 
 
@@ -337,7 +340,11 @@ const koTranslations = {
     "ABOUT": "에 대한",
     "This self-service kiosk by Wise Neosco India Pvt. Ltd. simplifies seat reservations, confirmations, cancellations, returns, and extensions. It also works with RFID, QR codes, and barcodes for fast, secure access.": "Wise Neosco India Pvt. Ltd.에서 개발한 이 셀프 서비스 키오스크는 좌석 예약, 확인, 취소, 반환 및 연장을 간소화합니다. 또한 RFID, QR 코드 및 바코드를 사용하여 빠르고 안전한 접근을 지원합니다.",
     "Date": "날짜",
-    "Print Receipt": "영수증 인쇄"
+    "Print Receipt": "영수증 인쇄",
+    "Seat Booking": "좌석 예약",
+"Seat Extension": "좌석 연장",
+"Seat Move": "좌석 이동",
+"Seat Return": "좌석 반납"
 
 
 
