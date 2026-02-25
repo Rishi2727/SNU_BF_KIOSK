@@ -185,7 +185,7 @@ const koTranslations = {
     "Seat Label": "{{seat}}번 좌석",
     "Booking Failed": "예약 실패",
     "This is room page select your desired seat": "여기는 열람실 페이지입니다. 원하시는 좌석을 선택하세요.",
-"Seat Label": "좌석 번호 {{seat}} {{state}}",
+"Seat Label": "좌석 {{seat}} {{state}}",
 "available": "이용 가능",
 "booked": "사용 중",
 "fixed": "고정 좌석"

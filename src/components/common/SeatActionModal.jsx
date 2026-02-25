@@ -24,6 +24,7 @@ import { MODE_LABELS, MODES } from "../../utils/constant";
 import { useTranslation } from "react-i18next";
 import { useVoice } from "../../context/voiceContext";
 import { useSerialPort } from "../../context/SerialPortContext";
+import { logout } from "../../redux/slice/authSlice";
 
 
 
@@ -773,13 +774,15 @@ const SeatActionModal = ({
             try {
                 localStorage.removeItem("authenticated");
                 dispatch(clearUserInfo());
+                dispatch(logout());
                 navigate("/");
             } catch (err) {
                 console.error("Logout error:", err);
+                   dispatch(logout());
                 navigate("/");
             }
         }
-    }, [actionResult, dispatch, navigate]);
+    }, [actionResult, dispatch, navigate, logout]);
 
     /**
      * Handle time option selection using moment
