@@ -516,7 +516,7 @@ const Floor = () => {
           const isAvailable =
             seat.USECNT === 0 && (seat.STATUS === 1 || seat.STATUS === 2);
 
-          if (!isAvailable) return; 
+          if (!isAvailable) return;
 
           handleSeatClick(seat);
         }
@@ -879,12 +879,28 @@ const Floor = () => {
     if (focusedRegion === FocusRegion.ROOM && visibleSeats?.length) {
       const seat = visibleSeats[contentIndex];
       if (seat) {
+
+        const isAvailable =
+          seat.USECNT === 0 && (seat.STATUS === 1 || seat.STATUS === 2);
+
+        const isFixed = seat.STATUS === 9;
+
+        let seatState = "";
+
+        if (isFixed) {
+          seatState = t("speech.fixed");
+        } else if (isAvailable) {
+          seatState = t("speech.available");
+        } else {
+          seatState = t("speech.booked");
+        }
+
         speak(
           t("speech.Seat Label", {
             seat: seat.VNAME,
+            state: seatState,
           })
         );
-
       }
     }
   }, [

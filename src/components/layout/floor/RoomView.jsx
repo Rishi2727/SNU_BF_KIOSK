@@ -796,7 +796,7 @@ const RoomView = ({
                           } ${isHandicap
                             ? 'bg-[url("http://k-rsv.snu.ac.kr:8011/NEW_SNU_BOOKING/commons/images/kiosk/SeatBtn_disable.png")] bg-contain bg-no-repeat bg-center'
                             : isAvailable
-                              ? "bg-gradient-to-b from-[#ffc477] to-[#fb9e25] border border-[#eeb44f]"
+                              ? "bg-linear-to-b from-[#ffc477] to-[#fb9e25] border border-[#eeb44f]"
                               : "bg-[#e5e1c4]"
                           }`}
                         style={{
