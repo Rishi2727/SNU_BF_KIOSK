@@ -34,7 +34,7 @@ const getPrintData = (formattedData, t) => {
     const padLabel = (label, width = 21) => label.padEnd(width, " ") + ": ";
     if (languageCode === "ko") {
 
- 
+
         const labelWidths = {
             Room: 11,
             "School No": 12,
@@ -413,7 +413,7 @@ const SeatActionModal = ({
 
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [isOpen, isModalFocused, focusIndex, getFocusableElements, showResultModal,disableFocusAndSpeech]);
+    }, [isOpen, isModalFocused, focusIndex, getFocusableElements, showResultModal, disableFocusAndSpeech]);
 
     /**
      * ✅ STEP 5: Helper to check if element is focused
@@ -464,41 +464,41 @@ const SeatActionModal = ({
     /**
      * Reset state and fetch time options on modal open
      */
-      useEffect(() => {
+    useEffect(() => {
 
-    if (!isOpen) return;
-    if (isAssignCheck) return;
-    if ((isBooking || isMove) && (!seat?.SEATNO || !isAvailable)) return;
-    if ((isExtension || isReturn) && !assignNo) return;
+        if (!isOpen) return;
+        if (isAssignCheck) return;
+        if ((isBooking || isMove) && (!seat?.SEATNO || !isAvailable)) return;
+        if ((isExtension || isReturn) && !assignNo) return;
 
-    dispatch(clearBookingTime());
+        dispatch(clearBookingTime());
 
-    // 🔥 Update API language
-    setApiLang(lang);
+        // 🔥 Update API language
+        setApiLang(lang);
 
-    // 🔥 Re-fetch automatically when language changes
-    if (isBooking) {
-        dispatch(fetchBookingTime({ seatno: seat.SEATNO }));
-    } 
-    else if (isExtension || isReturn) {
-        dispatch(fetchBookingTime({ assignno: assignNo }));
-    }
-    else if (isMove && assignNo) {
-        dispatch(fetchBookingTime({ assignno: assignNo }));
-    }
+        // 🔥 Re-fetch automatically when language changes
+        if (isBooking) {
+            dispatch(fetchBookingTime({ seatno: seat.SEATNO }));
+        }
+        else if (isExtension || isReturn) {
+            dispatch(fetchBookingTime({ assignno: assignNo }));
+        }
+        else if (isMove && assignNo) {
+            dispatch(fetchBookingTime({ assignno: assignNo }));
+        }
 
-}, [
-    isOpen,
-    lang,   // ⭐ IMPORTANT
-    seat,
-    assignNo,
-    isAvailable,
-    isBooking,
-    isExtension,
-    isReturn,
-    isMove,
-    isAssignCheck
-]);
+    }, [
+        isOpen,
+        lang,   // ⭐ IMPORTANT
+        seat,
+        assignNo,
+        isAvailable,
+        isBooking,
+        isExtension,
+        isReturn,
+        isMove,
+        isAssignCheck
+    ]);
 
 
 
@@ -663,7 +663,7 @@ const SeatActionModal = ({
             const roomName = seat?.ROOM_NAME || bookingSeatInfo?.FLOOR_NAME || seatInfo?.FLOOR_NAME || "";
             const sectorName = seat?.NAME || bookingSeatInfo?.SECTOR_NAME || seatInfo?.SECTOR_NAME || "";
             const roomDisplay = [roomName, sectorName].filter(Boolean).join(", ");
-    console.log("seat", seat?.ROOM_NAME, "bookingSeatInfo", bookingSeatInfo?.FLOOR_NAME, "seatInfo", seatInfo?.FLOOR_NAME);
+            console.log("seat", seat?.ROOM_NAME, "bookingSeatInfo", bookingSeatInfo?.FLOOR_NAME, "seatInfo", seatInfo?.FLOOR_NAME);
             const formattedData = {
                 USER_NAME: userInfo?.NAME || userInfo?.SCHOOLNO || "",
                 SCHOOL_NO: userInfo?.SCHOOLNO || "",
@@ -1009,10 +1009,7 @@ const SeatActionModal = ({
                     if (isAssignCheck) {
                         return t("translations.Seat information");
                     }
-
-                    return t("speech.SEAT_MODAL_TITLE", {
-                        action: t(`translations.${MODE_LABELS[mode]}`),
-                    });
+                    return t(`translations.${MODE_LABELS[mode]}`);
                 case "header": {
                     // Assign check mode
                     if (isAssignCheck && seatInfo) {
@@ -1206,7 +1203,7 @@ const SeatActionModal = ({
                     }`}>
                     {isAssignCheck
                         ? t("translations.Seat information")
-                        : `${t("translations.Seat")} ${t(`translations.${MODE_LABELS[mode]}`)}`
+                        : `${t(`translations.${MODE_LABELS[mode]}`)}`
                     }
 
                 </h2>

@@ -244,10 +244,10 @@ export const MODES = {
 };
 
 export const MODE_LABELS = {
-  [MODES.BOOKING]: "Booking",
-  [MODES.EXTENSION]: "Extension",
-  [MODES.RETURN]: "Return",
-  [MODES.MOVE]: "Move",
+  [MODES.BOOKING]: "Seat Booking",
+  [MODES.EXTENSION]: "Seat Extension",
+  [MODES.RETURN]: "Seat Return",
+  [MODES.MOVE]: "Seat Move",
   [MODES.ASSIGN_CHECK]: "Seat Check",
 };
 

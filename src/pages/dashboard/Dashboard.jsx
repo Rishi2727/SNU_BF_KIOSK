@@ -110,10 +110,10 @@ const Dashboard = () => {
 
   // Speak on main Screen
   const speakMainScreen = useCallback(() => {
-    if (isAnyModalOpen) return;
+    if (isAnyModalOpen || window.__INFO_MODAL_OPEN__) return;
     stop();
     speak(t("speech.This screen is the main screen."));
-  }, [speak, stop, t, isAnyModalOpen]);
+  }, [speak, stop, t, isAnyModalOpen, window.__INFO_MODAL_OPEN__]);
 
   const prevModalState = useRef({
     keyboard: false,

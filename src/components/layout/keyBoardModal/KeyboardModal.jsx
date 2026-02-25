@@ -100,6 +100,21 @@ const KeyboardModal = ({
     "=": t("speech.EQUALS"),
   };
 
+  const getKeySpeechLabel = (selectedKey) => {
+    // Remove braces ONLY for system keys like {shift}
+    const cleaned =
+      selectedKey.startsWith("{") && selectedKey.endsWith("}")
+        ? selectedKey.slice(1, -1)
+        : selectedKey;
+
+    return (
+      keyDisplay[selectedKey] ||
+      specialKeySpeech[selectedKey] ||
+      specialKeySpeech[cleaned] ||
+      cleaned
+    );
+  };
+
   //autofocus on keyboard typehere section 
   useEffect(() => {
     if (!isOpen) return;
@@ -232,7 +247,9 @@ const KeyboardModal = ({
       if (kbFocus === KBFocus.KEYS) {
         setKeyCursor((prev) => {
           const next = e.key === "ArrowRight" ? prev + 1 : prev - 1;
-
+          const selectedKey = keyboardKeys[keyCursor];
+          const label = getKeySpeechLabel(selectedKey);
+          speak(label);
           // LAST / FIRST → BACK TO HEADING
           if (next >= keyboardKeys.length || next < 0) {
             setKbFocus(KBFocus.HEADING);

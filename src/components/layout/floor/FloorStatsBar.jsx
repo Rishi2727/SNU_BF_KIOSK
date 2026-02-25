@@ -94,7 +94,7 @@ const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused,
       className={`
         floor-stats-bar
       ${isMinimapNearFloorStats ? 'w-[78%]' : 'w-full'}
-    absolute bottom-2  z-30
+    absolute bottom-1  z-30
     flex items-center   gap-5
     px-5   py-2
     bg-white/90 backdrop-blur-md

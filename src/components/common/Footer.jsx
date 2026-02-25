@@ -80,6 +80,7 @@ const FooterControls = ({
           setCursor((prev) =>
             prev === null ? 0 : (prev + 1) % FOOTER_BUTTON_COUNT
           );
+         
           break;
 
         case "ArrowLeft":
@@ -104,6 +105,25 @@ const FooterControls = ({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isFocused, cursor, FOOTER_BUTTON_COUNT]);
 
+  // ✅ Reset footer cursor when focus leaves footer
+useEffect(() => {
+  if (!isFocused) {
+    setCursor(null);
+  }
+}, [isFocused]);
+
+useEffect(() => {
+  window.__INFO_MODAL_OPEN__ = isInfoOpen;
+  return () => {
+    window.__INFO_MODAL_OPEN__ = false;
+  };
+}, [isInfoOpen]);
+
+  useEffect(() => {
+  if (isInfoOpen) {
+    stop();  
+  }
+}, [isInfoOpen, stop]);
   // ✅ Footer Enter handler
   const handleFooterEnter = (index) => {
     // ⬅ BACK BUTTON

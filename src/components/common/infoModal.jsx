@@ -12,20 +12,20 @@ export default function InfoModal({ isOpen = true, onClose = () => { } }) {
     // GUIDE CONTENT (SPLIT PAGES)
     // =========================
 
-   // -------- SYSTEM USER GUIDE --------
-const systemGuideItems = [
-  { header: t(`speech.${SPEECH.INFO_MODAL.wayOfLogin}`), text: t(`speech.${(SPEECH.INFO_MODAL.wayOfLoginMsg)}`) },
-  { header: t(`speech.${SPEECH.INFO_MODAL.seatBooking}`), text: t(`speech.${(SPEECH.INFO_MODAL.seatBookingMsg)}`) },
-  { header: t(`speech.${SPEECH.INFO_MODAL.wayOfReturningSeat}`), text: t(`speech.${(SPEECH.INFO_MODAL.wayOfReturningSeatMsg)}`) },
-  { header: t(`speech.${SPEECH.INFO_MODAL.howToRequestHelp}`), text: t(`speech.${(SPEECH.INFO_MODAL.howToRequestHelpMsg)}`) },
-];
+    // -------- SYSTEM USER GUIDE --------
+    const systemGuideItems = [
+        { header: t(`speech.${SPEECH.INFO_MODAL.wayOfLogin}`), text: t(`speech.${(SPEECH.INFO_MODAL.wayOfLoginMsg)}`) },
+        { header: t(`speech.${SPEECH.INFO_MODAL.seatBooking}`), text: t(`speech.${(SPEECH.INFO_MODAL.seatBookingMsg)}`) },
+        { header: t(`speech.${SPEECH.INFO_MODAL.wayOfReturningSeat}`), text: t(`speech.${(SPEECH.INFO_MODAL.wayOfReturningSeatMsg)}`) },
+        { header: t(`speech.${SPEECH.INFO_MODAL.howToRequestHelp}`), text: t(`speech.${(SPEECH.INFO_MODAL.howToRequestHelpMsg)}`) },
+    ];
 
-// -------- KEYPAD USAGE GUIDE --------
-const keypadGuideItems = [
-  { header: t(`speech.${SPEECH.INFO_MODAL.keypadDirectionButtonGuide}`), text: t(`speech.${SPEECH.INFO_MODAL.keypadDirectionButtonGuideMsg}`) },
-  { header: t(`speech.${SPEECH.INFO_MODAL.specialKeyGuide}`), text: t(`speech.${SPEECH.INFO_MODAL.specialKeyGuideMsg}`) },
-  { header: t(`speech.${SPEECH.INFO_MODAL.numericKeypadUsageGuide}`), text: t(`speech.${SPEECH.INFO_MODAL.numericKeypadUsageGuideMsg}`) },
-];
+    // -------- KEYPAD USAGE GUIDE --------
+    const keypadGuideItems = [
+        { header: t(`speech.${SPEECH.INFO_MODAL.keypadDirectionButtonGuide}`), text: t(`speech.${SPEECH.INFO_MODAL.keypadDirectionButtonGuideMsg}`) },
+        { header: t(`speech.${SPEECH.INFO_MODAL.specialKeyGuide}`), text: t(`speech.${SPEECH.INFO_MODAL.specialKeyGuideMsg}`) },
+        { header: t(`speech.${SPEECH.INFO_MODAL.numericKeypadUsageGuide}`), text: t(`speech.${SPEECH.INFO_MODAL.numericKeypadUsageGuideMsg}`) },
+    ];
 
 
 
@@ -133,13 +133,10 @@ const keypadGuideItems = [
             return;
         }
         setPageIndex(0);
-        setFocusCursor(0); // start with null per your requirement
+        setFocusCursor(null); // start with null per your requirement
         lastSpokenRef.current = null;
 
-        // Speak the current page title once on open even though nothing is highlighted
-        setTimeout(() => {
-            speakSafe(logs[0].title);
-        }, 100);
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen]);
 
@@ -147,20 +144,18 @@ const keypadGuideItems = [
     const goPrev = () => {
         setPageIndex((prev) => {
             const newIndex = (prev - 1 + logs.length) % logs.length;
-            speakSafe(logs[newIndex].title);
             return newIndex;
         });
-        setFocusCursor(0); // reset to null on page change
+        setFocusCursor(null); // reset to null on page change
         lastSpokenRef.current = null;
     };
 
     const goNext = () => {
         setPageIndex((prev) => {
             const newIndex = (prev + 1) % logs.length;
-            speakSafe(logs[newIndex].title);
             return newIndex;
         });
-        setFocusCursor(0); // reset to null on page change
+        setFocusCursor(null); // reset to null on page change
         lastSpokenRef.current = null;
     };
 
