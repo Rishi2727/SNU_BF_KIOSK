@@ -730,6 +730,7 @@ const Floor = () => {
      SEAT CLICK HANDLER
   ===================================================== */
   const handleSeatClick = (seat) => {
+    console.log("seats data", seat)
     const isAvailable =
       seat.USECNT === 0 && (seat.STATUS === 1 || seat.STATUS === 2);
     if (!isAvailable) return;
