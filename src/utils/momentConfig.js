@@ -8,7 +8,7 @@ moment.defaultFormat = "YYYY-MM-DD HH:mm:ss";
 
 // Custom format presets
 export const DATE_FORMATS = {
-  FULL: "YYYY MMMM D, HH:mm",
+ FULL: "YYYY MMMM D, HH:mm",
   DATE_ONLY: "YYYY-MM-DD",
   TIME_ONLY: "HH:mm",
   DATETIME: "YYYY-MM-DD HH:mm",
@@ -17,7 +17,10 @@ export const DATE_FORMATS = {
   ISO: "YYYY-MM-DD, HH:mm:ss",
   EN_FULL: "dddd, MMMM D, YYYY h:mm A",
   EN_DATE: "MMMM D, YYYY",
-  EN_DATETIME: "MMMM D, YYYY HH:mm"
+  EN_DATETIME: "MMMM D, YYYY HH:mm",
+
+  // ✅ ADD THIS
+  KO_DATETIME: "YYYY년 MM월 DD일 HH:mm"
 };
 
 /**

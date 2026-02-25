@@ -32,19 +32,19 @@ import { logout } from "../../redux/slice/authSlice";
 const getPrintData = (formattedData, t) => {
     const languageCode = localStorage.getItem("lang") === "ko" ? "ko" : "en";
     const commands = [];
-    const padLabel = (label, width = 21) => label.padEnd(width, " ") + ": ";
+    const padLabel = (label, width = 16) => label.padEnd(width, " ") + ": ";
     if (languageCode === "ko") {
 
 
         const labelWidths = {
-            Room: 11,
-            "School No": 12,
-            Name: 12,
+            Room: 10,
+            "School No": 11,
+            Name: 11,
         };
 
         const getPaddedLabel = (labelKey) => {
             const translated = t(`translations.${labelKey}`);
-            const width = labelWidths[labelKey] || 10;
+            const width = labelWidths[labelKey] || 9;
             return padLabel(translated, width);
         };
 
@@ -446,7 +446,7 @@ const SeatActionModal = ({
                 setSeatInfo(null);
                 setApiLang(lang); // Ensure API lang is synced
                 const res = await setAssignSeatInfo({ bseqno: assignNo });
-
+                console.log("seat info==============", res)
                 if (res?.successYN === "Y") {
                     setSeatInfo(res.bookingSeatInfo);
                 } else {
@@ -462,50 +462,8 @@ const SeatActionModal = ({
         fetchInfo();
     }, [isOpen, isAssignCheck, assignNo, lang]);
 
-    /**
-     * Reset state and fetch time options on modal open
-     */
-    useEffect(() => {
-
-        if (!isOpen) return;
-        if (isAssignCheck) return;
-        if ((isBooking || isMove) && (!seat?.SEATNO || !isAvailable)) return;
-        if ((isExtension || isReturn) && !assignNo) return;
-
-        dispatch(clearBookingTime());
-
-        // 🔥 Update API language
-        setApiLang(lang);
-
-        // 🔥 Re-fetch automatically when language changes
-        if (isBooking) {
-            dispatch(fetchBookingTime({ seatno: seat.SEATNO }));
-        }
-        else if (isExtension || isReturn) {
-            dispatch(fetchBookingTime({ assignno: assignNo }));
-        }
-        else if (isMove && assignNo) {
-            dispatch(fetchBookingTime({ assignno: assignNo }));
-        }
-
-    }, [
-        isOpen,
-        lang,   // ⭐ IMPORTANT
-        seat,
-        assignNo,
-        isAvailable,
-        isBooking,
-        isExtension,
-        isReturn,
-        isMove,
-        isAssignCheck
-    ]);
 
 
-
-    /**
-     * Set default time option using moment
-     */
     useEffect(() => {
         if (isReturn || isMove || isAssignCheck) return;
         if (defaultIndex !== null && timeOptions[defaultIndex]?.enabled) {
@@ -556,7 +514,7 @@ const SeatActionModal = ({
 
         if (isReturn) {
             return await setReturnSeat({
-                b_SeqNo: assignNo ?? bookingSeatInfo?.B_SEQNO
+                b_SeqNo: assignNo ?? bookingSeatInfo?.BSEQNO
             });
         }
 
@@ -571,6 +529,32 @@ const SeatActionModal = ({
         seat, assignNo, startTime, endTime,
         timeOptions, selectedIndex, bookingSeatInfo, userInfo
     ]);
+    useEffect(() => {
+
+        if (!isOpen) return;
+        if (isAssignCheck) return;
+
+        dispatch(clearBookingTime());
+
+        setApiLang(lang);
+
+        if (isBooking && seat?.SEATNO && isAvailable) {
+            dispatch(fetchBookingTime({ seatno: seat.SEATNO }));
+        }
+        else if ((isExtension || isReturn || isMove) && assignNo) {
+            dispatch(fetchBookingTime({ assignno: assignNo }));
+        }
+
+    }, [
+        isOpen,
+        seat,
+        assignNo,
+        isAvailable,
+        isBooking,
+        isExtension,
+        isReturn,
+        isMove
+    ]);
 
     /**
      * Handle final confirmation
@@ -584,8 +568,9 @@ const SeatActionModal = ({
 
             // ✅ FIX: Snapshot seat data BEFORE onClose() clears the prop (needed for booking & move print)
             if ((isBooking || isMove) && seat) {
+                console.log("FLOOR_NAME", seat)
                 setSeatInfo({
-                    FLOOR_NAME: seat.ROOM_NAME || "",
+                    SECTOR_NAME: seat.SECTOR_NAME || "",
                     SECTOR_NAME: seat.NAME || "",
                     SEAT_VNAME: seat.VNAME || "",
                 });
@@ -658,39 +643,32 @@ const SeatActionModal = ({
     const handlePrint = useCallback(async () => {
         try {
             const languageCode = localStorage.getItem("lang") === "ko" ? "ko" : "en";
-            const isKorean = languageCode === "ko";
-
-            // ✅ FIX: For booking mode, seat prop is null after onClose(); use captured seatInfo as fallback
-            const roomName = seat?.ROOM_NAME || bookingSeatInfo?.FLOOR_NAME || seatInfo?.FLOOR_NAME || "";
-            const sectorName = seat?.NAME || bookingSeatInfo?.SECTOR_NAME || seatInfo?.SECTOR_NAME || "";
-            const roomDisplay = [roomName, sectorName].filter(Boolean).join(", ");
-            console.log("seat", seat?.ROOM_NAME, "bookingSeatInfo", bookingSeatInfo?.FLOOR_NAME, "seatInfo", seatInfo?.FLOOR_NAME);
+            const dateFormat =
+                languageCode === "ko"
+                    ? DATE_FORMATS.KO_DATETIME
+                    : DATE_FORMATS.DATETIME;
+            const roomName = seatInfo?.SECTOR_NAME || "";
             const formattedData = {
                 USER_NAME: userInfo?.NAME || userInfo?.SCHOOLNO || "",
                 SCHOOL_NO: userInfo?.SCHOOLNO || "",
-                BOOKING_DATE: formatDate(startTime, DATE_FORMATS.ISO),
-                ROOM: roomDisplay,
+                BOOKING_DATE: formatDate(startTime, dateFormat),
+                ROOM: roomName,
                 SEAT_NO: seat?.VNAME || bookingSeatInfo?.SEAT_VNAME || seatInfo?.SEAT_VNAME || "",
-                CHECKIN_TIME: formatDate(startTime, DATE_FORMATS.ISO),
+                CHECKIN_TIME: formatDate(startTime, dateFormat),
                 CHECKOUT_TIME: endTime
-                    ? formatDate(endTime, DATE_FORMATS.ISO)
+                    ? formatDate(endTime, dateFormat)
                     : bookingSeatInfo?.USEEXPIRE
-                        ? formatDate(bookingSeatInfo.USEEXPIRE, DATE_FORMATS.ISO)
+                        ? formatDate(bookingSeatInfo.USEEXPIRE, dateFormat)
                         : "",
                 BARCODE: userInfo?.SCHOOLNO || "",
                 USER_ID_QR: userInfo?.SCHOOLNO || "",
             };
 
-            console.log("🖨️ formattedData:", formattedData);
-
             const printerConfig = Array.isArray(serialPortsData)
                 ? serialPortsData.find((port) => port.name === "PRINTER")
                 : null;
 
-            console.log("🖨️ printerConfig:", printerConfig);
-
             const printData = getPrintData(formattedData, t);
-
             const printOptions = {
                 port_name: printerConfig?.port,
                 baud_rate: printerConfig?.baudrate,
@@ -700,9 +678,9 @@ const SeatActionModal = ({
                 })),
             };
 
-            console.log("🖨️ printOptions:", printOptions);
 
             const printed = await writeToSerialPort(printerConfig, printOptions);
+            navigate("/");
             console.log("🖨️ Print result:", printed);
 
         } catch (err) {
@@ -778,8 +756,6 @@ const SeatActionModal = ({
                 navigate("/");
             } catch (err) {
                 console.error("Logout error:", err);
-                   dispatch(logout());
-                navigate("/");
             }
         }
     }, [actionResult, dispatch, navigate, logout]);
@@ -968,24 +944,38 @@ const SeatActionModal = ({
      */
     const resultFooter = useMemo(() => (
         <div className="flex gap-10 justify-center">
+
             <button
                 onClick={handleResultModalClose}
-                className={`px-12 py-4 bg-linear-to-r from-[#FFCB35] to-[#cf9e0b] hover:from-[#fccc3b] hover:to-[#c79706] text-white rounded-lg font-bold text-lg ${isFocused('confirm-button') ? 'outline-[6px] outline-[#dc2f02]' : ''
-                    }`}
+                className={`px-12 py-4 bg-linear-to-r from-[#FFCB35] to-[#cf9e0b]
+            hover:from-[#fccc3b] hover:to-[#c79706]
+            text-white rounded-lg font-bold text-lg
+            ${isFocused('confirm-button') ? 'outline-[6px] outline-[#dc2f02]' : ''}`}
             >
                 {t("translations.Confirm")}
             </button>
-            {actionResult?.success && (
+
+            {actionResult?.success && (isBooking || isMove) && (
                 <button
                     onClick={handlePrint}
-                    className={`px-15 py-4 bg-linear-to-r from-[#FFCB35] to-[#cf9e0b] hover:from-[#fccc3b] hover:to-[#c79706] text-white rounded-lg font-bold text-lg ${isFocused('print-button') ? 'outline-[6px] outline-[#dc2f02]' : ''
-                        }`}
+                    className={`px-15 py-4 bg-linear-to-r from-[#FFCB35] to-[#cf9e0b]
+                hover:from-[#fccc3b] hover:to-[#c79706]
+                text-white rounded-lg font-bold text-lg
+                ${isFocused('print-button') ? 'outline-[6px] outline-[#dc2f02]' : ''}`}
                 >
                     {t("translations.Print Receipt")}
                 </button>
             )}
+
         </div>
-    ), [handleResultModalClose, handlePrint, actionResult, isFocused]);
+    ), [
+        handleResultModalClose,
+        handlePrint,
+        actionResult,
+        isFocused,
+        isBooking,
+        isMove
+    ]);
 
 
 

@@ -201,6 +201,7 @@ const koTranslations = {
     "Central Library": "중앙도서관",
     "Request": "요구",
     "Name": "이름",
+    "Floor": "층",
     "Time of use": "이용시간",
     "Date Duration": "날짜 기간",
     "Start hours": "시작 시간",
