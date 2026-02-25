@@ -466,39 +466,47 @@ const SeatActionModal = ({
      */
     useEffect(() => {
 
-        if (!isOpen) return;
-        if (isAssignCheck) return;
-        if ((isBooking || isMove) && (!seat?.SEATNO || !isAvailable)) return;
-        if ((isExtension || isReturn) && !assignNo) return;
+    if (!isOpen) return;
+    if (isAssignCheck) return;
 
-        dispatch(clearBookingTime());
+    // Update API language
+    setApiLang(lang);
 
-        // 🔥 Update API language
-        setApiLang(lang);
+    // Recall API based on mode
+    if (isBooking && seat?.SEATNO && isAvailable) {
+        dispatch(fetchBookingTime({ seatno: seat.SEATNO }));
+    }
+    else if ((isExtension || isReturn || isMove) && assignNo) {
+        dispatch(fetchBookingTime({ assignno: assignNo }));
+    }
 
-        // 🔥 Re-fetch automatically when language changes
-        if (isBooking) {
-            dispatch(fetchBookingTime({ seatno: seat.SEATNO }));
-        }
-        else if (isExtension || isReturn) {
-            dispatch(fetchBookingTime({ assignno: assignNo }));
-        }
-        else if (isMove && assignNo) {
-            dispatch(fetchBookingTime({ assignno: assignNo }));
-        }
+}, [lang]);   // ⭐ ONLY language dependency
+useEffect(() => {
 
-    }, [
-        isOpen,
-        lang,   // ⭐ IMPORTANT
-        seat,
-        assignNo,
-        isAvailable,
-        isBooking,
-        isExtension,
-        isReturn,
-        isMove,
-        isAssignCheck
-    ]);
+    if (!isOpen) return;
+    if (isAssignCheck) return;
+console.log("lang---------------", lang)
+    dispatch(clearBookingTime());
+
+    setApiLang(lang);
+
+    if (isBooking && seat?.SEATNO && isAvailable) {
+        dispatch(fetchBookingTime({ seatno: seat.SEATNO }));
+    }
+    else if ((isExtension || isReturn || isMove) && assignNo) {
+        dispatch(fetchBookingTime({ assignno: assignNo }));
+    }
+
+}, [
+    isOpen,
+    seat,
+    assignNo,
+    isAvailable,
+    isBooking,
+    isExtension,
+    isReturn,
+    isMove
+]);
 
 
 
@@ -555,7 +563,7 @@ const SeatActionModal = ({
 
         if (isReturn) {
             return await setReturnSeat({
-                b_SeqNo: assignNo ?? bookingSeatInfo?.B_SEQNO
+                b_SeqNo: assignNo ?? bookingSeatInfo?.BSEQNO
             });
         }
 
@@ -660,10 +668,10 @@ const SeatActionModal = ({
             const isKorean = languageCode === "ko";
 
             // ✅ FIX: For booking mode, seat prop is null after onClose(); use captured seatInfo as fallback
-            const roomName = seat?.ROOM_NAME || bookingSeatInfo?.FLOOR_NAME || seatInfo?.FLOOR_NAME || "";
-            const sectorName = seat?.NAME || bookingSeatInfo?.SECTOR_NAME || seatInfo?.SECTOR_NAME || "";
+            const roomName =seatInfo?.FLOOR_NAME || "";
+            const sectorName = seatInfo?.SECTOR_NAME || "";
             const roomDisplay = [roomName, sectorName].filter(Boolean).join(", ");
-            console.log("seat", seat?.ROOM_NAME, "bookingSeatInfo", bookingSeatInfo?.FLOOR_NAME, "seatInfo", seatInfo?.FLOOR_NAME);
+            console.log("seatInfo", seatInfo, );
             const formattedData = {
                 USER_NAME: userInfo?.NAME || userInfo?.SCHOOLNO || "",
                 SCHOOL_NO: userInfo?.SCHOOLNO || "",
@@ -965,24 +973,38 @@ const SeatActionModal = ({
      */
     const resultFooter = useMemo(() => (
         <div className="flex gap-10 justify-center">
+
             <button
                 onClick={handleResultModalClose}
-                className={`px-12 py-4 bg-linear-to-r from-[#FFCB35] to-[#cf9e0b] hover:from-[#fccc3b] hover:to-[#c79706] text-white rounded-lg font-bold text-lg ${isFocused('confirm-button') ? 'outline-[6px] outline-[#dc2f02]' : ''
-                    }`}
+                className={`px-12 py-4 bg-linear-to-r from-[#FFCB35] to-[#cf9e0b]
+            hover:from-[#fccc3b] hover:to-[#c79706]
+            text-white rounded-lg font-bold text-lg
+            ${isFocused('confirm-button') ? 'outline-[6px] outline-[#dc2f02]' : ''}`}
             >
                 {t("translations.Confirm")}
             </button>
-            {actionResult?.success && (
+
+            {actionResult?.success && (isBooking || isMove) && (
                 <button
                     onClick={handlePrint}
-                    className={`px-15 py-4 bg-linear-to-r from-[#FFCB35] to-[#cf9e0b] hover:from-[#fccc3b] hover:to-[#c79706] text-white rounded-lg font-bold text-lg ${isFocused('print-button') ? 'outline-[6px] outline-[#dc2f02]' : ''
-                        }`}
+                    className={`px-15 py-4 bg-linear-to-r from-[#FFCB35] to-[#cf9e0b]
+                hover:from-[#fccc3b] hover:to-[#c79706]
+                text-white rounded-lg font-bold text-lg
+                ${isFocused('print-button') ? 'outline-[6px] outline-[#dc2f02]' : ''}`}
                 >
                     {t("translations.Print Receipt")}
                 </button>
             )}
+
         </div>
-    ), [handleResultModalClose, handlePrint, actionResult, isFocused]);
+    ), [
+        handleResultModalClose,
+        handlePrint,
+        actionResult,
+        isFocused,
+        isBooking,
+        isMove
+    ]);
 
 
 

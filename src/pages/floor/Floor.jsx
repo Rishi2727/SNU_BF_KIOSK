@@ -91,12 +91,6 @@ const Floor = () => {
   const hasSpokenRoomRef = useRef(false);
   const hasSpokenFloorRef = useRef(false);
 
-  //For Floor Section Speak
-
-
-
-
-
   const FocusRegion = Object.freeze({
     FLOOR_STATS: "floor_stats",
     MINI_MAP: "mini_map",
@@ -235,10 +229,11 @@ const Floor = () => {
       try {
         await initializeApi();
         const timers = getPopupTimers();
+        console.log("first")
         if (timers && timers.length > 0) {
-          const floorConfig = timers.find(t => t.ID === 8) || timers.find(t => t.name === 'LOG OUT FLOOR TIMER');
-          const reminderConfig = timers.find(t => t.ID === 9) || timers.find(t => t.name === 'SESSION TIMER REMINDER');
-          const resetOnTouchConfig = timers.find(t => t.ID === 10) || timers.find(t => t.name === 'RESET TIMER ON TOUCH');
+          const floorConfig =  timers.find(t => t.name === 'LOG OUT FLOOR TIMER');
+          const reminderConfig =  timers.find(t => t.name === 'SESSION TIMER REMINDER');
+          const resetOnTouchConfig =  timers.find(t => t.name === 'RESET TIMER ON TOUCH');
 
           if (floorConfig) {
             setFloorTimerConfig(floorConfig);
