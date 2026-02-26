@@ -221,6 +221,7 @@ const Dashboard = () => {
     if (!earphoneInjected) return;
     dispatch(logout());
     setFocused(null);
+    setIsKeyboardOpen(false);
     speakMainScreen();
     dispatch(clearHeadphoneFocus());
   }, [earphoneInjected, dispatch]);
