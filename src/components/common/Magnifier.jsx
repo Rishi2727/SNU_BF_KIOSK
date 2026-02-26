@@ -19,6 +19,7 @@ const Magnifier = ({ lensSize = 300, scale = 2 }) => {
 
   const createOverlay = () => {
     if (overlayRef.current) return;
+    document.body.style.touchAction = "none";
 
     const overlay = document.createElement("div");
     overlay.className = "__magnifier_overlay";
@@ -34,6 +35,7 @@ const Magnifier = ({ lensSize = 300, scale = 2 }) => {
       border: "4px solid white",
       background: "#fff",
       display: "none",
+       touchAction: "none", 
     });
 
     const clone = document.createElement("div");
@@ -52,21 +54,21 @@ const Magnifier = ({ lensSize = 300, scale = 2 }) => {
     clonedRef.current = clone;
     
 
-    const onMove = (e) => {
-      const x = e.clientX;
-      const y = e.clientY;
+const onMove = (e) => {
+  const x = e.clientX;
+  const y = e.clientY;
 
-      overlay.style.display = "block";
-      overlay.style.left = `${x - lensSize / 2}px`;
-      overlay.style.top = `${y - lensSize / 2}px`;
+  overlay.style.display = "block";
+  overlay.style.left = `${x - lensSize / 2}px`;
+  overlay.style.top = `${y - lensSize / 2}px`;
 
-      const tx = lensSize / 2 / scale - x;
-      const ty = lensSize / 2 / scale - y;
+  const tx = lensSize / 2 / scale - x;
+  const ty = lensSize / 2 / scale - y;
 
-      clone.style.transform = `scale(${scale}) translate(${tx}px, ${ty}px)`;
-    };
+  clone.style.transform = `scale(${scale}) translate(${tx}px, ${ty}px)`;
+};
 
-    document.addEventListener("mousemove", onMove);
+ document.addEventListener("pointermove", onMove);
     overlay.__onMove = onMove;
 
     intervalRef.current = setInterval(updateClone, 120);
@@ -92,7 +94,8 @@ const Magnifier = ({ lensSize = 300, scale = 2 }) => {
     const overlay = overlayRef.current;
     if (!overlay) return;
 
-    document.removeEventListener("mousemove", overlay.__onMove);
+    document.removeEventListener("pointermove", overlay.__onMove);
+    document.body.style.touchAction = "";
     clearInterval(intervalRef.current);
 
     overlay.remove();
