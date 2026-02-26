@@ -32,9 +32,10 @@ import { logout } from "../../redux/slice/authSlice";
 const getPrintData = (formattedData, t) => {
     const languageCode = localStorage.getItem("lang") === "ko" ? "ko" : "en";
     const commands = [];
-    const padLabel = (label, width = 16) => label.padEnd(width, " ") + ": ";
-    if (languageCode === "ko") {
 
+    const padLabel = (label, width = 16) => label.padEnd(width, " ") + ": ";
+
+    if (languageCode === "ko") {
 
         const labelWidths = {
             Room: 10,
@@ -48,7 +49,6 @@ const getPrintData = (formattedData, t) => {
             return padLabel(translated, width);
         };
 
-
         commands.push(
             { type: "alignment", value: "center" },
             { type: "medium_text" },
@@ -58,11 +58,24 @@ const getPrintData = (formattedData, t) => {
             { type: "blank_line" },
             { type: "blank_line" },
             { type: "alignment", value: "left" },
+        );
 
+        // ✅ NAME ONLY IF AVAILABLE
+        if (formattedData.USER_NAME) {
+            commands.push(
+                { type: "bold" },
+                { type: "korean_text", value: getPaddedLabel("Name") },
+                { type: "unbold" },
+                { type: "korean_text", value: formattedData.USER_NAME },
+                { type: "blank_line" }
+            );
+        }
+
+        commands.push(
             { type: "bold" },
-            { type: "korean_text", value: getPaddedLabel("Name") },
+            { type: "korean_text", value: getPaddedLabel("School No") },
             { type: "unbold" },
-            { type: "korean_text", value: formattedData.USER_NAME },
+            { type: "korean_text", value: formattedData.SCHOOL_NO },
             { type: "blank_line" },
 
             { type: "bold" },
@@ -90,12 +103,6 @@ const getPrintData = (formattedData, t) => {
             { type: "blank_line" },
 
             { type: "bold" },
-            { type: "korean_text", value: getPaddedLabel("School No") },
-            { type: "unbold" },
-            { type: "korean_text", value: formattedData.SCHOOL_NO },
-            { type: "blank_line" },
-
-            { type: "bold" },
             { type: "korean_text", value: getPaddedLabel("Booking Date") },
             { type: "unbold" },
             { type: "korean_text", value: formattedData.BOOKING_DATE },
@@ -118,7 +125,9 @@ const getPrintData = (formattedData, t) => {
             { type: "full_cut" },
             { type: "clear_all" }
         );
+
     } else {
+
         commands.push(
             { type: "alignment", value: "center" },
             { type: "medium_text" },
@@ -130,11 +139,24 @@ const getPrintData = (formattedData, t) => {
             { type: "blank_line" },
             { type: "blank_line" },
             { type: "alignment", value: "left" },
+        );
 
+        // ✅ NAME ONLY IF AVAILABLE
+        if (formattedData.USER_NAME) {
+            commands.push(
+                { type: "bold" },
+                { type: "korean_text", value: padLabel(t("translations.Name")) },
+                { type: "unbold" },
+                { type: "korean_text", value: formattedData.USER_NAME },
+                { type: "blank_line" }
+            );
+        }
+
+        commands.push(
             { type: "bold" },
-            { type: "korean_text", value: padLabel(t("translations.Name")) },
+            { type: "korean_text", value: padLabel(t("translations.School No")) },
             { type: "unbold" },
-            { type: "korean_text", value: formattedData.USER_NAME },
+            { type: "korean_text", value: formattedData.SCHOOL_NO },
             { type: "blank_line" },
 
             { type: "bold" },
@@ -149,7 +171,6 @@ const getPrintData = (formattedData, t) => {
             { type: "korean_text", value: formattedData.SEAT_NO },
             { type: "blank_line" },
 
-
             { type: "bold" },
             { type: "korean_text", value: padLabel(t("translations.Check in Time")) },
             { type: "unbold" },
@@ -160,12 +181,6 @@ const getPrintData = (formattedData, t) => {
             { type: "korean_text", value: padLabel(t("translations.Check out Time")) },
             { type: "unbold" },
             { type: "korean_text", value: formattedData.CHECKOUT_TIME },
-            { type: "blank_line" },
-
-            { type: "bold" },
-            { type: "korean_text", value: padLabel(t("translations.School No")) },
-            { type: "unbold" },
-            { type: "korean_text", value: formattedData.SCHOOL_NO },
             { type: "blank_line" },
 
             { type: "bold" },
@@ -194,6 +209,7 @@ const getPrintData = (formattedData, t) => {
             { type: "clear_all" }
         );
     }
+
     return { commands };
 };
 
@@ -656,7 +672,7 @@ const SeatActionModal = ({
                     : DATE_FORMATS.DATETIME;
             const roomName = seatInfo?.FLOOR_NAME || "";
             const formattedData = {
-                USER_NAME: userInfo?.NAME || userInfo?.SCHOOLNO || "",
+                USER_NAME: userInfo?.NAME ||  "",
                 SCHOOL_NO: userInfo?.SCHOOLNO || "",
                 BOOKING_DATE: formatDate(startTime, dateFormat),
                 ROOM: roomName,
