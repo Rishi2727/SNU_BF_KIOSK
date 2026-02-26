@@ -31,6 +31,7 @@ import Modal from "../../components/common/Modal";
 import { useVoice } from "../../context/voiceContext";
 import { formatFloorForSpeech } from "../../utils/speechFormatter";
 import { getRoomConfig, isMinimapAtBottom } from "../../utils/config";
+import { logout } from "../../redux/slice/authSlice";
 
 const Floor = () => {
   const navigate = useNavigate();
@@ -584,6 +585,7 @@ const Floor = () => {
   ===================================================== */
   const handleLogout = () => {
     localStorage.removeItem("authenticated");
+    dispatch(logout());
     dispatch(clearUserInfo());
     navigate("/");
   };

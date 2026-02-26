@@ -34,30 +34,18 @@ const Dashboard = () => {
   const { speak, stop } = useVoice();
   const { setCurrentFloor } = useFloorData(null, null);
   const lang = useSelector((state) => state.lang.current);
-
-  // Update API language whenever redux lang changes
-  useEffect(() => {
-    setApiLang(lang);
-  }, [lang]);
-
   const [modalStates, setModalStates] = useState({
     [MODAL_TYPES.EXTENSION]: false,
     [MODAL_TYPES.RETURN]: false,
     [MODAL_TYPES.ASSIGN_CHECK]: false,
   });
   const [selectedAssignNo, setSelectedAssignNo] = useState(null);
-  // Add this state near your other modal states
   const [loginErrorButtonFocused, setLoginErrorButtonFocused] = useState(false);
-
-  //state for modal focus
   const [isLoginErrorFocused, setIsLoginErrorFocused] = useState(false);
   const hasSpokenLoginErrorRef = useRef(false);
 
-  // ✅ NEW: Floor Selection Modal State
-  const [isFloorSelectionModalOpen, setIsFloorSelectionModalOpen] =
-    useState(false);
-  const [floorSelectionFocusedIndex, setFloorSelectionFocusedIndex] =
-    useState(0);
+  const [isFloorSelectionModalOpen, setIsFloorSelectionModalOpen] = useState(false);
+  const [floorSelectionFocusedIndex, setFloorSelectionFocusedIndex] = useState(0);
   const [isFloorSelectionFocused, setIsFloorSelectionFocused] = useState(false);
 
   // ✅ Focus state
@@ -68,7 +56,6 @@ const Dashboard = () => {
   const { humanDetected } = useSerialPort();
   const { t } = useTranslation();
   const { earphoneInjected } = useSelector((state) => state.headphone);
-  // 🔴 Login error modal state
   const [loginErrorModal, setLoginErrorModal] = useState({
     isOpen: false,
     title: "",
@@ -76,8 +63,6 @@ const Dashboard = () => {
   });
 
   const [showGlobalLoading, setShowGlobalLoading] = useState(true);
-
-  // Redux selectors
   const { userInfo, isAuthenticated } = useSelector((state) => state.userInfo);
   const { bookingSeatInfo } = useSelector((state) => state.bookingTime);
   const { floors, loading, error } = useSelector((state) => state.floor);
@@ -92,8 +77,6 @@ const Dashboard = () => {
     isFloorSelectionModalOpen ||
     loginErrorModal.isOpen;
 
-
-  // ✅ Define focus regions (Logo → MainSection → Notice → Footer)
   const FocusRegion = Object.freeze({
     LOGO: "logo",
     MAIN_SECTION: "mainSection",
@@ -107,57 +90,39 @@ const Dashboard = () => {
   });
   const volume = useSelector((state) => state.accessibility.volume);
   const prevVolumeRef = useRef(volume);
+  useEffect(() => {
+    setApiLang(lang);
+  }, [lang]);
 
-  // Speak on main Screen
   const speakMainScreen = useCallback(() => {
     if (isAnyModalOpen || window.__INFO_MODAL_OPEN__) return;
     stop();
     speak(t("speech.This screen is the main screen."));
-  }, [speak, stop, t, isAnyModalOpen, window.__INFO_MODAL_OPEN__]);
-
+  }, [speak, stop, t, isAnyModalOpen]);
   const prevModalState = useRef({
     keyboard: false,
 
   });
 
-
   useEffect(() => {
-    // keyboard modal closed
     if (prevModalState.current.keyboard && !isKeyboardOpen) {
       speakMainScreen();
     }
-
     prevModalState.current = {
       keyboard: isKeyboardOpen,
-
     };
   }, [isKeyboardOpen, speakMainScreen]);
 
-
-
   useEffect(() => {
-
     if (location.pathname !== "/") return;
-
-    // speak once ONLY if nothing focused
     if (focused === null) {
       speakMainScreen();
     }
-
-    const interval = setInterval(() => {
-
-      // ⭐ DO NOT SPEAK IF ANY FOCUS EXISTS
-      if (focused !== null) return;
-
-      // also prevent when modals open (recommended)
-      if (isKeyboardOpen) return;
-
+    const timer = setTimeout(() => {
+      stop();
       speakMainScreen();
-
-    }, 60000);
-
-    return () => clearInterval(interval);
-
+    }, 400); 
+    return () => clearTimeout(timer);
   }, [
     location.pathname,
     speakMainScreen,
@@ -196,21 +161,21 @@ const Dashboard = () => {
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [t, speak]); // t is enough, speak/stop are stable in your hook
+  }, [t, speak]); 
+
   useEffect(() => {
-
-    // 🔥 stop if feature disabled from config
     if (!HUMAN_SENSOR_DETECTION) return;
-
-    // 🔥 speak ONLY when human appears (false -> true)
+    if (typeof humanDetected !== "boolean") return;
     if (humanDetected && !lastHumanStateRef.current) {
       speakMainScreen();
     }
-
-    // update last state
     lastHumanStateRef.current = humanDetected;
-
-  }, [humanDetected, HUMAN_SENSOR_DETECTION, t]);
+    if (humanDetected) return;
+    const interval = setInterval(() => {
+      speakMainScreen();
+    }, 60000 * 3);
+    return () => clearInterval(interval);
+  }, [humanDetected, HUMAN_SENSOR_DETECTION, speakMainScreen]);
 
   useEffect(() => {
     dispatch(fetchFloorList(1)); // libno = 1
@@ -233,9 +198,6 @@ const Dashboard = () => {
         e.key === "*" || e.code === "NumpadMultiply" || e.keyCode === 106;
 
       if (!isAsterisk) return;
-
-      // Don't cycle focus if any modal is open
-      // ⭐ CASE 1: Keyboard is open but NOT focused → Shift + * enters keyboard focus
       if (isKeyboardOpen && focused !== FocusRegionforKeyboardModal.KEYBOARD) {
         e.preventDefault();
         e.stopPropagation();
@@ -243,7 +205,6 @@ const Dashboard = () => {
         return;
       }
 
-      // ⭐ CASE 2: Keyboard already focused → dashboard should NOT react
       if (
         focused === FocusRegionforKeyboardModal.KEYBOARD ||
         isUserInfoModalOpen ||
@@ -255,7 +216,6 @@ const Dashboard = () => {
         return;
       }
 
-      // Cycle through focus regions: Logo → MainSection → Notice → Footer → Logo
       setFocused((prev) => {
         if (prev === null) return FocusRegion.LOGO;
         if (prev === FocusRegion.LOGO) return FocusRegion.MAIN_SECTION;
@@ -278,13 +238,12 @@ const Dashboard = () => {
   ]);
 
   useEffect(() => {
-    // 🔥 Show loading when floors are fetching OR after logout refresh
     if (loading || !floors || floors.length === 0) {
       setShowGlobalLoading(true);
     } else {
       const timer = setTimeout(() => {
         setShowGlobalLoading(false);
-      }, 300); // prevents blink
+      }, 300);
       return () => clearTimeout(timer);
     }
   }, [loading, floors]);
@@ -372,14 +331,6 @@ const Dashboard = () => {
     }
   }, []);
 
-  /**
-   * Close keyboard modal
-   */
-  const closeKeyboard = useCallback(() => {
-    stop();
-    setIsKeyboardOpen(false);
-    setFocused(null);
-  }, [stop]);
 
   const openLoginErrorModal = useCallback((title, message) => {
     setLoginErrorModal({
@@ -524,7 +475,7 @@ const Dashboard = () => {
         let bookingData = bookingSeatInfo;
 
         if (!bookingData) {
-           setApiLang(lang);
+          setApiLang(lang);
           const result = await dispatch(
             fetchBookingTime({
               assignno: assignNo,
@@ -954,7 +905,7 @@ const Dashboard = () => {
       )}
 
 
-        <img
+      <img
         src={BgMainImage}
         alt="Background"
         className="absolute inset-0 h-full w-full object-cover "
