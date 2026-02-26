@@ -221,6 +221,12 @@ const SeatActionModal = ({
 
     const { speak, stop } = useVoice();
     const { t } = useTranslation();
+    const languageCode = localStorage.getItem("lang") === "ko" ? "ko" : "en";
+
+    const uiDateFormat =
+        languageCode === "ko"
+            ? DATE_FORMATS.KO_DATETIME
+            : DATE_FORMATS.DATETIME;
     const lastSpokenRef = useRef("");
     const { writeToSerialPort, serialPortsData } = useSerialPort();
     const { isBooking, isExtension, isReturn, isMove, isAssignCheck } = modeFlags;
@@ -570,7 +576,7 @@ const SeatActionModal = ({
             if ((isBooking || isMove) && seat) {
                 console.log("FLOOR_NAME", seat)
                 setSeatInfo({
-                    
+
                     FLOOR_NAME: seat.SECTOR_NAME || "",
                     SECTOR_NAME: seat.NAME || "",
                     SEAT_VNAME: seat.VNAME || "",
@@ -688,7 +694,7 @@ const SeatActionModal = ({
         } catch (err) {
             console.error("Error printing:", err);
         }
-    }, [userInfo, seat, bookingSeatInfo, startTime, endTime, serialPortsData, writeToSerialPort, t,logout]);
+    }, [userInfo, seat, bookingSeatInfo, startTime, endTime, serialPortsData, writeToSerialPort, t, logout]);
 
     // ===================HANDLE BY ENTER KEY ================
     const handleEnterPress = useCallback((focusedElement) => {
@@ -1291,6 +1297,7 @@ const SeatActionModal = ({
                                     <span className="text-gray-700 font-bold">:</span>
 
                                     <span className="font-extrabold text-[#f7c224]">
+
                                         {formatDate(startTime, DATE_FORMATS.ISO)} ~{" "}
                                         {endTime ? formatDate(endTime, DATE_FORMATS.ISO) : ""}
                                     </span>
@@ -1394,57 +1401,10 @@ const SeatActionModal = ({
                     <p className="text-[28px] text-gray-700 font-bold mb-4">
                         {t(`translations.${actionResult?.message}`)}
                     </p>
-
-                    {/* Success Details */}
-                    {/* {actionResult?.success && !isReturn && !isMove && (
-                        <div className="mt-4 p-4 bg-linear-to-r from-[#FFCB35] to-[#cf9e0bd0] border-4 border-[#cf9e0b] rounded-2xl">
-                            {isBooking && seat ? (
-                                <>
-                                    <p className="text-[24px] text-[#F7C233] font-bold">
-                                        {seat.ROOM_NAME} - {seat?.VNAME}
-                                    </p>
-                                    <p className="text-[20px] text-gray-600 mt-1">
-                                        {formatDate(startTime, DATE_FORMATS.ISO)} ~ {endTime ? formatDate(endTime, DATE_FORMATS.ISO) : ""}
-                                    </p>
-                                </>
-                            ) : (
-                                <>
-                                    <p className="text-[24px]  font-bold">
-                                        연장 시간: {endTime ? formatDate(endTime, DATE_FORMATS.ISO) : ""}
-                                    </p>
-                                    <p className="text-[20px] text-gray-600 mt-1">
-                                        {formatDate(startTime, DATE_FORMATS.ISO)} ~ {endTime ? formatDate(endTime, DATE_FORMATS.ISO) : ""}
-                                    </p>
-                                </>
-                            )}
-                        </div>
-                    )} */}
-                    {/* 
-                    {actionResult?.success && isMove && (
-                        <div className="mt-4 p-4 bg-linear-to-r from-[#FFCB35] to-[#cf9e0b] border-4 border-[#cf9e0b] rounded-2xl">
-                            <p className="text-[24px] font-bold">
-                                좌석 이동이 완료되었습니다
-                            </p>
-                            <p className="text-[20px] text-gray-600 mt-2">
-                                새 좌석: {seat?.ROOM_NAME} - {seat?.VNAME}
-                            </p>
-                        </div>
-                    )} */}
-                    {/* 
-                    {actionResult?.success && isReturn && (
-                        <div className="mt-4 p-4 bg-linear-to-r from-[#FFCB35] to-[#cf9e0b] border-4 border-[#cf9e0b] rounded-2xl">
-                            <p className="text-[24px]  font-bold">
-                                좌석이 성공적으로 반납되었습니다
-                            </p>
-                            <p className="text-[20px] text-gray-600 mt-2">
-                                다시 배정받으시려면 로그인해주세요
-                            </p>
-                        </div>
-                    )} */}
                 </div>
             </Modal>
         </>
     );
 };
 
-export default SeatActionModal;
+export default SeatActionModal

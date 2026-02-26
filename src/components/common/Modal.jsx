@@ -1,3 +1,5 @@
+import { X } from "lucide-react";
+
 const Modal = ({
   isOpen,
   onClose,
@@ -32,7 +34,7 @@ const Modal = ({
 
   return (
     <div
-      className="fixed inset-0  flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 ] flex items-center justify-center bg-black/50 backdrop-blur-sm"
         style={{ zIndex }}
       onClick={() => {
   if (closeOnBackdrop) handleClose();
@@ -43,19 +45,17 @@ const Modal = ({
         onClick={(e) => e.stopPropagation()}
       >
         {title && (
-          <div className="bg-linear-to-r from-gray-100 to-gray-50 px-8 py-5 border-b flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-800">{title}</h2>
+          <div className="bg-linear-to-r from-gray-100 to-gray-50 px-8 py-5  flex items-center justify-between">
+            <h2 className="text-[30px] font-bold text-gray-800">{title}</h2>
             {showCloseButton && (
               <button
                 onClick={handleClose}
                 className={`
-    text-gray-500 hover:text-gray-700 transition-colors
+    text-gray-500 hover:text-gray-700  transition-colors
     ${closeFocused ? " outline-[6px] outline-[#dc2f02] " : ""}
   `}
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+              > 
+                <X size={30}/>
               </button>
             )}
           </div>
@@ -66,7 +66,7 @@ const Modal = ({
         </div>
 
         {footer && (
-          <div className="px-8 py-5 bg-gray-50 border-t mt-auto">
+          <div className="px-8 py-5 bg-gray-50  mt-auto">
             {footer}
           </div>
         )}

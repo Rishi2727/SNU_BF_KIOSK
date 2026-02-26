@@ -186,7 +186,7 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
     >
       <div className="space-y-7">
         <div className="bg-linear-to-r from-teal-50 to-cyan-50 rounded-lg p-6 border-l-4 border-teal-500">
-          <p className="text-2xl text-gray-800 font-semibold">
+          <p className="text-[30px] text-gray-800 font-semibold">
             {t(
               "translations.You are now logged in. Please select the features you wish to use."
             )}
