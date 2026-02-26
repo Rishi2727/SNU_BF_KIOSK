@@ -258,6 +258,7 @@ const enTranslations = {
     "Another seat is already in use (reserved).": "Another seat is already in use (reserved).",
     "이미 다른 좌석을 사용(예약)중입니다.": "Another seat is already in use (reserved)",
     "다른 구역으로는 좌석을 이동할 수 없습니다.<br/>관리자에게 문의하세요.": "You cannot move your seat to another area Please contact the administrator.",
+      "서비스 도중 에러가 발생하였습니다.<BR/>잠시 후 다시 이용하시길 바랍니다.":"An error occurred during service Please try again later.",
     "SEOUL NATIONAL UNIVERSITY": "SEOUL NATIONAL UNIVERSITY",
     "Booking Date : ": "Booking Date : ",
     "Room": "Room",
