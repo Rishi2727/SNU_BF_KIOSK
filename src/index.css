@@ -11,6 +11,12 @@
   color: black !important;
 }
 
+/* to fix the screen  */
+html, body, #root {
+  overflow: hidden;
+  margin: 0;
+  height: 100%;
+}
 
 :root[data-contrast="high"] {
   filter: invert(1) !important;
