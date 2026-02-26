@@ -1052,8 +1052,8 @@ const SeatActionModal = ({
                     });
                 case "date-label":
                 case "date-value": {
-                    const startStr = formatDate(startTime, DATE_FORMATS.ISO);
-                    const endStr = endTime ? formatDate(endTime, DATE_FORMATS.ISO) : "";
+                    const startStr = formatDate(startTime, uiDateFormat);
+                    const endStr = endTime ? formatDate(endTime, uiDateFormat) : "";
                     let durationText = "";
                     if (startTime && endTime) {
                         const diffMs = endTime.getTime() - startTime.getTime();
@@ -1062,7 +1062,7 @@ const SeatActionModal = ({
                             durationText = formatDurationLabel(minutes, t);
                         }
                     }
-                    const fullSpeech = `${t("translations.Date Duration")}: ${startStr} ${t("speech.to")} ${endStr}. ${durationText ? t("speech.Total") + " " + durationText : ""}`;
+                    const fullSpeech = `${t("translations.Date Duration")}: ${startStr} ${t("speech.to")} ${endStr}.`;
                     return fullSpeech;
                 }
                 case "time-label":
@@ -1070,15 +1070,15 @@ const SeatActionModal = ({
                     if (!seatInfo?.USESTART || !seatInfo?.USEEXPIRE) {
                         return t("translations.Time of use");
                     }
-                    const startStr = formatDate(seatInfo.USESTART, DATE_FORMATS.ISO);
-                    const endStr = formatDate(seatInfo.USEEXPIRE, DATE_FORMATS.ISO);
+                    const startStr = formatDate(seatInfo.USESTART, uiDateFormat);
+                    const endStr = formatDate(seatInfo.USEEXPIRE, uiDateFormat);
                     return `${t("translations.Time of use")}: ${startStr} ${t("speech.to")} ${endStr}`;
                 }
                 case "start-label":
                 case "start-value": {
-                    const startStr = formatDate(startTime, DATE_FORMATS.ISO);
+                    const startStr = formatDate(startTime, uiDateFormat);
                     const endStr = bookingSeatInfo?.USEEXPIRE
-                        ? formatDate(bookingSeatInfo.USEEXPIRE, DATE_FORMATS.ISO)
+                        ? formatDate(bookingSeatInfo.USEEXPIRE, uiDateFormat)
                         : "";
                     let durationText = "";
                     if (startTime && bookingSeatInfo?.USEEXPIRE) {
@@ -1089,7 +1089,7 @@ const SeatActionModal = ({
                             durationText = formatDurationLabel(minutes, t);
                         }
                     }
-                    const fullSpeech = `${t("translations.Start hours")}: ${startStr} ${t("speech.to")} ${endStr}. ${durationText ? t("speech.Total") + " " + durationText : ""}`;
+                    const fullSpeech = `${t("translations.Start hours")}: ${startStr} ${t("speech.to")} ${endStr}.`;
                     return fullSpeech;
                 }
                 case "action-label":
@@ -1268,8 +1268,8 @@ const SeatActionModal = ({
                                 <span className="text-gray-700">:</span>
 
                                 <div className="flex-1 font-extrabold text-[#f7c224]">
-                                    {formatDate(seatInfo.USESTART, DATE_FORMATS.ISO)} ~{" "}
-                                    {formatDate(seatInfo.USEEXPIRE, DATE_FORMATS.ISO)}
+                                    {formatDate(seatInfo.USESTART, uiDateFormat)} ~{" "}
+                                    {formatDate(seatInfo.USEEXPIRE, uiDateFormat)}
                                 </div>
                             </div>
 
@@ -1314,8 +1314,8 @@ const SeatActionModal = ({
 
                                     <span className="font-extrabold text-[#f7c224]">
 
-                                        {formatDate(startTime, DATE_FORMATS.ISO)} ~{" "}
-                                        {endTime ? formatDate(endTime, DATE_FORMATS.ISO) : ""}
+                                   {formatDate(startTime, uiDateFormat)} ~{" "}
+{endTime ? formatDate(endTime, uiDateFormat) : ""}
                                     </span>
                                 </div>
 
@@ -1333,9 +1333,9 @@ const SeatActionModal = ({
                                     <span className="text-gray-700 font-bold">:</span>
 
                                     <span className="font-extrabold text-[#f7c224]">
-                                        {formatDate(startTime, DATE_FORMATS.ISO)} ~{" "}
+                                        {formatDate(startTime, uiDateFormat)} ~{" "}
                                         {bookingSeatInfo?.USEEXPIRE
-                                            ? formatDate(bookingSeatInfo.USEEXPIRE, DATE_FORMATS.ISO)
+                                            ? formatDate(bookingSeatInfo.USEEXPIRE, uiDateFormat)
                                             : ""}
                                     </span>
                                 </div>
