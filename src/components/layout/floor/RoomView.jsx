@@ -5,7 +5,7 @@ import { useVoice } from "../../../context/voiceContext";
 import { useTranslation } from "react-i18next";
 import { getRoomConfig } from "../../../utils/config";
 import SectorZoomMiniMap from "./SectorZoomMiniMap.jsx";
-
+import seatUserIcon from "../../../assets/images/SeatIcons.png";
 /* ================= SEAT IMAGE ================= */
 const getRSeatImage = (seat) => {
   if (seat.ICONTYPE < 2 || seat.ICONTYPE > 7) return null;
@@ -31,7 +31,7 @@ const RoomView = ({
   visibleSeatsFromParent,
   onSectorsCalculated,
 }) => {
-  
+
   const { speak, stop } = useVoice();
   const { t } = useTranslation();
 
@@ -53,12 +53,12 @@ const RoomView = ({
   const [refsReady, setRefsReady] = useState(false);
   const [firstSectorSet, setFirstSectorSet] = useState(false);
   const imageWrapperRef = useRef(null);
-  
+
   const isRoomStillLoading =
-  loadingSeats ||
-  !isImageLoaded ||
-  !seatBounds ||
-  !sectors.length;
+    loadingSeats ||
+    !isImageLoaded ||
+    !seatBounds ||
+    !sectors.length;
 
   /* ================= ROOM CONFIG ================= */
   const roomConfig = useMemo(() => {
@@ -121,7 +121,38 @@ const RoomView = ({
       height: seat.POSH * scaleY,
     };
   };
+  const parseSeatIconPosition = (seat) => {
+    if (!naturalDimensions.width || !displayDimensions.width) {
+      return null;
+    }
 
+    const referenceDimensions = roomConfig.USE_LEGACY_SYSTEM_MAPPING
+      ? {
+        width: roomConfig.USE_LEGACY_SYSTEM_MAPPING_WIDTH,
+        height: roomConfig.USE_LEGACY_SYSTEM_MAPPING_HEIGHT
+      }
+      : naturalDimensions;
+
+    const scaleX = displayDimensions.width / referenceDimensions.width;
+    const scaleY = displayDimensions.height / referenceDimensions.height;
+
+    // ✅ Use MANX/MANY if available
+    if (seat.MANX != null && seat.MANY != null) {
+      return {
+        left: seat.MANX * scaleX,
+        top: seat.MANY * scaleY,
+      };
+    }
+
+    // ✅ Fallback → center of seat
+    const seatPosition = parseSeatPosition(seat);
+    if (!seatPosition) return null;
+
+    return {
+      left: seatPosition.left + seatPosition.width / 2,
+      top: seatPosition.top + seatPosition.height / 2,
+    };
+  };
   /* ================= UPDATE CONTAINER SIZE ================= */
   useEffect(() => {
     const updateContainerSize = () => {
@@ -344,7 +375,7 @@ const RoomView = ({
 
           const isComplete = overlapLeft < overlapRight && overlapTop < overlapBottom;
 
-         
+
 
           return isComplete;
         });
@@ -388,7 +419,7 @@ const RoomView = ({
     setAllSectors(allSectors);
 
   }, [seatBounds, containerSize, seats, naturalDimensions, displayDimensions, roomConfig]);
-  
+
   // 🔄 Geometry changed → allow first sector to be set again
   useEffect(() => {
     if (!seatBounds) return;
@@ -406,7 +437,7 @@ const RoomView = ({
     displayDimensions.width,
     displayDimensions.height
   ]);
-  
+
   useEffect(() => {
     if (!sectors.length) return;
     if (!isImageLoaded) return;
@@ -745,82 +776,110 @@ const RoomView = ({
                   draggable={false}
                 />
 
-                {/* SEATS - NOW USING visibleSeats INSTEAD OF seats */}
                 {canShowSeats && visibleSeats.map((seat, visibleIndex) => {
                   const position = parseSeatPosition(seat);
                   if (!position) return null;
 
-                  const isFocused = visibleIndex === focusedSeatIndex && focusedRegion === "room";
+                  const isFocused =
+                    visibleIndex === focusedSeatIndex && focusedRegion === "room";
 
-                  const isAvailable = seat.USECNT === 0 && (seat.STATUS === 1 || seat.STATUS === 2);
+                  const isAvailable =
+                    seat.USECNT === 0 && (seat.STATUS === 1 || seat.STATUS === 2);
+                  const isBooked = !isAvailable;
                   const isHandicap = seat.STATUS === 9;
 
-                  if (seat.ICONTYPE >= 2 && seat.ICONTYPE <= 7) {
-                    const src = getRSeatImage(seat);
-                    const fontSize = 30;
-                    return (
-                      <div
-                        ref={(el) => (seatRefs.current[seat.SEATNO] = el)}
-                        key={seat.SEATNO}
-                        className={`absolute pointer-events-auto cursor-pointer transition-all hover:opacity-80 ${isFocused ? 'ring-[6px] ring-[#dc2f02] ring-offset-2 z-50' : ''
-                          }`}
-                        style={{
-                          left: `${position.left}px`,
-                          top: `${position.top}px`,
-                          width: `${position.width}px`,
-                          height: `${position.height}px`,
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (!isPanning) onSeatClick(seat);
-                        }}
-                      >
-                        <img src={src} className="w-full h-full" alt="" />
-                        <span
-                          className="absolute inset-0 flex items-center justify-center font-normal text-black drop-shadow pointer-events-none"
-                          style={{ fontSize: `${fontSize}px` }}
-                        >
-                          {seat.VNAME}
-                        </span>
-                      </div>
-                    );
-                  }
+                  const iconPos = !isAvailable
+                    ? parseSeatIconPosition(seat)
+                    : null;
+                  return (
+                    <div key={seat.SEATNO}>
 
-                  if (seat.ICONTYPE === 1 || seat.ICONTYPE === 8) {
-                    const fontSize = 30;
-                    return (
-                      <div
-                        ref={(el) => (seatRefs.current[seat.SEATNO] = el)}
-                        key={seat.SEATNO}
-                        className={`absolute pointer-events-auto cursor-pointer rounded transition-all hover:scale-105 flex items-center justify-center ${isFocused ? 'ring-[6px] ring-[#dc2f02] ring-offset-2 z-50' : ''
-                          } ${isHandicap
-                            ? 'bg-[url("http://k-rsv.snu.ac.kr:8011/NEW_SNU_BOOKING/commons/images/kiosk/SeatBtn_disable.png")] bg-contain bg-no-repeat bg-center'
-                            : isAvailable
-                              ? "bg-linear-to-b from-[#ffc477] to-[#fb9e25] border border-[#eeb44f]"
-                              : "bg-[#e5e1c4]"
-                          }`}
-                        style={{
-                          left: `${position.left}px`,
-                          top: `${position.top}px`,
-                          width: `${position.width * roomConfig.ZOOM_SEATS_SCALE}px`,
-                          height: `${position.height}px`,
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (!isPanning) onSeatClick(seat);
-                        }}
-                      >
-                        <span
-                          className="font-normal text-gray-800"
-                          style={{ fontSize: `${fontSize}px` }}
+                      {/* ================= SEAT ================= */}
+                      {seat.ICONTYPE >= 2 && seat.ICONTYPE <= 7 && (
+                        <div
+                          ref={(el) => (seatRefs.current[seat.SEATNO] = el)}
+                          className={`absolute cursor-pointer transition-all hover:opacity-80 ${isFocused ? "ring-[6px] ring-[#dc2f02] ring-offset-2 z-50" : ""
+                            }`}
+                          style={{
+                            left: `${position.left}px`,
+                            top: `${position.top}px`,
+                            width: `${position.width}px`,
+                            height: `${position.height}px`,
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!isPanning) onSeatClick(seat);
+                          }}
                         >
-                          {seat.VNAME}
-                        </span>
-                      </div>
-                    );
-                  }
+                          <img
+                            src={getRSeatImage(seat)}
+                            className="w-full h-full"
+                            alt=""
+                          />
+                          <span
+                            className="absolute inset-0 font-medium flex items-center justify-center text-black drop-shadow"
+                            style={{ fontSize: "30px" }}
+                          >
+                            {seat.VNAME}
+                            <span> {isBooked && (
+                              <div className="absolute w-15 bottom-8 left-5 h-[6px] bg-[#00B1B0] rounded-sm pointer-events-none"></div>
+                            )}</span>
+                          </span>
+                        </div>
+                      )}
 
-                  return null;
+                      {(seat.ICONTYPE === 1 || seat.ICONTYPE === 8) && (
+                        <div
+                          ref={(el) => (seatRefs.current[seat.SEATNO] = el)}
+                          className={`absolute cursor-pointer rounded flex items-center justify-center  ${isFocused ? "ring-[6px] ring-[#dc2f02] ring-offset-2 z-50" : ""
+                            } ${isHandicap
+                              ? 'bg-[url("http://k-rsv.snu.ac.kr:8011/NEW_SNU_BOOKING/commons/images/kiosk/SeatBtn_disable.png")] bg-contain bg-no-repeat bg-center'
+                              : isAvailable
+                                ? "bg-linear-to-b from-[#ffc477] to-[#fb9e25] border border-[#eeb44f]"
+                                : "bg-[#e5e1c4]"
+                            }`}
+                          style={{
+                            left: `${position.left}px`,
+                            top: `${position.top}px`,
+                            width: `${position.width * roomConfig.ZOOM_SEATS_SCALE}px`,
+                            height: `${position.height}px`,
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!isPanning) onSeatClick(seat);
+                          }}
+                        >
+                          <span
+                            className="text-gray-800 font-medium"
+                            style={{ fontSize: "30px" }}
+                          >
+                            {seat.VNAME}
+                            <span> {isBooked && (
+                              <div className="absolute w-12 bottom-2 left-2 h-[6px] bg-[#00B1B0] rounded-sm pointer-events-none"></div>
+                            )}</span>
+                          </span>
+                        </div>
+                      )}
+
+                      {/* ================= BOOKED ICON ================= */}
+                      {iconPos && (
+                        <img
+                          src={seatUserIcon}
+                          alt="Booked"
+                          className="absolute pointer-events-none"
+                          style={{
+                            left: `${iconPos.left}px`,
+                            top: `${iconPos.top}px`,
+                            width: `30px`,
+                            height: `30px`,
+
+
+                          }}
+                        />
+                      )}
+
+                    </div>
+                  );
                 })}
               </div>
             </div>
