@@ -16,13 +16,15 @@ function isHeadphoneDevice(device) {
   );
 }
 
-export function useHeadphoneGuard() {
+export function useHeadphoneGuard({ onFocusContent } = {}) {
+
   const dispatch = useDispatch();
 
   const permissionRequestedRef = useRef(false);
   const prevConnectedRef = useRef(null);
 
   useEffect(() => {
+
     if (!navigator.mediaDevices?.enumerateDevices) return;
 
     const ensurePermissionOnce = async () => {
@@ -39,6 +41,7 @@ export function useHeadphoneGuard() {
     };
 
     const checkDevices = async () => {
+
       const devices = await navigator.mediaDevices.enumerateDevices();
       const connected = devices.some(isHeadphoneDevice);
 
@@ -49,12 +52,14 @@ export function useHeadphoneGuard() {
 
       // 🎧 JUST CONNECTED
       if (!prevConnectedRef.current && connected) {
+
         console.log("🎧 Headphone detected");
 
-        dispatch(logout());
+        // ✅ CALL CALLBACK HERE
+        if (onFocusContent) {
+          onFocusContent();
+        }
 
-        // 🔥 tell app: earphone injected, prevent focus, trigger speech
-        dispatch(disableNextFocus());
       }
 
       prevConnectedRef.current = connected;
@@ -63,7 +68,9 @@ export function useHeadphoneGuard() {
     ensurePermissionOnce().then(checkDevices);
 
     navigator.mediaDevices.addEventListener("devicechange", checkDevices);
+
     return () =>
       navigator.mediaDevices.removeEventListener("devicechange", checkDevices);
-  }, [dispatch]);
+
+  }, [dispatch, onFocusContent]);
 }
