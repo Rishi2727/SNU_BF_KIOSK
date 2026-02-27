@@ -75,26 +75,27 @@ export const VoiceProvider = ({ children }) => {
   }, []);
 
   // SPEAK function - stores last spoken text
-  const speak = useCallback(
-    (text) => {
-      if (!text || !window.speechSynthesis) return;
-      setLastText(text); // Store last spoken text for re-speaking
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.voice = voice || null;
-      utterance.lang = voice?.lang || "en-US";
-      utterance.rate = 0.9;
-      utterance.pitch = 0.1;
-      utterance.volume = volumeRef.current;
-      try {
-        window.speechSynthesis.speak(utterance);
-      } catch (err) {
-        console.debug("[VoiceProvider] speak error", err);
-      }
-    },
-    [voice]
-  );
+const speak = useCallback(
+  (text) => {
+    if (!text || !window.speechSynthesis) return;
 
+    // 🔥 DO NOT speak if volume is zero
+    if (volumeRef.current === 0) return;
+
+    setLastText(text);
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.voice = voice || null;
+    utterance.lang = voice?.lang || "en-US";
+    utterance.rate = 0.9;
+    utterance.pitch = 0.1;
+    utterance.volume = volumeRef.current;
+
+    window.speechSynthesis.speak(utterance);
+  },
+  [voice]
+);
   // Global keyboard listeners for voice control
   useEffect(() => {
     const handleKeyDown = (e) => {
