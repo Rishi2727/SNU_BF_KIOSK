@@ -112,23 +112,19 @@ const Dashboard = () => {
       keyboard: isKeyboardOpen,
     };
   }, [isKeyboardOpen, speakMainScreen]);
-
   useEffect(() => {
     if (location.pathname !== "/") return;
-    if (focused === null) {
-      speakMainScreen();
+    if (focused === null && !showGlobalLoading) {
+      // Delay gives voice context time to initialize after refresh
+      const timer = setTimeout(() => {
+        speakMainScreen();
+      }, 800);
+      return () => clearTimeout(timer);
     }
-    const timer = setTimeout(() => {
-      stop();
-      speakMainScreen();
-    }, 400); 
-    return () => clearTimeout(timer);
   }, [
     location.pathname,
-    speakMainScreen,
     focused,
-    isKeyboardOpen,
-
+    showGlobalLoading,  // ← wait until loading is done
   ]);
 
   useEffect(() => {
