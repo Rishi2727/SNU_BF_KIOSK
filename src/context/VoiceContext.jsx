@@ -96,7 +96,7 @@ const speak = useCallback(
     utterance.voice = voice || null;
     utterance.lang = voice?.lang || "en-US";
     utterance.rate = 0.9;
-    utterance.pitch = 0.1;
+    utterance.pitch = 1;
     utterance.volume = volumeRef.current;
 
     currentUtteranceRef.current = utterance;
@@ -121,7 +121,7 @@ useEffect(() => {
       utterance.voice = voice || null;
       utterance.lang = voice?.lang || "en-US";
       utterance.rate = 0.9;
-      utterance.pitch = 0.1;
+      utterance.pitch = 1;
       utterance.volume = volume;
 
       currentUtteranceRef.current = utterance;
@@ -135,7 +135,7 @@ useEffect(() => {
     utterance.voice = voice || null;
     utterance.lang = voice?.lang || "en-US";
     utterance.rate = 0.9;
-    utterance.pitch = 0.1;
+    utterance.pitch = 1;
     utterance.volume = volume;
 
     currentUtteranceRef.current = utterance;

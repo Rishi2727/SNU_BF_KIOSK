@@ -150,14 +150,7 @@ const KeyboardModal = ({
 
     if (kbFocus === KBFocus.KEYS) {
       const selectedKey = keyboardKeys[keyCursor];
-      const cleaned = selectedKey.replace(/[{}]/g, "");
-
-      // ⭐ FIX — Give proper names to characters
-      const label =
-        keyDisplay[selectedKey] ||
-        specialKeySpeech[cleaned] ||
-        cleaned;
-
+      const label = getKeySpeechLabel(selectedKey);
       speak(label);
       return;
     }
@@ -166,8 +159,13 @@ const KeyboardModal = ({
       if (buttonCursor === 0) speak(t("speech.Submit"));
       if (buttonCursor === 1) speak(t("speech.Close"));
     }
-  }, [kbFocus, keyCursor, buttonCursor, isFocused]);
-
+  }, [
+    kbFocus,
+    keyCursor,
+    buttonCursor,
+    isFocused,
+    layoutName   // ⭐ important
+  ]);
   const startTimer = () => {
     clearTimer();
     if (autoCloseTime) {
@@ -247,9 +245,7 @@ const KeyboardModal = ({
       if (kbFocus === KBFocus.KEYS) {
         setKeyCursor((prev) => {
           const next = e.key === "ArrowRight" ? prev + 1 : prev - 1;
-          const selectedKey = keyboardKeys[keyCursor];
-          const label = getKeySpeechLabel(selectedKey);
-          speak(label);
+
           // LAST / FIRST → BACK TO HEADING
           if (next >= keyboardKeys.length || next < 0) {
             setKbFocus(KBFocus.HEADING);

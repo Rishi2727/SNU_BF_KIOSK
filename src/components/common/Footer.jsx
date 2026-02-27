@@ -390,7 +390,7 @@ useEffect(() => {
   //For Magnifier 
 
   useEffect(() => {
-    if (!isFocused || isAnyModalOpen) return;
+    if ( isAnyModalOpen) return;
 
     stop();
 
