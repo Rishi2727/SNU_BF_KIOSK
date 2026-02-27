@@ -385,14 +385,7 @@ useEffect(() => {
     }
   }, [cursor, isFocused, userInfo, volume, speak, stop, t]);
 
-useEffect(() => {
-  if (!window.speechSynthesis) return;
 
-  // 🔥 If volume is zero → STOP EVERYTHING immediately
-  if (volume === 0) {
-    window.speechSynthesis.cancel();
-  }
-}, [volume]);
 
   //For Magnifier 
 
