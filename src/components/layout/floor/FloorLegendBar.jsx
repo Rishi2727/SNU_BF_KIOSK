@@ -5,6 +5,8 @@ import { useTranslation } from "react-i18next";
 import i18n from "../../../translation/language/i18n";
 import { formatFloorForSpeech } from "../../../utils/speechFormatter";
 import logo from "../../../assets/images/logo.png";
+import UserIcon from "../../../assets/images/SeatIcons.png";;
+
 const FloorLegendBar = ({
   buildingName,
   floorName,
@@ -127,7 +129,7 @@ const FloorLegendBar = ({
 
         <div className={`flex items-center gap-2 ${isFocusedAt(2) ? focusRing : ""}`}
           aria-selected={isFocusedAt(2)}>
-          <Users className="w-8 h-8 text-[#e5e1c4]" />
+            <img src={UserIcon} className="w-8 h-8 " />
           <span className="text-[28px]">{t("translations.Booked")}</span>
         </div>
 

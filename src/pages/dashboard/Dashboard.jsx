@@ -1066,7 +1066,7 @@ const Dashboard = () => {
             onClick={handleFloorSelectionLogout}
             className={`mt-4 w-full p-4 rounded-2xl font-semibold text-lg transition-all
               ${floorSelectionFocusedIndex === floors.length
-                ? "bg-red-600 text-white ring-4 ring-red-300 scale-105"
+                ? "bg-red-600 text-white ring-4 ring-red-200 scale-105"
                 : "bg-gray-200 text-gray-800 hover:bg-gray-300"
               }`}
           >

@@ -294,10 +294,10 @@ useEffect(() => {
     if (userInfo) {
       switch (cursor) {
         case 0:
-          speakText = `${t("speech.Current Time")} ${new Date().toLocaleTimeString("en-US", {
-            hour: "numeric",
+          speakText = `${t("speech.Current Time")} ${new Date().toLocaleTimeString("en-GB", {
+            hour: "2-digit",
             minute: "2-digit",
-            hour12: true,
+            hour12: false,
           })}`;
           break;
         case 1 + BACK_OFFSET:
@@ -339,10 +339,10 @@ useEffect(() => {
     } else {
       switch (cursor) {
         case 0:
-          speakText = `${t("speech.Current Time")} ${new Date().toLocaleTimeString("en-US", {
-            hour: "numeric",
+          speakText = `${t("speech.Current Time")} ${new Date().toLocaleTimeString("en-GB", {
+            hour: "2-digit",
             minute: "2-digit",
-            hour12: true,
+            hour12: false,
           })}`;
           break;
         case 1:

@@ -817,13 +817,13 @@ const RoomView = ({
                             alt=""
                           />
                           <span
-                            className="absolute inset-0 font-medium flex items-center justify-center text-black drop-shadow"
+                            className={`absolute inset-0 font-medium flex items-center justify-center text-black drop-shadow ${!isAvailable
+                                ? "underline decoration-[#00B1B0] decoration-[5px] underline-offset-[6px]"
+                                : ""
+                              }`}
                             style={{ fontSize: "30px" }}
                           >
                             {seat.VNAME}
-                            <span> {isBooked && (
-                              <div className="absolute w-15 bottom-8 left-5 h-[6px] bg-[#00B1B0] rounded-sm pointer-events-none"></div>
-                            )}</span>
                           </span>
                         </div>
                       )}
@@ -850,13 +850,16 @@ const RoomView = ({
                           }}
                         >
                           <span
-                            className="text-gray-800 font-medium"
-                            style={{ fontSize: "30px" }}
+                            className={`font-medium ${!isAvailable
+                              ? "underline decoration-[#00B1B0] decoration-[5px] underline-offset-[6px] "
+                              : ""
+                              }`}
+                            style={{
+                              fontSize: "30px",
+                              color: "#2c2c2c",
+                            }}
                           >
                             {seat.VNAME}
-                            <span> {isBooked && (
-                              <div className="absolute w-12 bottom-2 left-2 h-[6px] bg-[#00B1B0] rounded-sm pointer-events-none"></div>
-                            )}</span>
                           </span>
                         </div>
                       )}
