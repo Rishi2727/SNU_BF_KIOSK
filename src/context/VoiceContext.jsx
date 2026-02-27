@@ -16,7 +16,9 @@ export const VoiceProvider = ({ children }) => {
   const { i18n } = useTranslation();
   // Get volume from Redux accessibility slice (if you have one)
   // If not, you can manage volume locally with useState
-  const volume = useSelector((state) => state.accessibility?.volume) || 1;
+const volume = useSelector(
+  (state) => state.accessibility?.volume ?? 1
+);
   const volumeRef = useRef(volume);
 
   useEffect(() => {
