@@ -28,6 +28,8 @@ const volume = useSelector(
   const [voice, setVoice] = useState(null);
   const [voices, setVoices] = useState([]);
   const [lastText, setLastText] = useState("");
+  const currentUtteranceRef = useRef(null);
+  const prevVolumeRef = useRef(volume);
 
   // Load voices based on language
   useEffect(() => {
@@ -81,10 +83,13 @@ const speak = useCallback(
   (text) => {
     if (!text || !window.speechSynthesis) return;
 
-    // 🔥 DO NOT speak if volume is zero
-    if (volumeRef.current === 0) return;
+    if (volumeRef.current === 0) {
+      window.speechSynthesis.cancel();
+      return;
+    }
 
     setLastText(text);
+
     window.speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
@@ -94,10 +99,51 @@ const speak = useCallback(
     utterance.pitch = 0.1;
     utterance.volume = volumeRef.current;
 
+    currentUtteranceRef.current = utterance;
+
     window.speechSynthesis.speak(utterance);
   },
   [voice]
 );
+
+useEffect(() => {
+  if (!window.speechSynthesis) return;
+
+  const prevVolume = prevVolumeRef.current;
+
+  // 🔥 CASE 1: Volume changed while speaking (normal restart behavior)
+  if (window.speechSynthesis.speaking) {
+    const last = lastText;
+    window.speechSynthesis.cancel();
+
+    if (volume > 0 && last) {
+      const utterance = new SpeechSynthesisUtterance(last);
+      utterance.voice = voice || null;
+      utterance.lang = voice?.lang || "en-US";
+      utterance.rate = 0.9;
+      utterance.pitch = 0.1;
+      utterance.volume = volume;
+
+      currentUtteranceRef.current = utterance;
+      window.speechSynthesis.speak(utterance);
+    }
+  }
+
+  // 🔥 CASE 2: Volume was 0 → now increased (resume last speech)
+  if (prevVolume === 0 && volume > 0 && lastText) {
+    const utterance = new SpeechSynthesisUtterance(lastText);
+    utterance.voice = voice || null;
+    utterance.lang = voice?.lang || "en-US";
+    utterance.rate = 0.9;
+    utterance.pitch = 0.1;
+    utterance.volume = volume;
+
+    currentUtteranceRef.current = utterance;
+    window.speechSynthesis.speak(utterance);
+  }
+
+  prevVolumeRef.current = volume;
+}, [volume, lastText, voice]);
   // Global keyboard listeners for voice control
   useEffect(() => {
     const handleKeyDown = (e) => {
