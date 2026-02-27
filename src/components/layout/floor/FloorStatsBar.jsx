@@ -4,9 +4,10 @@ import { useTranslation } from "react-i18next";
 import { formatFloorForSpeech } from "../../../utils/speechFormatter";
 import { useDispatch, useSelector } from "react-redux";
 
-const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused, isAnyModalOpen,  isMinimapNearFloorStats }) => {
+const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused, isAnyModalOpen, isMinimapNearFloorStats }) => {
   const calculatePercentage = (occupied, total) => {
-    return (occupied / total) * 100;
+    if (!total) return 0;
+    return Math.min((occupied / total) * 100, 100);
   };
   const [floorCursor, setFloorCursor] = useState(null);
   const SECTION_COUNT = floors.length;
@@ -143,7 +144,7 @@ const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused,
           {/* Stats */}
           <div className="flex-1 px-4 py-2 relative">
             {/* Percentage badge */}
-            <div className="absolute top-7 left-4 bg-[#9A7D4C] text-white font-bold px-3 py-0 rounded-md text-[28px] shadow-md">
+            <div className="absolute top-7 left-4 bg-[#9A7D4C] text-white font-bold px-3 py-0 rounded-md text-[30px] shadow-md" style={{ left: `${calculatePercentage(item.occupied, item.total)}%` }}>
               {item.occupied}
             </div>
 
@@ -153,10 +154,7 @@ const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused,
                 <div
                   className="h-full bg-[#9A7D4C] rounded-full transition-all duration-300"
                   style={{
-                    width: `${calculatePercentage(
-                      item.occupied,
-                      item.total
-                    )}%`,
+                    width: `${calculatePercentage(item.occupied, item.total)}%`,
                   }}
                 />
               </div>
