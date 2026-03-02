@@ -605,7 +605,7 @@ const SeatActionModal = ({
             let msg;
             if (res?.successYN === "Y") {
                 if (isBooking) {
-                    msg = t('translations.Seat Booking Successfully')
+                    msg = t('translations.Seat Booked Successfully')
                 } else if (isMove) {
                     msg = t('translations.Seat Moved Successfully')
                 } else if (isExtension) {

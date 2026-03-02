@@ -246,7 +246,7 @@ const enTranslations = {
     "Network error. Unable to contact administrator": "Network error. Unable to contact administrator",
     "Message sent to administrator": "Message sent to administrator",
     "Failed to send message to administrator": "Failed to send message to administrator",
-    "Seat Booking Successfully": "Seat Booking Successfully",
+    "Seat Booked Successfully": "Seat Booked Successfully",
     "Seat Moved Successfully": "Seat Moved Successfully",
     "Seat Extension Successfully": "Seat Extension Successfully",
     "Seat Return Successfully": "Seat Returned Successfully",
