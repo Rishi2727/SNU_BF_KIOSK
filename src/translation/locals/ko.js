@@ -26,7 +26,7 @@ const koTranslations = {
     SEAT_MODAL_TIME_OPTION: "시간 선택 {{time}}",
     SEAT_MODAL_MOVE_CONFIRM: "이 좌석으로 이동하시겠습니까?",
     SEAT_MODAL_RETURN_CONFIRM: "좌석을 반납하시겠습니까?",
-    SEAT_MODAL_CONFIRM_GENERIC: "좌석을 {{action}} 하시겠습니까?",
+    SEAT_MODAL_CONFIRM_GENERIC: "이 좌석을 예약 하시겠습니까?",
     SEAT_MODAL_SUCCESS: "좌석 처리가 완료되었습니다",
     SEAT_MODAL_FAILURE: "좌석 처리에 실패했습니다",
     Confirm: "확인",
@@ -212,6 +212,8 @@ const koTranslations = {
     available: "이용 가능",
     booked: "사용 중",
     fixed: "고정 좌석",
+    "UserID": "사용자 ID",
+    "UserIDMessage": "사용자 ID {{id}}"
   },
   translations: {
     Confirm: "확인",
@@ -258,7 +260,7 @@ const koTranslations = {
     minutes: "분",
     "Do you want to move to this seat?": "이 좌석으로 이동하시겠습니까?",
     "Do you want to return the seat?": "좌석을 반납하시겠습니까?",
-    SEAT_CONFIRM_GENERIC: "좌석을 {{action}} 하시겠습니까?",
+    SEAT_CONFIRM_GENERIC: "이 좌석을 예약 하시겠습니까?",
     Booking: "예약",
     "Seat Extension": "좌석 연장",
     "Seat Move": "좌석 이동",
@@ -302,8 +304,8 @@ const koTranslations = {
       "관리자에게 메시지 전송에 실패했습니다",
     "Seat Booked Successfully": "좌석이 성공적으로 예약되었습니다.",
     "Seat Moved Successfully": "좌석 이동이 성공적으로 완료되었습니다.",
-    "Seat Extension Successfully": "좌석 연장 성공",
-    "Seat Return Successfully": "좌석 반납 성공",
+    "Seat Extension Successful": "좌석 연장이 성공적으로 완료되었습니다.",
+    "Seat Returned Successfully": "좌석 반납이 성공적으로 완료되었습니다.",
     "Booking Failed": "예약 실패",
     "Not Found": "찾을 수 없음",
     "Network error. Please check your internet connection and try again.":
