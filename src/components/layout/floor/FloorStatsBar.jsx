@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useVoice } from "../../../context/voiceContext";
 import { useTranslation } from "react-i18next";
 import { formatFloorForSpeech } from "../../../utils/speechFormatter";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 
 const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused, isAnyModalOpen, isMinimapNearFloorStats }) => {
   const calculatePercentage = (occupied, total) => {
@@ -14,8 +14,6 @@ const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused,
   const { speak, stop } = useVoice();
   const { t } = useTranslation();
   const lang = useSelector((state) => state.lang.current);
-
-  const dispatch = useDispatch();
   /* --------------------------
    RESET CURSOR ON DEFOCUS
 ---------------------------*/
@@ -132,7 +130,7 @@ const FloorStatsBar = ({ floors, currentFloor, onFloorClick, loading, isFocused,
               }`}
           >
             <span
-              className={`text-[30px] font-bold tracking-wide ${currentFloor?.id === item.id
+              className={`text-[32px] font-bold tracking-wide ${currentFloor?.id === item.id
                 ? "text-white"
                 : "text-[#9A7D4C]"
                 }`}

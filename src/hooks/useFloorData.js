@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FloorImageUrl, setApiLang } from "../services/api";
+import { getFloorImageUrl , setApiLang } from "../services/api";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchFloorList } from "../redux/slice/floorSlice";
 import { clearSectors, fetchSectorList } from "../redux/slice/sectorSlice";
@@ -14,6 +14,7 @@ export const useFloorData = (floorId, initialFloorInfo) => {
   const [currentFloor, setCurrentFloor] = useState(null);
   const [floorImageUrl, setFloorImageUrl] = useState("");
   const [imageError, setImageError] = useState(false);
+  const imageBaseUrl = getFloorImageUrl();
 useEffect(() => {
     setApiLang(lang);
   }, [lang]);
@@ -46,9 +47,8 @@ useEffect(() => {
     if (!currentFloor?.floorno) return;
 
     dispatch(clearSectors());
-
     const floorNumber = `${currentFloor.floorno}000`;
-    setFloorImageUrl(`${FloorImageUrl}/MAP/KIOSK/floor_${floorNumber}.png`);
+    setFloorImageUrl(`${imageBaseUrl}/MAP/KIOSK/floor_${floorNumber}.png`);
     setImageError(false);
 
     dispatch(

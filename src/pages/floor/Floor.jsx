@@ -17,10 +17,10 @@ import FloorStatsBar from "../../components/layout/floor/FloorStatsBar";
 import FloorLegendBar from "../../components/layout/floor/FloorLegendBar";
 import FooterControls from "../../components/common/Footer";
 import {
-  FloorImageUrl,
+  getFloorImageUrl,
   getKioskUserInfo,
   getSeatList,
-  ImageBaseUrl,
+  getImageBaseUrl,
   getPopupTimers,
   initializeApi,
   setApiLang
@@ -49,6 +49,8 @@ const Floor = () => {
   const [showRoomView, setShowRoomView] = useState(false);
   const [miniMapError, setMiniMapError] = useState(false);
   const [selectedMiniSector, setSelectedMiniSector] = useState(null);
+  const imageBaseUrl = getFloorImageUrl();
+  const SeatImagebaseUrl = getImageBaseUrl();
   const [imageTransform, setImageTransform] = useState({
     x: 0,
     y: 0,
@@ -298,7 +300,7 @@ const Floor = () => {
   const miniMapFile = selectedSector
     ? MINIMAP_CONFIG[selectedSector.SECTORNO]
     : null;
-  const miniMapUrl = miniMapFile ? `${ImageBaseUrl}/${miniMapFile}` : null;
+  const miniMapUrl = miniMapFile ? `${SeatImagebaseUrl}/${miniMapFile}` : null;
   const seatFontScale = layout?.seatFontScale ?? 1; // Keep font size constant
 
   /* =====================================================
@@ -1014,7 +1016,7 @@ const Floor = () => {
               <RoomView
                 key={selectedSector?.SECTOR_IMAGE}
                 selectedSector={selectedSector}
-                baseUrl={FloorImageUrl}
+                baseUrl={imageBaseUrl}
                 seats={seats}
                 loadingSeats={loadingSeats}
                 selectedMiniSector={selectedMiniSector}

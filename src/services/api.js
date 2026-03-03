@@ -247,22 +247,21 @@ export const initializeApi = async () => {
 
 export { PRIMARY_SERVER_URL, SECONDARY_SERVER_URL, QR_SERVER_URL, RFID_SERVER_URL, managerIpUrl, MACHINE_ID, MACHINE_NAME, HUMAN_SENSOR_DETECTION };
 
-export const ImageBaseUrl =
-  "http://k-rsv.snu.ac.kr:8011/NEW_SNU_BOOKING/commons/images/kiosk";
+export const getImageBaseUrl = () =>`${PRIMARY_SERVER_URL}/commons/images/kiosk`;
+export const getFloorImageUrl = () => SECONDARY_SERVER_URL;
 
-export const FloorImageUrl = "http://k-rsv.snu.ac.kr:8012";
 
 /* =============================== API CALL USAGE ============================== */
 
 export const getFloorList = async (libno) => {
   await ensureInitialized();
-  const res = await ApiClientSecondary.get("/GetFloorUsingCount.asp", { params: { libno } });
+  const res = await ApiClientSecondary.get("/SEATAPI/GetFloorUsingCount.asp", { params: { libno } });
   return res.data;
 };
 
 export const getNoticeInfo = async () => {
   await ensureInitialized();
-  const res = await ApiClientSecondary.get("/GetNoticeInfo_TEST.asp");
+  const res = await ApiClientSecondary.get("/SEATAPI/GetNoticeInfo_TEST.asp");
   return res.data;
 };
 

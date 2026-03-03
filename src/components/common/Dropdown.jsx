@@ -37,11 +37,14 @@ const Dropdown = ({
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // Normalize options to always have {label, value} format
-    const normalizedOptions = options.map(opt =>
-        typeof opt === 'string' ? { label: opt, value: opt } : opt
-    );
-
+    const normalizedOptions = [
+        { label: placeholder, value: "", disabled: true }, // ✅ placeholder option
+        ...options.map(opt =>
+            typeof opt === 'string'
+                ? { label: opt, value: opt }
+                : opt
+        )
+    ];
     // Find selected option
     const selectedOption = normalizedOptions.find(opt => opt.value === value);
 

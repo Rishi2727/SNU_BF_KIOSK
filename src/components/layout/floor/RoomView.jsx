@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useMemo } from "react";
-import { ImageBaseUrl } from "../../../services/api";
+import { getImageBaseUrl } from "../../../services/api";
 import LoadingSpinner from "../../common/LoadingSpinner";
 import { useVoice } from "../../../context/voiceContext";
 import { useTranslation } from "react-i18next";
@@ -8,11 +8,12 @@ import SectorZoomMiniMap from "./SectorZoomMiniMap.jsx";
 import seatUserIcon from "../../../assets/images/SeatIcons.png";
 /* ================= SEAT IMAGE ================= */
 const getRSeatImage = (seat) => {
+  const SeatImagebaseUrl = getImageBaseUrl();
   if (seat.ICONTYPE < 2 || seat.ICONTYPE > 7) return null;
   const rNo = seat.ICONTYPE - 1;
   const isDisabled =
     seat.USECNT !== 0 || (seat.STATUS !== 1 && seat.STATUS !== 2);
-  return `${ImageBaseUrl}/SeatBtnR${rNo}${isDisabled ? "_Dis" : ""}.png`;
+  return `${SeatImagebaseUrl}/SeatBtnR${rNo}${isDisabled ? "_Dis" : ""}.png`;
 };
 
 /* ================================================= */
@@ -53,7 +54,7 @@ const RoomView = ({
   const [refsReady, setRefsReady] = useState(false);
   const [firstSectorSet, setFirstSectorSet] = useState(false);
   const imageWrapperRef = useRef(null);
-
+  const SeatImagebaseUrl = getImageBaseUrl();
   const isRoomStillLoading =
     loadingSeats ||
     !isImageLoaded ||
@@ -818,8 +819,8 @@ const RoomView = ({
                           />
                           <span
                             className={`absolute inset-0 font-medium flex items-center justify-center text-black drop-shadow ${!isAvailable
-                                ? "underline decoration-[#00B1B0] decoration-[5px] underline-offset-[6px]"
-                                : ""
+                              ? "underline decoration-[#00B1B0] decoration-[5px] underline-offset-[6px]"
+                              : ""
                               }`}
                             style={{ fontSize: "30px" }}
                           >
@@ -831,18 +832,25 @@ const RoomView = ({
                       {(seat.ICONTYPE === 1 || seat.ICONTYPE === 8) && (
                         <div
                           ref={(el) => (seatRefs.current[seat.SEATNO] = el)}
-                          className={`absolute cursor-pointer rounded flex items-center justify-center  ${isFocused ? "ring-[6px] ring-[#dc2f02] ring-offset-2 z-50" : ""
-                            } ${isHandicap
-                              ? 'bg-[url("http://k-rsv.snu.ac.kr:8011/NEW_SNU_BOOKING/commons/images/kiosk/SeatBtn_disable.png")] bg-contain bg-no-repeat bg-center'
-                              : isAvailable
-                                ? "bg-linear-to-b from-[#ffc477] to-[#fb9e25] border border-[#eeb44f]"
-                                : "bg-[#e5e1c4]"
+                          className={`absolute cursor-pointer rounded flex items-center justify-center  
+                            ${isFocused ? "ring-[6px] ring-[#dc2f02] ring-offset-2 z-50" : ""}
+                            ${!isHandicap && isAvailable
+                              ? "bg-linear-to-b from-[#ffc477] to-[#fb9e25] border border-[#eeb44f]"
+                              : !isHandicap
+                                ? "bg-[#e5e1c4]"
+                                : ""
                             }`}
                           style={{
                             left: `${position.left}px`,
                             top: `${position.top}px`,
                             width: `${position.width * roomConfig.ZOOM_SEATS_SCALE}px`,
                             height: `${position.height}px`,
+                            ...(isHandicap && {
+                              backgroundImage: `url(${SeatImagebaseUrl}/SeatBtn_disable.png)`,
+                              backgroundSize: "contain",
+                              backgroundRepeat: "no-repeat",
+                              backgroundPosition: "center",
+                            }),
                           }}
                           onClick={(e) => {
                             e.stopPropagation();
