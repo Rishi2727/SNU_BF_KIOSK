@@ -1,9 +1,8 @@
 import { AlertCircle } from "lucide-react";
 import { getNoticeInfo } from "../../../services/api";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useVoice } from "../../../context/voiceContext";
 import { useTranslation } from "react-i18next";
-import { useRef } from "react";
 
 const NoticeBanner = ({ isFocused, lang }) => {
   const [notices, setNotices] = useState([]);
@@ -12,18 +11,15 @@ const NoticeBanner = ({ isFocused, lang }) => {
   const { t } = useTranslation();
   const hasAnnouncedHeadingRef = useRef(false);
 
-  // 🔁 Re-fetch when language changes
   useEffect(() => {
     let isMounted = true;
 
     const fetchNotices = async () => {
       try {
-        setNotices([]); // ✅ clear old language data
+        setNotices([]);
         setNoticeIndex(0);
 
         const res = await getNoticeInfo();
- 
-
         const list = res?.body?.NoticeList || [];
 
         if (isMounted) {
@@ -40,11 +36,11 @@ const NoticeBanner = ({ isFocused, lang }) => {
     return () => {
       isMounted = false;
     };
-  }, [lang]); // ✅ language dependency
+  }, [lang]);
 
-  // 🔁 Auto slide (slow down when focused)
   useEffect(() => {
     if (!notices.length) return;
+
     const intervalTime = isFocused ? 20000 : 5000;
 
     const interval = setInterval(() => {
@@ -54,10 +50,9 @@ const NoticeBanner = ({ isFocused, lang }) => {
     return () => clearInterval(interval);
   }, [notices, isFocused]);
 
-  // 🔊 VOICE: speak notice when focused or notice changes
   useEffect(() => {
     if (!isFocused) {
-      hasAnnouncedHeadingRef.current = false; // reset when focus leaves
+      hasAnnouncedHeadingRef.current = false;
       return;
     }
 
@@ -81,40 +76,72 @@ const NoticeBanner = ({ isFocused, lang }) => {
     return () => clearTimeout(timer);
   }, [isFocused, noticeIndex, notices, speak, stop, t]);
 
+  const current = notices[noticeIndex];
+
   return (
-    <div className="notice-banner absolute bottom-[100px] right-0 w-[73%] px-6">
+    <div className="absolute bottom-[108px] right-0 w-full px-6">
+      
       <div
-        className={`relative flex gap-5 items-start 
-          bg-yellow-500/90 backdrop-blur-md 
-          rounded-2xl p-3 shadow-2xl border border-yellow-300/40
-          transition-all duration-300
-          h-60
-          ${isFocused ? "outline-[6px] outline-[#dc2f02] " : ""}
-        `}
+        className={`contrast-dark relative flex items-stretch overflow-hidden rounded-[20px] h-[230px]
+        bg-gradient-to-br from-[rgba(15,12,30,0.78)] to-[rgba(30,22,10,0.82)]
+        ${isFocused ? "border-[6px] border-[#dc2f02]" : "border-[6px] border-transparent"}`}
       >
-        <div className="shrink-0 bg-white/25 p-2 rounded-xl">
-          <AlertCircle className="w-9 h-9 text-white drop-shadow-md" />
-        </div>
 
-        <div className="flex flex-col gap-2 w-full h-full overflow-hidden">
-          <h3 className="text-[32px] font-extrabold tracking-wide leading-8 drop-shadow-md shrink-0 text-[#9A7D4C]">
-            {notices.length
-              ? notices[noticeIndex]?.TITLE
-              : t("speech.Notice information")}
-          </h3>
+        {/* Accent Strip */}
+        <div className="w-[6px] bg-gradient-to-b from-[#c5c2b5] to-[#f0a500]" />
 
-          <div className="w-full h-0.5 bg-white/40 rounded-full shrink-0" />
+        {/* Icon */}
+        <div className="flex items-center justify-center w-[72px] bg-[rgba(255,202,8,0.07)] border-r border-[rgba(255,202,8,0.12)]">
+          
+          <div className="w-[48px] h-[48px] flex items-center justify-center rounded-[14px]
+          border border-[rgba(255,202,8,0.3)]
+          bg-gradient-to-br from-[rgba(255,202,8,0.25)] to-[rgba(255,202,8,0.08)]">
 
-          <div className="flex-1 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/50 scrollbar-track-transparent">
-            <p className="text-[30px] leading-10 font-medium text-white/95 transition-all duration-500">
-              {`${
-                notices.length
-                  ? notices[noticeIndex]?.CONTENTS
-                  : t("speech.No notices available.")
-              }`}
-            </p>
+            <AlertCircle className="w-[28px] h-[28px] text-[#FFCA08]" />
+
           </div>
         </div>
+
+        {/* Content */}
+        <div className="flex flex-col flex-1 gap-3 px-6 py-1 overflow-hidden">
+
+          {/* Title */}
+          <div className="flex items-center gap-3">
+            <h3 className="contrast-accent text-[28px] font-bold truncate">
+              {current?.TITLE || t("speech.Notice information")}
+            </h3>
+
+          </div>
+
+          {/* Divider */}
+          <div className="contrast-divider h-[1px] bg-gradient-to-r from-[rgba(255,202,8,0.4)] to-transparent" />
+
+          {/* Body */}
+          <div className="flex-1 overflow-y-auto pr-2">
+
+            <p className="text-[26px] leading-[1.55] text-white/90">
+              {current?.CONTENTS || t("speech.No notices available.")}
+            </p>
+
+          </div>
+        </div>
+
+        {/* Indicators */}
+        {notices.length > 1 && (
+          <div className="flex flex-col items-center justify-center gap-2 px-4 border-l border-[rgba(255,202,8,0.1)]">
+
+            {notices.map((_, i) => (
+              <div
+                key={i}
+                className={`rounded-full transition-all duration-300
+                ${i === noticeIndex
+                  ? "contrast-dot-active w-[8px] h-[24px] bg-[#FFCA08]"
+                  : "contrast-dot w-[6px] h-[8px] bg-[rgba(255,202,8,0.25)]"}`}
+              />
+            ))}
+
+          </div>
+        )}
       </div>
     </div>
   );

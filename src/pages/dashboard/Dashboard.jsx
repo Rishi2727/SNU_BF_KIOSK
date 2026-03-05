@@ -29,7 +29,6 @@ import { logEvent } from "../../logger";
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const FocusRegion = Object.freeze({
-  LOGO: "logo",
   MAIN_SECTION: "mainSection",
   NOTICE_BANNER: "noticeBanner",
   FOOTER: "footer",
@@ -41,7 +40,6 @@ const FocusRegionforKeyboardModal = Object.freeze({
 });
 
 const FOCUS_CYCLE = [
-  FocusRegion.LOGO,
   FocusRegion.MAIN_SECTION,
   FocusRegion.NOTICE_BANNER,
   FocusRegion.FOOTER,
@@ -439,7 +437,7 @@ const Dashboard = () => {
       if (localStorage.getItem("authenticated") === "true") {
         getKioskUserInfo()
           .then((info) => { if (info?.successYN === "Y") dispatch(setUserInfo(info.bookingInfo)); })
-          .catch(() => {});
+          .catch(() => { });
       }
     };
     window.addEventListener("NETWORK_RESTORED", handler);
@@ -473,7 +471,6 @@ const Dashboard = () => {
     if (!focused || isAnyModalOpen) return;
     stop();
     const speechMap = {
-      [FocusRegion.LOGO]: t("speech.Seoul National University Library"),
       [FocusRegion.MAIN_SECTION]: t("speech.Floor Selection Section"),
       [FocusRegion.NOTICE_BANNER]: t("speech.Notice information"),
       [FocusRegion.FOOTER]: t("speech.Footer controls"),
@@ -589,7 +586,7 @@ const Dashboard = () => {
       )}
 
       <img src={BgMainImage} alt="Background" className="absolute inset-0 h-full w-full object-cover" />
-
+      <div className="contrast-overlay absolute inset-0 pointer-events-none"></div>
       <MainSection
         openKeyboard={openKeyboard}
         userInfo={userInfo}
