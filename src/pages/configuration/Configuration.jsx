@@ -18,7 +18,7 @@ import {
     AlertCircle
 } from 'lucide-react';
 import './Configuration.css';
-import Dropdown from '../../components/common/dropdown';
+import Dropdown from '../../components/common/Dropdown';
 import Modal from '../../components/common/Modal';
 import { logout } from "../../redux/slice/authSlice";
 import { setLanguage as setLanguageAction } from "../../redux/slice/langSlice";

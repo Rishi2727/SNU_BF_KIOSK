@@ -3,14 +3,14 @@ import { useTranslation } from "react-i18next";
 import { SPEECH } from "../../constants/speechSentences";
 import { useVoice } from "../../context/voiceContext";
 
-
 export default function InfoModal({ isOpen = true, onClose = () => { } }) {
     const { t } = useTranslation();
     const { speak, stop } = useVoice();
-
-    // =========================
-    // GUIDE CONTENT (SPLIT PAGES)
-    // =========================
+    const [pageIndex, setPageIndex] = useState(0);
+    const [focusCursor, setFocusCursor] = useState(null);
+    const lastSpokenRef = useRef(null);
+    const pageIndexRef = useRef(pageIndex);
+    const focusCursorRef = useRef(focusCursor);
 
     // -------- SYSTEM USER GUIDE --------
     const systemGuideItems = [
@@ -27,8 +27,6 @@ export default function InfoModal({ isOpen = true, onClose = () => { } }) {
         { header: t(`speech.${SPEECH.INFO_MODAL.numericKeypadUsageGuide}`), text: t(`speech.${SPEECH.INFO_MODAL.numericKeypadUsageGuideMsg}`) },
     ];
 
-
-
     // -------- FINAL PAGES --------
     const logs = [
         {
@@ -40,22 +38,6 @@ export default function InfoModal({ isOpen = true, onClose = () => { } }) {
             content: keypadGuideItems
         }
     ];
-
-
-
-
-    // STATE
-    const [pageIndex, setPageIndex] = useState(0);
-
-    // focusCursor follows: null -> 0 -> 1 -> ... ; null means "no highlighted element"
-    const [focusCursor, setFocusCursor] = useState(null);
-
-    // Track last spoken to avoid repeats
-    const lastSpokenRef = useRef(null);
-
-    // REFS for stable keyboard access
-    const pageIndexRef = useRef(pageIndex);
-    const focusCursorRef = useRef(focusCursor);
 
     useEffect(() => { pageIndexRef.current = pageIndex; }, [pageIndex]);
     useEffect(() => { focusCursorRef.current = focusCursor; }, [focusCursor]);
@@ -123,7 +105,6 @@ export default function InfoModal({ isOpen = true, onClose = () => { } }) {
         if (isOpen) {
             updateFocusVisuals();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [focusCursor, pageIndex, isOpen]);
 
     // ON OPEN
@@ -187,9 +168,7 @@ export default function InfoModal({ isOpen = true, onClose = () => { } }) {
             if (isRight) {
                 e.preventDefault();
                 setFocusCursor((prev) => {
-                    // If currently null, first press goes to 0
                     if (prev === null) return 0;
-                    // otherwise normal increment with wrap
                     return prev === lastIndex ? 0 : prev + 1;
                 });
                 return;
@@ -199,9 +178,7 @@ export default function InfoModal({ isOpen = true, onClose = () => { } }) {
             if (isLeft) {
                 e.preventDefault();
                 setFocusCursor((prev) => {
-                    // If currently null, first press goes to 0
                     if (prev === null) return 0;
-                    // otherwise normal decrement with wrap
                     return prev === 0 ? lastIndex : prev - 1;
                 });
                 return;
@@ -230,7 +207,6 @@ export default function InfoModal({ isOpen = true, onClose = () => { } }) {
 
         document.addEventListener("keydown", handle, true);
         return () => document.removeEventListener("keydown", handle, true);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen, logs, onClose]);
 
     if (!isOpen) return null;
