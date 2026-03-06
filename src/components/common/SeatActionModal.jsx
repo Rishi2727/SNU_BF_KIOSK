@@ -656,7 +656,7 @@ const SeatActionModal = ({
                 size=""
                 footer={mainFooter}
                 showCloseButton={false}
-                className={focusClass}
+               className={`seat-action-modal ${focusClass}`}
             >
                 <h2 className={`text-[36px] font-extrabold text-center text-[#f7c224] mb-8 tracking-wide ${isFocused("title") ? `${focusClass} rounded-lg` : ""}`}>
                     {isAssignCheck ? t("translations.Seat information") : t(`translations.${MODE_LABELS[mode]}`)}
@@ -743,7 +743,7 @@ const SeatActionModal = ({
                 size="medium"
                 footer={resultFooter}
                 showCloseButton={false}
-                className={focusClass}
+                className={`seat-action-modal ${focusClass}`}
             >
                 <div className="text-center py-4">
                     <div className="flex justify-center mb-6">

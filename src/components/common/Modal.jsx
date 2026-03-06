@@ -36,7 +36,7 @@ const Modal = ({
             onClick={closeOnBackdrop ? handleClose : undefined}
         >
             <div
-                className={`bg-white rounded-lg shadow-2xl ${sizeClass} max-w-[90vw] max-h-[90vh] flex flex-col overflow-hidden ${className}`}
+                className={`modal-panel bg-white rounded-lg shadow-2xl ${sizeClass} max-w-[90vw] max-h-[90vh] flex flex-col overflow-hidden ${className}`}
                 onClick={(e) => e.stopPropagation()}
             >
                 {title && (

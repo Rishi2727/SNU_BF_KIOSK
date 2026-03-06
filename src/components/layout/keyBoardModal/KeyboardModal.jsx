@@ -22,6 +22,7 @@ const KeyboardModal = ({
   const inputRef = useRef(null);
   const { t } = useTranslation();
   const { speak } = useVoice();
+  const [isShiftActive, setIsShiftActive] = useState(false);
 
 
   // ✅keyboard sections
@@ -294,8 +295,14 @@ const KeyboardModal = ({
           }
           onSubmit(input);
           handleClose();
-        } else {
+       } else {
           setInput((prev) => prev + cleaned);
+
+          // reset shift after typing
+          if (isShiftActive) {
+            setLayoutName("default");
+            setIsShiftActive(false);
+          }
         }
 
         keyboardRef.current?.setInput(input);
@@ -340,17 +347,34 @@ const KeyboardModal = ({
     startTimer();
   };
 
-  const handleKeyPress = (button) => {
+ const handleKeyPress = (button) => {
     startTimer();
-    if (button === "{shift}" || button === "{lock}") toggleShift();
+
+    if (button === "{shift}") {
+      setLayoutName("shift");
+      setIsShiftActive(true);
+      return;
+    }
+
+    if (button === "{lock}") {
+      toggleShift(); // caps lock behavior
+      return;
+    }
 
     if (button === "{enter}") {
       if (!input.trim()) {
         handleClose();
         return;
       }
+      if (setFocused) setFocused("keyboard");
       onSubmit(input);
       handleClose();
+    }
+
+    // 🔥 reset shift after one character
+    if (isShiftActive) {
+      setLayoutName("default");
+      setIsShiftActive(false);
     }
   };
 
@@ -377,7 +401,7 @@ const KeyboardModal = ({
     <>
       {isOpen && (
         <div className="fixed w-full inset-0 flex items-center justify-center bg-opacity-50 backdrop-blur-sm z-9999 shadow">
-          <div ref={modalRef} className={`p-4 bg-white rounded-3xl shadow-lg w-[80%] md:h-[60%] 2xl:h-[75%] transition-all duration-300  ${focusRingClass}`}>
+          <div ref={modalRef} className={`keyboard-modal p-4 bg-white rounded-3xl shadow-lg w-[80%] md:h-[60%] 2xl:h-[75%] transition-all duration-300  ${focusRingClass}`}>
 
             {/* HEADING */}
             <div className={`flex items-center gap-5 p-2 justify-center`}>

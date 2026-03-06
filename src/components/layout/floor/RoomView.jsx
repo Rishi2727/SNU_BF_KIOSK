@@ -718,7 +718,7 @@ const RoomView = ({
     <>
       <div
         ref={containerRef}
-        className="flex flex-col w-full h-full relative"
+        className="room-view flex flex-col w-full h-full relative"
       >
         {isRoomStillLoading && <LoadingSpinner message={t("Loading room and seats")} />}
 

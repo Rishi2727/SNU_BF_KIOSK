@@ -215,9 +215,9 @@ const MainSection = ({
           className={`card-panel w-full px-12 py-20 rounded-[28px] border backdrop-blur-[20px] backdrop-saturate-150 transition-all duration-300 relative overflow-hidden
 
           ${isMainFocused
-            ? "outline outline-[5px] outline-[#dc2f02] shadow-[0_0_0_5px_#dc2f02,0_0_0_9px_rgba(255,202,8,0.3),0_24px_64px_rgba(0,0,0,0.45)]"
-            : "shadow-[0_24px_64px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.1)] outline outline-[5px] outline-transparent"
-          }
+              ? "outline outline-[5px] outline-[#dc2f02] shadow-[0_0_0_5px_#dc2f02,0_0_0_9px_rgba(255,202,8,0.3),0_24px_64px_rgba(0,0,0,0.45)]"
+              : "shadow-[0_24px_64px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.1)] outline outline-[5px] outline-transparent"
+            }
 
           border-[rgba(255,202,8,0.25)]`}
         >
@@ -234,9 +234,9 @@ const MainSection = ({
               className={`text-[32px] font-semibold text-white tracking-wide px-4 py-2 rounded-[10px] inline-block transition-all
 
               ${isMainFocused && cursor === 1
-                ? "bg-[rgba(255,202,8,0.18)] outline outline-[5px] outline-[#dc2f02]"
-                : ""
-              }
+                  ? "bg-[rgba(255,202,8,0.18)] outline outline-[5px] outline-[#dc2f02]"
+                  : ""
+                }
               `}
             >
               {t("translations.Please select a desired floor")}
@@ -245,20 +245,18 @@ const MainSection = ({
             {/* LOGO */}
 
             <div
-              className={`transition-all duration-300 rounded-2xl
-
-              ${isMainFocused && cursor === 0
-                ? "outline outline-[5px] outline-[#dc2f02] shadow-[0_0_0_5px_rgba(255,202,8,0.25)] drop-shadow-[0_0_20px_rgba(255,202,8,0.5)]"
-                : "outline outline-[5px] outline-transparent"
-              }`}
+              className={`transition-all duration-300 rounded-2xl 
+    ${isMainFocused && cursor === 0
+                  ? "outline outline-[5px] outline-[#dc2f02] shadow-[0_0_0_5px_rgba(255,202,8,0.25)] drop-shadow-[0_0_20px_rgba(255,202,8,0.5)]"
+                  : "outline outline-[5px] outline-transparent"
+                }`}
             >
               <img
                 src={logo}
                 alt="logo"
-                className="w-[500px]"
+                className="logo-image w-[450px]"
               />
             </div>
-
           </div>
 
           {/* FLOOR CARDS */}

@@ -21,13 +21,14 @@ const applyContrastMode = (mode) => {
 // ─── Sub-component ────────────────────────────────────────────────────────────
 
 const FooterButton = ({ icon, label, onClick, active, isSelected, isFocused }) => (
-  <button
-    onClick={onClick}
-    className={`h-14 px-4 flex items-center gap-3 rounded-xl shadow-lg
-      hover:bg-[#FFD640] active:scale-95 transition-all
-      ${active ? "bg-[#e2ac37] text-white" : "bg-[#FFCA08] text-[#9A7D4C]"}
-      ${isFocused && isSelected ? "outline-[6px] outline-[#dc2f02]" : ""}`}
-  >
+ <button
+  onClick={onClick}
+ className={`h-14 px-4 flex items-center gap-3 rounded-xl shadow-lg
+hover:bg-[#FFD640] active:scale-95 transition-all
+${active ? "bg-[#e2ac37] text-white" : "bg-[#FFCA08] text-[#9A7D4C]"}
+${isSelected ? "footer-selected" : ""}
+${isFocused && isSelected ? "outline-[6px] outline-[#dc2f02]" : ""}`}
+>
     {icon}
     <span className="text-[30px] font-semibold whitespace-nowrap">{label}</span>
   </button>

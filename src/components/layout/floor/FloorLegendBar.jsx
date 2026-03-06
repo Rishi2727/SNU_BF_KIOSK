@@ -86,7 +86,7 @@ const FloorLegendBar = ({
     isFocused && cursor === index;
 
   return (
-    <div className={`
+    <div className={`floor-legend-bar
         absolute  left-0 -top-2! right-0 w-full
         bg-[#b8975e81]  h-[180px]
         flex items-center justify-between
@@ -102,7 +102,7 @@ const FloorLegendBar = ({
         <img
           src={logo}
           alt="logo"
-          className=" w-[38%] "
+          className="logo-image w-[38%] "
         />
         <div className={`flex items-center -ml-10 gap-2 ${isFocusedAt(0)
           ? focusRing : ""}`}

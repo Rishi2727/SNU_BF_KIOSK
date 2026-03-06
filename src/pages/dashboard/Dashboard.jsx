@@ -621,7 +621,7 @@ const Dashboard = () => {
         onClose={closeLoginErrorModal}
         title={loginErrorModal.title}
         size="large"
-        className={isLoginErrorFocused ? "outline-[6px] outline-[#dc2f02]" : ""}
+        className={"seat-action-modal" + (isLoginErrorFocused ? " outline-[6px] outline-[#dc2f02]" : "")}
         showCloseButton={false}
       >
         <div className="flex flex-col items-center text-center gap-4">

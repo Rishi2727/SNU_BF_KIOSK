@@ -91,26 +91,325 @@ html[data-contrast="high"] .contrast-dot {
   border: 2px solid #FFD640 !important;
   box-shadow: 0 0 0 3px #FFD640 !important;
 }
+/* ============================= */
+/* HIGH CONTRAST DARK MODE */
+/* ============================= */
 
-/* FOOTER */
-[data-contrast="high"] .footer {
-  background: #000000 !important;
+html[data-contrast="high"] .keyboard-modal {
+  background: #000 !important;
+  color: #fff !important;
 }
 
-/* BUTTONS */
-[data-contrast="high"] button {
+/* input field */
+html[data-contrast="high"] .keyboard-modal input {
+  background: #111 !important;
+  color: #fff !important;
+  border: 2px solid #d3c07e !important;
+}
+
+/* keyboard keys */
+html[data-contrast="high"] .hg-button {
+  background: #d3c07e !important;
+  color: #000 !important;
+}
+
+/* selected key */
+html[data-contrast="high"] .hg-button.hg-activeButton {
+  background: #dc2f02 !important;
+  color: #fff !important;
+}
+
+/* submit button */
+html[data-contrast="high"] .keyboard-modal button {
+  background: #d3c07e !important;
+  color: #000 !important;
+}
+
+/* close button */
+html[data-contrast="high"] .keyboard-modal button:last-child {
+  background: #444 !important;
+  color: #fff !important;
+}
+
+/* ============================= */
+/* FLOOR LEGEND DARK MODE */
+/* ============================= */
+
+html[data-contrast="high"] .floor-legend-bar {
+  background: #000 !important;
+  color: #fff !important;
+  border-bottom: 4px solid #FFD640;
+}
+
+/* available seat indicator */
+html[data-contrast="high"] .floor-legend-bar .bg-gradient-to-b {
+  background: #FFD640 !important;
+}
+
+/* booked seat icon */
+html[data-contrast="high"] .floor-legend-bar img {
+  filter: brightness(1.4);
+}
+/* ============================= */
+/* FLOOR STATS DARK MODE */
+/* ============================= */
+
+html[data-contrast="high"] .floor-stats-bar {
+  background: #000 !important;
+  color: #fff !important;
+  border: 2px solid #d3c07e;
+}
+
+/* floor button */
+html[data-contrast="high"] .floor-stats-bar button {
+  background: #1a1a1a !important;
+  color: #fff !important;
+}
+
+/* selected floor */
+html[data-contrast="high"] .floor-stats-bar button.bg-\[\#FFCA08\] {
+  background: #d3c07e !important;
+  color: #000 !important;
+}
+
+/* floor label block */
+html[data-contrast="high"] .floor-stats-bar .bg-\[\#9A7D4C\] {
   background: #FFD640 !important;
   color: #000 !important;
 }
 
-/* LOGIN BUTTON */
-[data-contrast="high"] .login-btn {
-  background: #FFD640 !important;
-  color: black !important;
+/* progress bar background */
+html[data-contrast="high"] .floor-stats-bar .bg-\[\#D7D8D2\] {
+  background: #333 !important;
 }
 
-/* USER PANEL */
-[data-contrast="high"] .user-panel {
+/* progress bar fill */
+html[data-contrast="high"] .floor-stats-bar .bg-\[\#9A7D4C\] {
+  background: #fccb1b !important;
+}
+
+/* occupancy badge */
+html[data-contrast="high"] .floor-stats-bar .bg-\[\#9A7D4C\] {
+  background: #f0c013 !important;
+  color: #000 !important;
+}
+/* ============================= */
+/* ROOM VIEW DARK MODE */
+/* ============================= */
+
+html[data-contrast="high"] .room-view {
   background: #000 !important;
+  color: #fff;
+}
+
+/* room background */
+html[data-contrast="high"] .room-view .bg-gray-100 {
+  background: #111 !important;
+}
+
+/* minimap background */
+html[data-contrast="high"] .room-view .bg-white\/10 {
+  background: rgba(0,0,0,0.8) !important;
+  border: 2px solid #FFD640;
+}
+
+/* available seats */
+html[data-contrast="high"] .room-view .bg-linear-to-b {
+  background: #FFD640 !important;
+  border: 2px solid #000 !important;
+}
+
+/* booked seats */
+html[data-contrast="high"] .room-view .bg-\[\#e5e1c4\] {
+  background: #949393 !important;
+}
+
+/* seat text */
+html[data-contrast="high"] .room-view span {
+  color: #000 !important;
+  font-weight: bold;
+}
+
+/* focused seat */
+html[data-contrast="high"] .room-view .ring-\[6px\] {
+  box-shadow: 0 0 0 6px #dc2f02 !important;
+}
+
+/* booked icon */
+html[data-contrast="high"] .room-view img[alt="Booked"] {
+  filter: brightness(1.5);
+}
+
+/* ============================= */
+/* MODAL DARK / CONTRAST MODE */
+/* ============================= */
+
+html[data-contrast="high"] .modal-panel {
+  background: #000 !important;
+  color: #fff !important;
+  border: 3px solid #FFD640;
+}
+
+/* modal header */
+html[data-contrast="high"] .modal-panel .bg-linear-to-r {
+  background: #cac6c6 !important;
+}
+
+/* title text */
+html[data-contrast="high"] .modal-panel h2 {
   color: #FFD640 !important;
+}
+
+/* modal body */
+html[data-contrast="high"] .modal-panel .overflow-y-auto {
+  background: #000 !important;
+  color: #fff !important;
+}
+
+/* footer */
+html[data-contrast="high"] .modal-panel .bg-gray-50 {
+  background: #111 !important;
+}
+
+/* close icon */
+html[data-contrast="high"] .modal-panel button {
+  color: #FFD640 !important;
+}
+
+/* close button focus */
+html[data-contrast="high"] .modal-panel button.outline-\[6px\] {
+  outline: 6px solid #dc2f02;
+}
+
+/* ============================= */
+/* SEAT ACTION MODAL DARK MODE */
+/* ============================= */
+
+html[data-contrast="high"] .seat-action-modal {
+  background: #000 !important;
+  color: #fff !important;
+  border: 3px solid #FFD640;
+}
+
+/* modal title */
+html[data-contrast="high"] .seat-action-modal h2 {
+  color: #FFD640 !important;
+}
+
+/* labels */
+html[data-contrast="high"] .seat-action-modal .text-gray-700 {
+  color: #ddd !important;
+}
+
+/* values */
+html[data-contrast="high"] .seat-action-modal .text-\[\#f7c224\] {
+  color: #FFD640 !important;
+}
+
+/* time buttons */
+html[data-contrast="high"] .seat-action-modal button {
+  background: #FFD640 !important;
+  color: #000 !important;
+}
+
+/* cancel button */
+html[data-contrast="high"] .seat-action-modal .bg-gray-300 {
+  background: #444 !important;
+  color: #fff !important;
+}
+
+/* disabled button */
+html[data-contrast="high"] .seat-action-modal .cursor-not-allowed {
+  background: #222 !important;
+  color: #fff !important;
+}
+
+/* confirmation message */
+html[data-contrast="high"] .seat-action-modal .text-red-600 {
+  color: #ff5555 !important;
+}
+
+/* focus outline */
+html[data-contrast="high"] .seat-action-modal .outline-\[6px\] {
+  outline: 6px solid #dc2f02;
+}
+
+/* ============================= */
+/* SESSION REMINDER DARK MODE */
+/* ============================= */
+
+html[data-contrast="high"] .session-reminder-modal {
+  background: #000 !important;
+  color: #fff !important;
+  border: 4px solid #FFD640 !important;
+}
+
+/* modal text */
+html[data-contrast="high"] .session-reminder-modal p {
+  color: #fff !important;
+}
+
+/* YES button */
+html[data-contrast="high"] .session-reminder-modal .bg-\[\#FFCA08\] {
+  background: #FFD640 !important;
+  color: #000 !important;
+}
+
+/* NO button */
+html[data-contrast="high"] .session-reminder-modal .bg-gray-500 {
+  background: #444 !important;
+  color: #fff !important;
+}
+
+/* focus outline */
+html[data-contrast="high"] .session-reminder-modal .outline-\[6px\] {
+  outline: 6px solid #dc2f02;
+}
+
+/* ============================= */
+/* USER INFO MODAL DARK MODE */
+/* ============================= */
+
+html[data-contrast="high"] .user-info-modal {
+  background: #000 !important;
+  color: #fff !important;
+  border: 3px solid #FFD640;
+}
+
+/* information banner */
+html[data-contrast="high"] .user-info-modal .from-teal-50,
+html[data-contrast="high"] .user-info-modal .to-cyan-50 {
+  background: #111 !important;
+}
+
+/* banner text */
+html[data-contrast="high"] .user-info-modal .text-gray-800 {
+  color: #fff !important;
+}
+
+/* disabled actions */
+html[data-contrast="high"] .user-info-modal .bg-gray-200 {
+  background: #333 !important;
+  color: #777 !important;
+}
+
+/* enabled action buttons */
+html[data-contrast="high"] .user-info-modal button:not(:disabled) {
+  background: #FFD640 !important;
+  color: #000 !important;
+}
+
+/* icon circle */
+html[data-contrast="high"] .user-info-modal .bg-white\/20 {
+  background: rgba(0,0,0,0.3) !important;
+}
+
+/* focus outline */
+html[data-contrast="high"] .user-info-modal .outline-\[6px\] {
+  outline: 6px solid #dc2f02;
+}
+
+/* High contrast logo */
+html[data-contrast="high"] .logo-image {
+  filter: brightness(0) invert(1) contrast(1.2) !important;
 }

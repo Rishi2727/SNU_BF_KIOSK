@@ -37,66 +37,66 @@ const FocusRegion = Object.freeze({
 const LEGEND_BAR_COUNT = 4;
 const SESSION_BUTTON_COUNT = 2;
 const FOCUS_ORDER_ROOM = [FocusRegion.FLOOR_STATS, FocusRegion.MINI_MAP, FocusRegion.ROOM, FocusRegion.FOOTER];
-const FOCUS_ORDER_MAP  = [FocusRegion.FLOOR_STATS, FocusRegion.MAP, FocusRegion.FOOTER];
+const FOCUS_ORDER_MAP = [FocusRegion.FLOOR_STATS, FocusRegion.MAP, FocusRegion.FOOTER];
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const Floor = () => {
-  const navigate  = useNavigate();
-  const dispatch  = useDispatch();
-  const location  = useLocation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const location = useLocation();
   const { floorId, sectorNo, move } = useParams();
   const { speak, stop } = useVoice();
   const { t } = useTranslation();
 
   // ─── Redux ──────────────────────────────────────────────────────────────
   const { userInfo } = useSelector((s) => s.userInfo);
-  const lang         = useSelector((s) => s.lang.current);
+  const lang = useSelector((s) => s.lang.current);
 
   // ─── Route state ────────────────────────────────────────────────────────
-  const isMoveMode       = move === "move" || location.state?.mode === "move";
+  const isMoveMode = move === "move" || location.state?.mode === "move";
   const { floorInfo: initialFloorInfo } = location.state || {};
 
   // ─── UI state ────────────────────────────────────────────────────────────
-  const [isAnyModalOpen,       setIsAnyModalOpen]       = useState(false);
-  const [selectedSector,       setSelectedSector]       = useState(null);
-  const [showRoomView,         setShowRoomView]         = useState(false);
-  const [miniMapError,         setMiniMapError]         = useState(false);
-  const [selectedMiniSector,   setSelectedMiniSector]   = useState(null);
-  const [imageTransform,       setImageTransform]       = useState({ x: 0, y: 0, scale: 1 });
-  const [isZoomed,             setIsZoomed]             = useState(false);
-  const [isPanning,            setIsPanning]            = useState(false);
-  const [seats,                setSeats]                = useState([]);
-  const [loadingSeats,         setLoadingSeats]         = useState(false);
-  const [imageDimensions,      setImageDimensions]      = useState({ width: 0, height: 0, naturalWidth: 0, naturalHeight: 0, offsetX: 0, offsetY: 0 });
-  const [selectedSeat,         setSelectedSeat]         = useState(null);
-  const [showSeatModal,        setShowSeatModal]        = useState(false);
-  const [focusedRegion,        setFocusedRegion]        = useState(null);
-  const [visibleSeats,         setVisibleSeats]         = useState([]);
-  const [minimapSectorCount,   setMinimapSectorCount]   = useState(0);
-  const [miniMapCursor,        setMiniMapCursor]        = useState(-1);
-  const [mainContentCursor,    setMainContentCursor]    = useState(null);
+  const [isAnyModalOpen, setIsAnyModalOpen] = useState(false);
+  const [selectedSector, setSelectedSector] = useState(null);
+  const [showRoomView, setShowRoomView] = useState(false);
+  const [miniMapError, setMiniMapError] = useState(false);
+  const [selectedMiniSector, setSelectedMiniSector] = useState(null);
+  const [imageTransform, setImageTransform] = useState({ x: 0, y: 0, scale: 1 });
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [isPanning, setIsPanning] = useState(false);
+  const [seats, setSeats] = useState([]);
+  const [loadingSeats, setLoadingSeats] = useState(false);
+  const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0, naturalWidth: 0, naturalHeight: 0, offsetX: 0, offsetY: 0 });
+  const [selectedSeat, setSelectedSeat] = useState(null);
+  const [showSeatModal, setShowSeatModal] = useState(false);
+  const [focusedRegion, setFocusedRegion] = useState(null);
+  const [visibleSeats, setVisibleSeats] = useState([]);
+  const [minimapSectorCount, setMinimapSectorCount] = useState(0);
+  const [miniMapCursor, setMiniMapCursor] = useState(-1);
+  const [mainContentCursor, setMainContentCursor] = useState(null);
 
   // ─── Session / timer state ───────────────────────────────────────────────
-  const [floorTimerConfig,     setFloorTimerConfig]     = useState({ time: 180, state: true });
+  const [floorTimerConfig, setFloorTimerConfig] = useState({ time: 180, state: true });
   const [sessionReminderConfig, setSessionReminderConfig] = useState({ time: 60, state: true });
-  const [timeLeft,             setTimeLeft]             = useState(180);
-  const [showSessionReminder,  setShowSessionReminder]  = useState(false);
-  const [sessionCursor,        setSessionCursor]        = useState(null);
-  const [resetTimerOnTouch,    setResetTimerOnTouch]    = useState(true);
+  const [timeLeft, setTimeLeft] = useState(180);
+  const [showSessionReminder, setShowSessionReminder] = useState(false);
+  const [sessionCursor, setSessionCursor] = useState(null);
+  const [resetTimerOnTouch, setResetTimerOnTouch] = useState(true);
 
   // ─── Refs ────────────────────────────────────────────────────────────────
-  const mainImageRef          = useRef(null);
-  const containerRef          = useRef(null);
-  const timerRef              = useRef(null);
-  const timeLeftRef           = useRef(180);
-  const lastSpokenRef         = useRef("");
-  const lastFocusedRegionRef  = useRef(null);
-  const hasSpokenRoomRef      = useRef(false);
-  const hasSpokenFloorRef     = useRef(false);
+  const mainImageRef = useRef(null);
+  const containerRef = useRef(null);
+  const timerRef = useRef(null);
+  const timeLeftRef = useRef(180);
+  const lastSpokenRef = useRef("");
+  const lastFocusedRegionRef = useRef(null);
+  const hasSpokenRoomRef = useRef(false);
+  const hasSpokenFloorRef = useRef(false);
 
   // ─── API urls ────────────────────────────────────────────────────────────
-  const imageBaseUrl    = getFloorImageUrl();
+  const imageBaseUrl = getFloorImageUrl();
   const SeatImagebaseUrl = getImageBaseUrl();
 
   // ─── Floor data hook ─────────────────────────────────────────────────────
@@ -136,7 +136,7 @@ const Floor = () => {
 
   const mainContentItemCount = useMemo(() => {
     if (focusedRegion === FocusRegion.ROOM) return LEGEND_BAR_COUNT + visibleSeats.length;
-    if (focusedRegion === FocusRegion.MAP)  return LEGEND_BAR_COUNT + (displayableSectors?.length || 0);
+    if (focusedRegion === FocusRegion.MAP) return LEGEND_BAR_COUNT + (displayableSectors?.length || 0);
     return LEGEND_BAR_COUNT;
   }, [focusedRegion, visibleSeats.length, displayableSectors]);
 
@@ -170,12 +170,12 @@ const Floor = () => {
         await initializeApi();
         const timers = getPopupTimers();
         if (timers?.length) {
-          const floorCfg   = timers.find((t) => t.name === "LOG OUT FLOOR TIMER");
+          const floorCfg = timers.find((t) => t.name === "LOG OUT FLOOR TIMER");
           const reminderCfg = timers.find((t) => t.name === "SESSION TIMER REMINDER");
-          const resetCfg   = timers.find((t) => t.name === "RESET TIMER ON TOUCH");
-          if (floorCfg)   { setFloorTimerConfig(floorCfg); setTimeLeft(floorCfg.time); timeLeftRef.current = floorCfg.time; }
+          const resetCfg = timers.find((t) => t.name === "RESET TIMER ON TOUCH");
+          if (floorCfg) { setFloorTimerConfig(floorCfg); setTimeLeft(floorCfg.time); timeLeftRef.current = floorCfg.time; }
           if (reminderCfg) setSessionReminderConfig(reminderCfg);
-          if (resetCfg)   setResetTimerOnTouch(resetCfg.state);
+          if (resetCfg) setResetTimerOnTouch(resetCfg.state);
         }
       } catch (err) { console.error("Failed to load timer config:", err); }
     };
@@ -202,7 +202,7 @@ const Floor = () => {
   // ─── Sync focusedRegion when view switches ────────────────────────────────
 
   useEffect(() => {
-    if (showRoomView && focusedRegion === FocusRegion.MAP)  setFocusedRegion(FocusRegion.ROOM);
+    if (showRoomView && focusedRegion === FocusRegion.MAP) setFocusedRegion(FocusRegion.ROOM);
     if (!showRoomView && focusedRegion === FocusRegion.ROOM) setFocusedRegion(FocusRegion.MAP);
   }, [showRoomView, focusedRegion]);
 
@@ -377,10 +377,10 @@ const Floor = () => {
     stop();
     const regionSpeech = {
       [FocusRegion.FLOOR_STATS]: t("speech.Floor Selection Section"),
-      [FocusRegion.FOOTER]:      t("speech.Footer controls"),
-      [FocusRegion.MINI_MAP]:    t("speech.Mini map"),
-      [FocusRegion.MAP]:         t("speech.Floor map section"),
-      [FocusRegion.ROOM]:        t("speech.Room selection section"),
+      [FocusRegion.FOOTER]: t("speech.Footer controls"),
+      [FocusRegion.MINI_MAP]: t("speech.Mini map"),
+      [FocusRegion.MAP]: t("speech.Floor map section"),
+      [FocusRegion.ROOM]: t("speech.Room selection section"),
     };
     const text = regionSpeech[focusedRegion];
     if (text) speak(text);
@@ -422,9 +422,9 @@ const Floor = () => {
     if (focusedRegion === FocusRegion.ROOM && visibleSeats?.length) {
       const seat = visibleSeats[contentIndex];
       if (seat) {
-        const isFixed     = seat.STATUS === 9;
+        const isFixed = seat.STATUS === 9;
         const isAvailable = seat.USECNT === 0 && (seat.STATUS === 1 || seat.STATUS === 2);
-        const seatState   = isFixed ? t("speech.fixed") : isAvailable ? t("speech.available") : t("speech.booked");
+        const seatState = isFixed ? t("speech.fixed") : isAvailable ? t("speech.available") : t("speech.booked");
         speak(t("speech.Seat Label", { seat: seat.VNAME, state: seatState }));
       }
     }
@@ -571,7 +571,7 @@ const Floor = () => {
   return (
     <div className="relative h-screen w-screen overflow-hidden font-bold text-white">
       <img src={BgMainImage} className="absolute inset-0 h-full w-full object-cover" alt="background" />
-
+      <div className="contrast-overlay absolute inset-0 pointer-events-none"></div>
       {/* ═══ MAIN CONTENT ═══ */}
       <div className={`relative inset-0 h-[900px] flex items-center justify-center z-0
         ${isMapOrRoomFocused ? "border-[6px] border-[#dc2f02]" : "border-[6px] border-transparent"} box-border`}>
@@ -710,10 +710,10 @@ const Floor = () => {
         size="medium"
         showCloseButton={false}
         zIndex={9999}
-        className="border-[6px] border-[#dc2f02] rounded"
+        className="session-reminder-modal border-[6px] border-[#dc2f02] rounded"
       >
         <div className="flex flex-col items-center gap-6 p-6">
-          <p className="text-[30px] text-gray-800 text-center font-medium">
+          <p className="text-[30px] text-[#000] text-center font-medium">
             {t("translations.Do you want to continue this session?")}
           </p>
           <div className="flex gap-4 w-full justify-center">

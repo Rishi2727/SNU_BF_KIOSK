@@ -181,7 +181,7 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
       showCloseButton={true}
       title={t("translations.User Information")}
       size="large"
-      className="h-[50vh]! outline-[6px] outline-[#dc2f02]!"
+      className="user-info-modal h-[50vh]! outline-[6px] outline-[#dc2f02]!"
       closeFocused={focusIndex === CLOSE_BUTTON_INDEX}
     >
       <div className="space-y-7">
