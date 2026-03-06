@@ -35,6 +35,9 @@
         },
         {
           "url": "http://*/**"
+        },
+        {
+          "url": "http://daegu.neosco.co.kr:8012/**"
         }
       ]
     }

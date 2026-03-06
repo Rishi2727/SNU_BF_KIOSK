@@ -36,11 +36,22 @@ html[data-contrast="high"] {
   filter: none !important;
 }
 
-/* Dark theme panel */
 html[data-contrast="high"] .contrast-dark {
   background: #000 !important;
-  color: #fff !important;
+  color: #ffffff !important;
   border-color: #fff !important;
+}
+
+html[data-contrast="high"] .contrast-dark h3
+{
+  color: #FFD700 !important;
+}
+html[data-contrast="high"] .contrast-dark p {
+  color: #ffffff !important;
+}
+
+html[data-contrast="high"] .contrast-dark .divider {
+  background: #fff !important;
 }
 
 /* Accent */
@@ -216,7 +227,6 @@ html[data-contrast="high"] .room-view .bg-white\/10 {
 /* available seats */
 html[data-contrast="high"] .room-view .bg-linear-to-b {
   background: #FFD640 !important;
-  border: 2px solid #000 !important;
 }
 
 /* booked seats */

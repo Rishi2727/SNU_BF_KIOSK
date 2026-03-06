@@ -79,71 +79,82 @@ const NoticeBanner = ({ isFocused, lang }) => {
   const current = notices[noticeIndex];
 
   return (
-    <div className="absolute bottom-[108px] right-0 w-full px-6">
-      
-      <div
-        className={`contrast-dark relative flex items-stretch overflow-hidden rounded-[20px] h-[230px]
-        bg-gradient-to-br from-[rgba(15,12,30,0.78)] to-[rgba(30,22,10,0.82)]
-        ${isFocused ? "border-[6px] border-[#dc2f02]" : "border-[6px] border-transparent"}`}
-      >
+   <div className="absolute bottom-[108px] right-0 w-full px-6">
 
-        {/* Accent Strip */}
-        <div className="w-[6px] bg-gradient-to-b from-[#c5c2b5] to-[#f0a500]" />
+  <div
+    className={`contrast-dark relative flex items-stretch overflow-hidden rounded-[22px] h-[220px]
+    bg-gradient-to-br from-[#fffaf0] via-[#fff3d6] to-[#ffe9a8]
+    shadow-[0_8px_30px_rgba(0,0,0,0.08)]
+    backdrop-blur-md
+    transition-all duration-300
+    ${isFocused
+      ? "outline outline-[6px] outline-[#dc2f02] shadow-[0_0_0_6px_rgba(255,202,8,0.35)]"
+      : "outline outline-[2px] outline-[#f3d98a]"
+    }`}
+  >
 
-        {/* Icon */}
-        <div className="flex items-center justify-center w-[72px] bg-[rgba(255,202,8,0.07)] border-r border-[rgba(255,202,8,0.12)]">
-          
-          <div className="w-[48px] h-[48px] flex items-center justify-center rounded-[14px]
-          border border-[rgba(255,202,8,0.3)]
-          bg-gradient-to-br from-[rgba(255,202,8,0.25)] to-[rgba(255,202,8,0.08)]">
+    {/* Accent Strip */}
+    <div className="w-[8px] bg-gradient-to-b from-[#ffca08] via-[#f0a500] to-[#d89c00]" />
 
-            <AlertCircle className="w-[28px] h-[28px] text-[#FFCA08]" />
+    {/* Icon Section */}
+    <div className="flex items-center justify-center w-[90px]
+      bg-[gradient-to-br from-[#fff6d8] to-[#ffe8a0]]
+      border-r border-[#f2d48a]">
 
-          </div>
-        </div>
+      <div className="w-[56px] h-[56px] flex items-center justify-center
+      rounded-[16px]
+      shadow-inner
+      bg-gradient-to-br from-[#ffca08] to-[#f0a500]">
 
-        {/* Content */}
-        <div className="flex flex-col flex-1 gap-3 px-6 py-1 overflow-hidden">
+        <AlertCircle className="w-[30px] h-[30px] text-white" />
 
-          {/* Title */}
-          <div className="flex items-center gap-3">
-            <h3 className="contrast-accent text-[28px] font-bold truncate">
-              {current?.TITLE || t("speech.Notice information")}
-            </h3>
-
-          </div>
-
-          {/* Divider */}
-          <div className="contrast-divider h-[1px] bg-gradient-to-r from-[rgba(255,202,8,0.4)] to-transparent" />
-
-          {/* Body */}
-          <div className="flex-1 overflow-y-auto pr-2">
-
-            <p className="text-[26px] leading-[1.55] text-white/90">
-              {current?.CONTENTS || t("speech.No notices available.")}
-            </p>
-
-          </div>
-        </div>
-
-        {/* Indicators */}
-        {notices.length > 1 && (
-          <div className="flex flex-col items-center justify-center gap-2 px-4 border-l border-[rgba(255,202,8,0.1)]">
-
-            {notices.map((_, i) => (
-              <div
-                key={i}
-                className={`rounded-full transition-all duration-300
-                ${i === noticeIndex
-                  ? "contrast-dot-active w-[8px] h-[24px] bg-[#FFCA08]"
-                  : "contrast-dot w-[6px] h-[8px] bg-[rgba(255,202,8,0.25)]"}`}
-              />
-            ))}
-
-          </div>
-        )}
       </div>
     </div>
+
+    {/* Content */}
+    <div className="flex flex-col flex-1 gap-3 px-6 py-4 overflow-hidden">
+
+      {/* Title */}
+      <div className="flex items-center gap-3">
+        <h3 className="text-[28px] font-bold text-[#3b2a00] tracking-wide truncate">
+          {current?.TITLE || t("speech.Notice information")}
+        </h3>
+      </div>
+
+      {/* Divider */}
+      <div className="h-[2px] rounded-full
+        bg-gradient-to-r from-[#ffca08] via-[#ffd84a] to-transparent" />
+
+      {/* Body */}
+      <div className="flex-1 overflow-y-auto pr-2">
+
+        <p className="text-[25px] leading-[1.6] text-[#5a4200]">
+          {current?.CONTENTS || t("speech.No notices available.")}
+        </p>
+
+      </div>
+    </div>
+
+    {/* Indicators */}
+    {notices.length > 1 && (
+      <div className="flex flex-col items-center justify-center gap-2 px-4
+      border-l border-[#f3d98a]">
+
+        {notices.map((_, i) => (
+          <div
+            key={i}
+            className={`rounded-full transition-all duration-300
+            ${i === noticeIndex
+              ? "w-[10px] h-[26px] bg-gradient-to-b from-[#ffca08] to-[#f0a500]"
+              : "w-[7px] h-[10px] bg-[#f0d890]"}
+            `}
+          />
+        ))}
+
+      </div>
+    )}
+  </div>
+</div>
   );
 };
 

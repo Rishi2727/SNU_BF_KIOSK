@@ -26,21 +26,6 @@ export default defineConfig(async () => ({
       ignored: ["**/src-tauri/**"],
     },
 
-    /* ✅ PROXY FIX (THIS SOLVES CORS) */
-    proxy: {
-      "/NEW_SNU_BOOKING": {
-        target: "http://k-rsv.snu.ac.kr:8011",
-        changeOrigin: true,
-        secure: false,
-        cookieDomainRewrite: "localhost",
-      },
-
-      // ✅ ADD THIS
-      "/SEATAPI": {
-        target: "http://k-rsv.snu.ac.kr:8012",
-        changeOrigin: true,
-        secure: false,
-      },
-    },
+    
   },
 }));
