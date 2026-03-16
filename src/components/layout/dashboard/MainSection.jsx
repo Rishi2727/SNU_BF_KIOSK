@@ -207,16 +207,16 @@ const MainSection = ({
 
     <div className="relative z-10 flex justify-center mt-20">
 
-      <div className="w-[88%] flex flex-col items-center">
+      <div className="w-[88%] flex flex-col items-center ">
 
         {/* MAIN PANEL */}
 
         <div
-          className={`card-panel w-full px-12 py-20 rounded-[28px] border backdrop-blur-[20px] backdrop-saturate-150 transition-all duration-300 relative overflow-hidden
+          className={`card-panel w-full px-12 py-10 rounded-[28px] border backdrop-blur-[20px] backdrop-saturate-150 transition-all duration-300 relative overflow-hidden
 
           ${isMainFocused
               ? "outline outline-[5px] outline-[#dc2f02] shadow-[0_0_0_5px_#dc2f02,0_0_0_9px_rgba(255,202,8,0.3),0_24px_64px_rgba(0,0,0,0.45)]"
-              : "shadow-[0_24px_64px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.1)] outline outline-[5px] outline-transparent"
+              : "shadow-[0_24px_64px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.1)]  outline-[5px] outline-[#a86e18]"
             }
 
           border-[rgba(255,202,8,0.25)]`}
@@ -225,13 +225,26 @@ const MainSection = ({
           {/* DECORATIVE GRADIENT */}
 
           <div className="absolute top-0 right-0 w-[180px] h-[180px] bg-[radial-gradient(circle_at_top_right,rgba(255,202,8,0.12),transparent_70%)] pointer-events-none" />
-
-          <div className="flex justify-between items-center mb-5">
+<div
+              className={`transition-all duration-300 rounded-2xl w-full flex items-center justify-center mb-10`}
+            >
+              <span className={` rounded-2xl ${isMainFocused && cursor === 0
+                  ? "outline outline-[5px] outline-[#dc2f02] shadow-[0_0_0_5px_rgba(255,202,8,0.25)] drop-shadow-[0_0_20px_rgba(255,202,8,0.5)]"
+                  : "outline outline-[5px] outline-transparent"
+                }`}>
+              <img
+                src={logo}
+                alt="logo"
+                className="logo-image w-[450px]"
+              />
+              </span>
+            </div>
+          <div className="flex justify-between items-center mb-5 ">
 
             {/* HEADING */}
-
+   
             <div
-              className={`text-[32px] font-semibold text-white tracking-wide px-4 py-2 rounded-[10px] inline-block transition-all
+              className={`heading text-[32px] font-bold text-[#3b2a00] tracking-wide px-4 py-2 rounded-[10px] inline-block transition-all capitalize uppercase 
 
               ${isMainFocused && cursor === 1
                   ? "bg-[rgba(255,202,8,0.18)] outline outline-[5px] outline-[#dc2f02]"
@@ -244,19 +257,7 @@ const MainSection = ({
 
             {/* LOGO */}
 
-            <div
-              className={`transition-all duration-300 rounded-2xl 
-    ${isMainFocused && cursor === 0
-                  ? "outline outline-[5px] outline-[#dc2f02] shadow-[0_0_0_5px_rgba(255,202,8,0.25)] drop-shadow-[0_0_20px_rgba(255,202,8,0.5)]"
-                  : "outline outline-[5px] outline-transparent"
-                }`}
-            >
-              <img
-                src={logo}
-                alt="logo"
-                className="logo-image w-[450px]"
-              />
-            </div>
+         
           </div>
 
           {/* FLOOR CARDS */}

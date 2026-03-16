@@ -18,7 +18,8 @@ import {
     formatDateNum,
     formatTimeNum,
     addMinutes,
-    DATE_FORMATS
+    DATE_FORMATS,
+    formatEndTime
 } from "../../utils/momentConfig";
 import { MODE_LABELS, MODES } from "../../utils/constant";
 import { useTranslation } from "react-i18next";
@@ -27,6 +28,8 @@ import { useSerialPort } from "../../context/SerialPortContext";
 import { logout } from "../../redux/slice/authSlice";
 import { getPrintData } from "../layout/floor/PrintSlip";
 import { FaCheck, FaTimes } from "react-icons/fa";
+import { fetchBookingList } from "../../redux/slice/bookingHistroySlice";
+import { fetchUserInfo } from "../../redux/slice/getUserDataSlice";
 
 // Label-only element types that should be skipped during keyboard nav
 const LABEL_TYPES = new Set(["name-label", "date-label", "start-label", "action-label"]);
@@ -52,9 +55,10 @@ const SeatActionModal = ({
     const { speak, stop } = useVoice();
     const { t } = useTranslation();
     const { userInfo } = useSelector((state) => state.userInfo);
-    const { timeOptions, defaultIndex, bookingSeatInfo } = useSelector((state) => state.bookingTime);
+    const { timeOptions, defaultIndex } = useSelector((state) => state.bookingTime);
+    const { bookingList: bookingSeatInfo, loading: bookingLoading } = useSelector((state) => state.booking)
+    const { userInfo: userData, loading: userDataLoading } = useSelector((state) => state.user);
     const lang = useSelector((state) => state.lang.current);
-
     const [loading, setLoading] = useState(false);
     const [selectedIndex, setSelectedIndex] = useState(null);
     const [confirmStep, setConfirmStep] = useState(false);
@@ -73,7 +77,40 @@ const SeatActionModal = ({
 
     const languageCode = localStorage.getItem("lang") === "ko" ? "ko" : "en";
     const uiDateFormat = languageCode === "ko" ? DATE_FORMATS.KO_DATETIME : DATE_FORMATS.DATETIME;
+    useEffect(() => {
+        if (!isOpen) return;
 
+        if (!(isReturn || isExtension || isMove || isAssignCheck)) return;
+
+        const fetchBooking = async () => {
+            try {
+                const today = formatDateNum(new Date());
+
+                await dispatch(
+                    fetchBookingList({
+                        schoolno: userInfo?.SCHOOLNO,
+                        sDate: today,
+                        eDate: today,
+                    })
+                );
+            } catch (err) {
+                console.error("Fetch booking failed", err);
+            }
+        };
+
+        fetchBooking();
+
+    }, [isOpen, isReturn, isExtension, isMove, dispatch, userInfo]);
+    const activeBooking = useMemo(() => {
+        if (!bookingSeatInfo?.length) return null;
+        return bookingSeatInfo.find(item => item.STATUS === 3);
+    }, [bookingSeatInfo]);
+
+    useEffect(() => {
+        if (userInfo?.SCHOOLNO) {
+            dispatch(fetchUserInfo({ schoolno: userInfo?.SCHOOLNO }));
+        }
+    }, [dispatch, userInfo?.SCHOOLNO]);
     // Derived flags
     const isAvailable = useMemo(() => {
         if (!(isBooking || isMove)) return true;
@@ -174,31 +211,42 @@ const SeatActionModal = ({
     }, [isModalFocused, focusIndex, getFocusableElements]);
 
     // ─── API calls ───────────────────────────────────────────────────────────────
-
     const executeApiCall = useCallback(async () => {
         if (isBooking) {
+            console.log("SeatAssign Payload:", {
+                seatno: seat.SEATNO,
+                date: formatDateNum(startTime),
+                useTime: `${formatTimeNum(startTime)}-${formatTimeNum(endTime)}`,
+                schoolno: userInfo.SCHOOLNO,
+            });
             return await setSeatAssign({
                 seatno: seat.SEATNO,
                 date: formatDateNum(startTime),
                 useTime: `${formatTimeNum(startTime)}-${formatTimeNum(endTime)}`,
                 schoolno: userInfo.SCHOOLNO,
-                members: "",
             });
         }
         if (isExtension) {
+            const minutes = Number(timeOptions[selectedIndex].value);
+
             return await setExtend({
-                b_SeqNo: assignNo,
-                extendM: timeOptions[selectedIndex].value,
-                useExpire: bookingSeatInfo?.USEEXPIRE,
+                bseqno: activeBooking?.BSEQNO,
+                min: minutes,
+                endTime: formatEndTime(activeBooking?.USEEXPIRE, minutes),
             });
         }
         if (isReturn) {
-            return await setReturnSeat({ b_SeqNo: assignNo ?? bookingSeatInfo?.BSEQNO });
+            return await setReturnSeat({
+                bseqno: assignNo ?? activeBooking?.BSEQNO
+            });
         }
         if (isMove) {
-            return await setMove({ seatNo: seat.SEATNO, bSeqNo: userInfo?.ASSIGN_NO || assignNo });
+            return await setMove({
+                bseqno: userInfo?.ASSIGN_NO || assignNo,
+                newSeatno: seat.SEATNO,
+            });
         }
-    }, [isBooking, isExtension, isReturn, isMove, seat, assignNo, startTime, endTime, timeOptions, selectedIndex, bookingSeatInfo, userInfo]);
+    }, [isBooking, isExtension, isReturn, isMove, seat, assignNo, startTime, endTime, timeOptions, selectedIndex, activeBooking, userInfo]);
 
     // ─── Handlers ────────────────────────────────────────────────────────────────
 
@@ -231,12 +279,11 @@ const SeatActionModal = ({
                             : "Seat Returned Successfully";
 
             setActionResult({
-                success: res?.successYN === "Y",
-                message: res?.successYN === "Y"
-                    ? t(msgKey)
-                    : res?.msg
+                success: res?.header?.resultCode === "200",
+                message: res?.header?.resultCode === "200"
+                    ? msgKey
+                    : res?.header?.resultMsg || "Operation failed"
             });
-
             setShowResultModal(true);
         } catch (err) {
             onClose();
@@ -271,12 +318,12 @@ const SeatActionModal = ({
                 SCHOOL_NO: userInfo?.SCHOOLNO || "",
                 BOOKING_DATE: formatDate(startTime, dateFormat),
                 ROOM: seatInfo?.FLOOR_NAME || "",
-                SEAT_NO: seat?.VNAME || bookingSeatInfo?.SEAT_VNAME || seatInfo?.SEAT_VNAME || "",
+                SEAT_NO: seat?.VNAME || activeBooking?.SEAT_VNAME || seatInfo?.SEAT_VNAME || "",
                 CHECKIN_TIME: formatDate(startTime, dateFormat),
                 CHECKOUT_TIME: endTime
                     ? formatDate(endTime, dateFormat)
-                    : bookingSeatInfo?.USEEXPIRE
-                        ? formatDate(bookingSeatInfo.USEEXPIRE, dateFormat)
+                    : activeBooking?.USEEXPIRE
+                        ? formatDate(activeBooking.USEEXPIRE, dateFormat)
                         : "",
                 BARCODE: userInfo?.SCHOOLNO || "",
                 USER_ID_QR: userInfo?.SCHOOLNO || "",
@@ -296,7 +343,7 @@ const SeatActionModal = ({
         } catch (err) {
             console.error("Error printing:", err);
         }
-    }, [userInfo, seat, bookingSeatInfo, seatInfo, startTime, endTime, serialPortsData, writeToSerialPort, t, dispatch, navigate, languageCode]);
+    }, [userInfo, seat, activeBooking, seatInfo, startTime, endTime, serialPortsData, writeToSerialPort, t, dispatch, navigate, languageCode]);
 
     const handleEnterPress = useCallback((focusedElement) => {
         if (!focusedElement) return;
@@ -354,23 +401,43 @@ const SeatActionModal = ({
     }, [showResultModal]);
 
     useEffect(() => {
-        if (!isOpen || !isAssignCheck || !assignNo) return;
+        if (!isOpen || !isAssignCheck || !activeBooking) return;
+
         const fetchInfo = async () => {
             try {
                 setLoading(true);
                 setSeatInfo(null);
                 setApiLang(lang);
-                const res = await setAssignSeatInfo({ bseqno: assignNo });
-                if (res?.successYN === "Y") setSeatInfo(res.bookingSeatInfo);
-                else console.warn("Assign seat info fetch failed", res);
+
+                const res = await setAssignSeatInfo({
+                    schoolno: userInfo?.SCHOOLNO,
+                    date: formatDateNum(new Date()),
+                    seatno: activeBooking?.SEATNO,
+                    useTime: `${formatTimeNum(activeBooking?.USESTART)}-${formatTimeNum(activeBooking?.USEEXPIRE)}`
+                });
+
+                console.log("SeatBooking result:", res);
+
+                if (res) {
+                    setSeatInfo({
+                        FLOOR_NAME: activeBooking?.FLOOR_NAME,
+                        SECTOR_NAME: activeBooking?.SECTOR_NAME,
+                        SEAT_VNAME: activeBooking?.SEAT_VNAME,
+                        USESTART: activeBooking?.USESTART,
+                        USEEXPIRE: activeBooking?.USEEXPIRE
+                    });
+                }
+
             } catch (err) {
-                console.error("Failed to fetch assign seat info", err);
+                console.error("Seat booking API failed", err);
             } finally {
                 setLoading(false);
             }
         };
+
         fetchInfo();
-    }, [isOpen, isAssignCheck, assignNo, lang]);
+
+    }, [isOpen, isAssignCheck, activeBooking, userInfo, lang]);
 
     useEffect(() => {
         if (isReturn || isMove || isAssignCheck) return;
@@ -392,7 +459,8 @@ const SeatActionModal = ({
                 if (isBooking && seat?.SEATNO && isAvailable) {
                     await dispatch(fetchBookingTime({ seatno: seat.SEATNO }));
                 } else if ((isExtension || isReturn || isMove) && assignNo) {
-                    await dispatch(fetchBookingTime({ assignno: assignNo }));
+                    console.log("assignNo", assignNo)
+                    await dispatch(fetchBookingTime({ seatno: assignNo }));
                 }
             } finally {
                 setLoadingTime(false); // ← add this
@@ -400,7 +468,6 @@ const SeatActionModal = ({
         };
         fetchTime();
     }, [isOpen, seat, assignNo, isAvailable, isBooking, isExtension, isReturn, isMove]);
-
     useEffect(() => {
         if (disableFocusAndSpeech) return;
         if ((!isOpen && !showResultModal) || !isModalFocused) return;
@@ -440,62 +507,105 @@ const SeatActionModal = ({
     }, [isOpen, showResultModal, isModalFocused]);
 
     // ─── Speech ──────────────────────────────────────────────────────────────────
-
     const getSpeechForFocusedElement = useCallback((element) => {
         if (!element) return "";
+
+        const booking = activeBooking;
+        console.log("booking", booking)
+
         switch (element.type) {
+
             case "title":
                 return isAssignCheck
                     ? t("translations.Seat information")
                     : t(`translations.${MODE_LABELS[mode]}`);
+
             case "header": {
-                if (isAssignCheck && seatInfo)
-                    return `${t("translations.Central Library")} ${seatInfo.FLOOR_NAME} ${seatInfo.SECTOR_NAME} ${seatInfo.SEAT_VNAME}`;
-                if (seat || bookingSeatInfo)
-                    return `${t("translations.Central Library")} ${seat?.ROOM_NAME || bookingSeatInfo?.FLOOR_NAME} ${seat?.NAME || bookingSeatInfo?.SECTOR_NAME} ${seat?.VNAME || bookingSeatInfo?.SEAT_VNAME}`;
+                if (isAssignCheck && booking)
+                    return `${t("translations.Central Library")} ${booking.FLOOR_NAME} ${booking.SECTOR_NAME} ${booking.SEAT_VNAME}`;
+
+                if (seat || booking)
+                    return `${t("translations.Central Library")} ${seat?.ROOM_NAME || booking?.FLOOR_NAME} ${seat?.NAME || booking?.SECTOR_NAME} ${seat?.VNAME || booking?.SEAT_VNAME}`;
+
                 return "";
             }
+
             case "name-label":
             case "name-value":
                 return t("speech.SEAT_MODAL_USER_NAME", { name: userInfo?.SCHOOLNO });
+
             case "date-label":
             case "date-value": {
                 const startStr = formatDate(startTime, uiDateFormat);
                 const endStr = endTime ? formatDate(endTime, uiDateFormat) : "";
                 return `${t("translations.Date Duration")}: ${startStr} ${t("speech.to")} ${endStr}.`;
             }
+
             case "time-label":
             case "time-value": {
-                if (!seatInfo?.USESTART || !seatInfo?.USEEXPIRE) return t("translations.Time of use");
-                return `${t("translations.Time of use")}: ${formatDate(seatInfo.USESTART, uiDateFormat)} ${t("speech.to")} ${formatDate(seatInfo.USEEXPIRE, uiDateFormat)}`;
+                if (!booking?.USESTART || !booking?.USEEXPIRE)
+                    return t("translations.Time of use");
+
+                return `${t("translations.Time of use")}: ${formatDate(booking.USESTART, uiDateFormat)} ${t("speech.to")} ${formatDate(booking.USEEXPIRE, uiDateFormat)}`;
             }
+
             case "start-label":
             case "start-value": {
                 const startStr = formatDate(startTime, uiDateFormat);
-                const endStr = bookingSeatInfo?.USEEXPIRE ? formatDate(bookingSeatInfo.USEEXPIRE, uiDateFormat) : "";
+                const endStr = booking?.USEEXPIRE
+                    ? formatDate(booking.USEEXPIRE, uiDateFormat)
+                    : "";
+
                 return `${t("translations.Start hours")}: ${startStr} ${t("speech.to")} ${endStr}.`;
             }
+
             case "action-label":
                 return t("speech.SEAT_MODAL_ACTION_SECTION");
+
             case "time-button":
-                return t("speech.SEAT_MODAL_TIME_OPTION", { time: formatDurationLabel(element.value) });
+                return t("speech.SEAT_MODAL_TIME_OPTION", {
+                    time: formatDurationLabel(element.value),
+                });
+
             case "confirmation-message":
                 if (isMove) return t("speech.SEAT_MODAL_MOVE_CONFIRM");
                 if (isReturn) return t("speech.SEAT_MODAL_RETURN_CONFIRM");
-                return t("speech.SEAT_MODAL_CONFIRM_GENERIC", { action: t(`translations.${MODE_LABELS[mode]}`) });
+
+                return t("speech.SEAT_MODAL_CONFIRM_GENERIC", {
+                    action: t(`translations.${MODE_LABELS[mode]}`),
+                });
+
             case "cancel-button":
                 return t("speech.Cancel");
+
             case "confirm-button":
                 return t("speech.Confirm");
+
             case "print-button":
                 return t("translations.Print Receipt");
+
             case "result-message":
                 return `${t(`translations.${MODE_LABELS[mode]}`)}. ${t(`translations.${actionResult?.message}`)}`;
+
             default:
                 return "";
         }
-    }, [t, mode, userInfo, isMove, isReturn, isAssignCheck, actionResult, startTime, endTime, bookingSeatInfo, seatInfo, seat, uiDateFormat, formatDurationLabel]);
-
+    }, [
+        t,
+        mode,
+        userInfo,
+        isMove,
+        isReturn,
+        isAssignCheck,
+        actionResult,
+        startTime,
+        endTime,
+        seatInfo,
+        seat,
+        uiDateFormat,
+        formatDurationLabel,
+        activeBooking
+    ]);
     useEffect(() => {
         if (disableFocusAndSpeech) return;
         if (!isOpen && !showResultModal) return;
@@ -527,14 +637,14 @@ const SeatActionModal = ({
                 </div>
             );
         }
-        if ((isBooking || isMove || isExtension || isReturn) && (seat || bookingSeatInfo)) {
+        if ((isBooking || isMove || isExtension || isReturn) && (seat || activeBooking)) {
             return (
                 <div className={headerClass}>
                     <p className={textClass}>
-                        {t("translations.Central Library")} → {seat?.ROOM_NAME || bookingSeatInfo?.FLOOR_NAME} →{" "}
-                        {seat?.NAME || bookingSeatInfo?.SECTOR_NAME} →
+                        {t("translations.Central Library")} → {seat?.ROOM_NAME || activeBooking?.FLOOR_NAME} →{" "}
+                        {seat?.NAME || activeBooking?.SECTOR_NAME} →
                         <span className="text-red-600 font-extrabold ml-3">
-                            {(seat?.VNAME || bookingSeatInfo?.SEAT_VNAME) ?? "-"}
+                            {(seat?.VNAME || activeBooking?.SEAT_VNAME) ?? "-"}
                         </span>
                     </p>
                 </div>
@@ -545,7 +655,7 @@ const SeatActionModal = ({
                 <p className={textClass}>{t("Seat")} {MODE_LABELS[mode]} {t("Request")}</p>
             </div>
         );
-    }, [isAssignCheck, isBooking, isMove, isExtension, isReturn, seatInfo, seat, bookingSeatInfo, mode, isFocused, t, lang]);
+    }, [isAssignCheck, isBooking, isMove, isExtension, isReturn, seatInfo, seat, activeBooking, mode, isFocused, t, lang]);
 
     const renderTimeSelection = useMemo(() => (
         <div className="grid grid-cols-3 gap-2">
@@ -656,7 +766,7 @@ const SeatActionModal = ({
                 size=""
                 footer={mainFooter}
                 showCloseButton={false}
-               className={`seat-action-modal ${focusClass}`}
+                className={`seat-action-modal ${focusClass}`}
             >
                 <h2 className={`text-[36px] font-extrabold text-center text-[#f7c224] mb-8 tracking-wide ${isFocused("title") ? `${focusClass} rounded-lg` : ""}`}>
                     {isAssignCheck ? t("translations.Seat information") : t(`translations.${MODE_LABELS[mode]}`)}
@@ -671,8 +781,9 @@ const SeatActionModal = ({
                             <div className={`grid grid-cols-[220px_25px_1fr] items-center font-bold rounded-lg p-2 ${isGroupFocused(["name-label", "name-value"]) ? focusClass : ""}`}>
                                 <span className="text-gray-700">{t("translations.Name")}</span>
                                 <span className="text-gray-700">:</span>
-                                <span className="font-extrabold text-[#f7c224]">{userInfo?.SCHOOLNO}</span>
+                                <span className="font-extrabold text-[#f7c224]">{userData?.NAME}</span>
                             </div>
+
                             <div className={`grid grid-cols-[220px_25px_1fr] items-center font-bold rounded-lg p-2 ${isGroupFocused(["time-label", "time-value"]) ? focusClass : ""}`}>
                                 <span className="text-gray-700">{t("translations.Time of use")}</span>
                                 <span className="text-gray-700">:</span>
@@ -690,7 +801,7 @@ const SeatActionModal = ({
                             <div className={`grid grid-cols-[220px_25px_1fr] items-center font-bold rounded-lg p-1 ${isGroupFocused(["name-label", "name-value"]) ? focusClass : ""}`}>
                                 <span className="text-gray-700">{t("translations.Name")}</span>
                                 <span className="text-gray-700">:</span>
-                                <span className="font-extrabold text-[#f7c224]">{userInfo?.SCHOOLNO}</span>
+                                <span className="font-extrabold text-[#f7c224]">{userData?.NAME}</span>
                             </div>
 
                             {/* DATE / START HOURS */}
@@ -708,7 +819,7 @@ const SeatActionModal = ({
                                     <span className="text-gray-700 font-bold">:</span>
                                     <span className="font-extrabold text-[#f7c224]">
                                         {formatDate(startTime, uiDateFormat)} ~{" "}
-                                        {bookingSeatInfo?.USEEXPIRE ? formatDate(bookingSeatInfo.USEEXPIRE, uiDateFormat) : ""}
+                                        {activeBooking?.USEEXPIRE ? formatDate(activeBooking.USEEXPIRE, uiDateFormat) : ""}
                                     </span>
                                 </div>
                             ) : null}

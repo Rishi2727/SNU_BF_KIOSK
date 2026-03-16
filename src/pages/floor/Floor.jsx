@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import BgMainImage from "../../assets/images/BgMain.jpg";
+import BgMainImage from "../../assets/images/SNU_bg.jpg";
 import { clearUserInfo, setUserInfo } from "../../redux/slice/userInfo";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { filterDisplayableSectors, parseMapPoint } from "../../utils/mapPointParser";
@@ -13,7 +13,7 @@ import FloorStatsBar from "../../components/layout/floor/FloorStatsBar";
 import FloorLegendBar from "../../components/layout/floor/FloorLegendBar";
 import FooterControls from "../../components/common/Footer";
 import {
-  getFloorImageUrl, getKioskUserInfo, getSeatList, getImageBaseUrl,
+  getFloorImageUrl, getSeatList, getImageBaseUrl,
   getPopupTimers, initializeApi, setApiLang,
 } from "../../services/api";
 import { MINI_MAP_LAYOUT, MINIMAP_CONFIG } from "../../utils/constant";
@@ -98,7 +98,6 @@ const Floor = () => {
   // ─── API urls ────────────────────────────────────────────────────────────
   const imageBaseUrl = getFloorImageUrl();
   const SeatImagebaseUrl = getImageBaseUrl();
-
   // ─── Floor data hook ─────────────────────────────────────────────────────
   const {
     floors, currentFloor, setCurrentFloor, sectorList,
@@ -159,12 +158,6 @@ const Floor = () => {
 
   useEffect(() => {
     const init = async () => {
-      if (localStorage.getItem("authenticated") === "true") {
-        try {
-          const info = await getKioskUserInfo();
-          if (info?.successYN === "Y") dispatch(setUserInfo(info.bookingInfo));
-        } catch (err) { console.error("Failed to fetch kiosk user info:", err); }
-      }
 
       try {
         await initializeApi();
@@ -489,12 +482,15 @@ const Floor = () => {
     if (!sector) return;
     setLoadingSeats(true);
     try {
-      const res = await getSeatList({
-        sectorno: sector.SECTORNO, floor: sector.FLOOR,
-        floorno: sector.FLOORNO, roomno: sector.ROOMNO, type: "S",
+      const seatList = await getSeatList({
+        sectorno: sector?.SECTORNO,
       });
-      setSeats(Array.isArray(res?.seatList) ? res.seatList : []);
-    } catch {
+
+      console.log("seat res---------->", seatList);
+
+      setSeats(Array.isArray(seatList) ? seatList : []);
+    } catch (err) {
+      console.error("Seat fetch error:", err);
       setSeats([]);
     } finally {
       setLoadingSeats(false);

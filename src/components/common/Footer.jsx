@@ -12,6 +12,8 @@ import { useVoice } from "../../context/voiceContext";
 import { setLanguage as setLanguageAction } from "../../redux/slice/langSlice";
 import i18n from "../../translation/language/i18n";
 import InfoModal from "./infoModal";
+import { fetchUserInfo } from "../../redux/slice/getUserDataSlice";
+import { setApiLang } from "../../services/api";
 
 const applyContrastMode = (mode) => {
   document.documentElement.setAttribute("data-contrast", mode);
@@ -21,14 +23,14 @@ const applyContrastMode = (mode) => {
 // ─── Sub-component ────────────────────────────────────────────────────────────
 
 const FooterButton = ({ icon, label, onClick, active, isSelected, isFocused }) => (
- <button
-  onClick={onClick}
- className={`h-14 px-4 flex items-center gap-3 rounded-xl shadow-lg
+  <button
+    onClick={onClick}
+    className={`h-14 px-4 flex items-center gap-3 rounded-xl shadow-lg
 hover:bg-[#FFD640] active:scale-95 transition-all
 ${active ? "bg-[#e2ac37] text-white" : "bg-[#FFCA08] text-[#9A7D4C]"}
 ${isSelected ? "footer-selected" : ""}
 ${isFocused && isSelected ? "outline-[6px] outline-[#dc2f02]" : ""}`}
->
+  >
     {icon}
     <span className="text-[30px] font-semibold whitespace-nowrap">{label}</span>
   </button>
@@ -46,6 +48,7 @@ const FooterControls = ({
 
   const magnifierEnabled = useSelector((s) => s.accessibility.magnifierEnabled);
   const volume = useSelector((s) => s.accessibility.volume);
+  const { userInfo: userData, loading } = useSelector((state) => state.user);
 
   const [time, setTime] = useState("");
   const [language, setLanguage] = useState("KR");
@@ -57,13 +60,28 @@ const FooterControls = ({
 
   const prevVolumeRef = useRef(volume);
   const BACK_OFFSET = showBack ? 1 : 0;
+  const lang = useSelector((state) => state.lang.current);
+
+  useEffect(() => {
+    setApiLang(lang);
+  }, [lang]);
 
   // Total focusable buttons: back(opt) + (login|logout+user) + KR + EN + vol- + vol% + vol+ + info + zoom + contrast
   const FOOTER_BUTTON_COUNT = useMemo(
     () => (showBack ? 1 : 0) + (userInfo ? 11 : 10),
     [showBack, userInfo]
   );
+  useEffect(() => {
+    const updateLang = async () => {
+      await setApiLang(lang);
 
+      if (userInfo?.SCHOOLNO) {
+        dispatch(fetchUserInfo({ schoolno: userInfo.SCHOOLNO }));
+      }
+    };
+
+    updateLang();
+  }, [lang, userInfo?.SCHOOLNO]);
   // ─── Index helpers ────────────────────────────────────────────────────────
 
   // Returns the button index accounting for back offset and whether user is logged in.
@@ -290,7 +308,7 @@ const FooterControls = ({
                 <div className={`flex items-center gap-2 bg-white text-black px-5 py-2 rounded-lg text-[26px]
                     ${fc(2 + BACK_OFFSET)}`}>
                   <User className="w-7 h-7" />
-                  {userInfo.SCHOOLNO}
+                  {userData?.NAME}
                 </div>
               </>
             ) : (

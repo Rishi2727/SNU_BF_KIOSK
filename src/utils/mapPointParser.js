@@ -20,7 +20,7 @@ export const parseMapPoint = (mapPoint) => {
 
 
 export const filterDisplayableSectors = (sectorList) => {
-  return (sectorList?.SectorList || sectorList || []).filter(
+  return ( sectorList || []).filter(
     sector => sector.ASSIGN_YN === "Y" && sector.MAPPOINT && sector.MAPLABEL
   );
 };

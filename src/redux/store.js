@@ -7,6 +7,8 @@ import floorReducer from "../redux/slice/floorSlice";
 import langReducer from "../redux/slice/langSlice";
 import headphoneReducer from "../redux/slice/headphoneSlice";
 import authReducer from "../redux/slice/authSlice";
+import bookingReducer from "../redux/slice/bookingHistroySlice";
+import userReducer from "./slice/getUserDataSlice"
 
 export const store = configureStore({
   reducer: {
@@ -17,6 +19,8 @@ export const store = configureStore({
     accessibility: accessibilityReducer,
     floor: floorReducer,
     lang: langReducer,
-    headphone: headphoneReducer
+    headphone: headphoneReducer,
+    booking: bookingReducer,
+    user: userReducer,
   },
 });

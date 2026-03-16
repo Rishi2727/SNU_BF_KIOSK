@@ -116,7 +116,7 @@ const NoticeBanner = ({ isFocused, lang }) => {
 
       {/* Title */}
       <div className="flex items-center gap-3">
-        <h3 className="text-[28px] font-bold text-[#3b2a00] tracking-wide truncate">
+        <h3 className="text-[28px] font-bold text-[#3b2a00] tracking-wide truncate capitalize">
           {current?.TITLE || t("speech.Notice information")}
         </h3>
       </div>

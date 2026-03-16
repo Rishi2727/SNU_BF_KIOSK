@@ -23,6 +23,11 @@ export const DATE_FORMATS = {
   KO_DATETIME: "YYYY년 MM월 DD일 HH:mm"
 };
 
+
+export const formatEndTime = (date, minutes) => {
+  if (!date) return "";
+  return moment(date).add(minutes, "minutes").format("YYYYMMDDHHmmss");
+};
 /**
  * Utility function to format dates consistently
  * @param {Date|string|moment} date - Date to format

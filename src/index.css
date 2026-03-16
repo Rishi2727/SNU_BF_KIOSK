@@ -102,6 +102,9 @@ html[data-contrast="high"] .contrast-dot {
   border: 2px solid #FFD640 !important;
   box-shadow: 0 0 0 3px #FFD640 !important;
 }
+[data-contrast="high"] .heading {
+  color: #ffffff !important;
+}
 /* ============================= */
 /* HIGH CONTRAST DARK MODE */
 /* ============================= */

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getFloorImageUrl , setApiLang } from "../services/api";
+import { getFloorImageUrl, setApiLang } from "../services/api";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchFloorList } from "../redux/slice/floorSlice";
 import { clearSectors, fetchSectorList } from "../redux/slice/sectorSlice";
@@ -10,12 +10,11 @@ export const useFloorData = (floorId, initialFloorInfo) => {
   const { floors } = useSelector((state) => state.floor);
   const { sectors, loading } = useSelector((state) => state.sector);
   const lang = useSelector((state) => state.lang.current);
-
   const [currentFloor, setCurrentFloor] = useState(null);
   const [floorImageUrl, setFloorImageUrl] = useState("");
   const [imageError, setImageError] = useState(false);
   const imageBaseUrl = getFloorImageUrl();
-useEffect(() => {
+  useEffect(() => {
     setApiLang(lang);
   }, [lang]);
   useEffect(() => {
@@ -27,7 +26,7 @@ useEffect(() => {
     // priority 1: initialFloorInfo
     if (initialFloorInfo?.floorno) {
       const updated = floors.find(
-        (f) => String(f.floorno) === String(initialFloorInfo.floorno)
+        (f) => String(f.floorno) === String(initialFloorInfo.floorno),
       );
       setCurrentFloor(updated || null);
       return;
@@ -36,7 +35,7 @@ useEffect(() => {
     // priority 2: from route param
     if (floorId) {
       const updated = floors.find(
-        (f) => String(f.floorno) === String(floorId) || f.title === floorId
+        (f) => String(f.floorno) === String(floorId) || f.title === floorId,
       );
       setCurrentFloor(updated || null);
       return;
@@ -55,7 +54,7 @@ useEffect(() => {
       fetchSectorList({
         floor: currentFloor.floor,
         floorno: currentFloor.floorno,
-      })
+      }),
     );
   }, [lang, currentFloor?.floorno, dispatch]); // ✅ depend on primitive, not object
 

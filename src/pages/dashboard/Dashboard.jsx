@@ -1,16 +1,15 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import BgMainImage from "../../assets/images/BgMain.jpg";
+import BgMainImage from "../../assets/images/SNU_bg.jpg";
 import MainSection from "../../components/layout/dashboard/MainSection";
 import KeyboardModal from "../../components/layout/keyBoardModal/KeyboardModal";
 import FooterControls from "../../components/common/Footer";
 import UserInfoModal from "../../components/layout/dashboard/useInfoModal";
 import SeatActionModal from "../../components/common/SeatActionModal";
-import { getKioskUserInfo, HUMAN_SENSOR_DETECTION, setApiLang } from "../../services/api";
+import { getBookingBseqno, HUMAN_SENSOR_DETECTION, setApiLang } from "../../services/api";
 import { setUserInfo } from "../../redux/slice/userInfo";
 import { login, logout } from "../../redux/slice/authSlice";
-import { fetchBookingTime } from "../../redux/slice/bookingTimeSlice";
 import { MODAL_TYPES } from "../../utils/constant";
 import NoticeBanner from "../../components/layout/dashboard/Notice";
 import { useVoice } from "../../context/voiceContext";
@@ -25,6 +24,8 @@ import { AlertTriangle } from "lucide-react";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { resetAccessibility } from "../../redux/slice/accessibilitySlice";
 import { logEvent } from "../../logger";
+import { formatDateNum } from "../../utils/momentConfig";
+import { fetchBookingList } from "../../redux/slice/bookingHistroySlice";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -66,10 +67,9 @@ const Dashboard = () => {
   const lang = useSelector((s) => s.lang.current);
   const volume = useSelector((s) => s.accessibility.volume);
   const { userInfo, isAuthenticated } = useSelector((s) => s.userInfo);
-  const { bookingSeatInfo } = useSelector((s) => s.bookingTime);
   const { floors, loading } = useSelector((s) => s.floor);
   const { earphoneInjected } = useSelector((s) => s.headphone);
-
+  const { bookingList, loading: bookingLoading } = useSelector((state) => state.booking)
   // ─── UI state ───────────────────────────────────────────────────────────
   const [focused, setFocused] = useState(null);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
@@ -77,6 +77,7 @@ const Dashboard = () => {
   const [modalStates, setModalStates] = useState(EMPTY_MODAL_STATES);
   const [selectedFloor, setSelectedFloor] = useState(null);
   const [selectedAssignNo, setSelectedAssignNo] = useState(null);
+  const [seatno, setSeatno] = useState(null);
   const [showGlobalLoading, setShowGlobalLoading] = useState(true);
 
   // ─── Login error modal ──────────────────────────────────────────────────
@@ -209,47 +210,104 @@ const Dashboard = () => {
 
   // ─── Move action ─────────────────────────────────────────────────────────
 
-  const handleMoveAction = useCallback(async (assignNo) => {
-    if (userInfo?.MOVE_YN !== "Y") return;
-    try {
-      let bookingData = bookingSeatInfo;
-      if (!bookingData) {
-        setApiLang(lang);
-        const result = await dispatch(fetchBookingTime({ assignno: assignNo, seatno: userInfo.SEATNO })).unwrap();
-        bookingData = result.bookingSeatInfo;
-      }
-      if (!bookingData) return;
-      const { FLOOR, SECTORNO, FLOORNO } = bookingData;
-      const floorInfo = { id: FLOORNO, title: `${FLOOR}F`, floor: FLOOR, floorno: FLOORNO };
-      setCurrentFloor(floorInfo);
-      navigate(`/floor/${FLOOR}/${SECTORNO}/move`, {
-        state: { mode: "move", floorInfo, selectedSectorNo: SECTORNO },
-      });
-    } catch (error) {
-      await logEvent("error", `Error fetching booking info for move: ${error.message}`);
-    }
-  }, [userInfo, bookingSeatInfo, dispatch, navigate, setCurrentFloor, lang]);
+const handleMoveAction = useCallback(async (assignNo) => {
+  if (userInfo?.MOVE_YN !== "Y") return;
 
+  try {
+    let bookingData = null;
+
+    // 1️⃣ Check Redux booking list first
+    if (bookingList?.length) {
+      bookingData = bookingList.find(
+        (item) => item.STATUS === 3 && item.MOVE_YN === "Y"
+      );
+    }
+
+    // 2️⃣ If not found → call API
+    if (!bookingData) {
+      setApiLang(lang);
+
+      const today = formatDateNum();
+
+      const result = await dispatch(
+        fetchBookingList({
+          schoolno: userInfo.SCHOOLNO,
+          sDate: today,
+          eDate: today,
+        })
+      ).unwrap();
+
+      bookingData = result?.find(
+        (item) => item.STATUS === 3 && item.MOVE_YN === "Y"
+      );
+    }
+
+    if (!bookingData) return;
+
+    const { FLOOR_NAME, SECTORNO } = bookingData;
+
+    // Extract floorId from "6F"
+    const floorId = FLOOR_NAME?.replace(/[^\d]/g, "");
+
+    const floorInfo = {
+      id: floorId,
+      title: FLOOR_NAME,
+      floor: floorId,
+    };
+
+    setCurrentFloor(floorInfo);
+    // 3️⃣ Navigate according to routes config
+    navigate(`/floor/${floorInfo?.title}/${SECTORNO}/move`, {
+      state: {
+        mode: "move",
+        floorInfo,
+        selectedSectorNo: SECTORNO,
+      },
+    });
+
+  } catch (error) {
+    await logEvent(
+      "error",
+      `Error fetching booking info for move: ${error.message}`
+    );
+  }
+}, [
+  userInfo,
+  bookingList,
+  dispatch,
+  navigate,
+  setCurrentFloor,
+  lang
+]);
   // ─── User action from UserInfoModal ──────────────────────────────────────
 
   const handleUserAction = useCallback(async (actionType, assignNo) => {
-    await logEvent("info", `User action selected: ${actionType}, assignNo=${assignNo}`);
-    setIsUserInfoModalOpen(false);
-    setSelectedAssignNo(assignNo);
+  await logEvent("info", `User action selected: ${actionType}, assignNo=${assignNo}`);
 
-    const actionHandlers = {
-      extend: () => toggleModal(MODAL_TYPES.EXTENSION, true),
-      move: () => handleMoveAction(assignNo),
-      return: () => toggleModal(MODAL_TYPES.RETURN, true),
-      check: () => navigate("/booking/check"),
-      cancel: () => navigate("/booking/cancel"),
-      assign: () => selectedFloor ? navigateToFloor(selectedFloor) : navigate("/floor/select"),
-      assignCheck: () => toggleModal(MODAL_TYPES.ASSIGN_CHECK, true),
-    };
+  setIsUserInfoModalOpen(false);
+  setSelectedAssignNo(assignNo);
 
-    await actionHandlers[actionType]?.() ?? console.warn("Unknown action:", actionType);
-    setSelectedFloor(null);
-  }, [selectedFloor, toggleModal, handleMoveAction, navigate, navigateToFloor]);
+  const actionHandlers = {
+    extend: () => toggleModal(MODAL_TYPES.EXTENSION, true),
+    move: () => handleMoveAction(assignNo),
+    return: () => toggleModal(MODAL_TYPES.RETURN, true),
+    check: () => navigate("/booking/check"),
+    cancel: () => navigate("/booking/cancel"),
+    assign: () =>
+      selectedFloor
+        ? navigateToFloor(selectedFloor)
+        : navigate("/floor/select"),
+    assignCheck: () => toggleModal(MODAL_TYPES.ASSIGN_CHECK, true),
+  };
+
+  if (actionHandlers[actionType]) {
+    await actionHandlers[actionType]();
+  } else {
+    console.warn("Unknown action:", actionType);
+  }
+
+  setSelectedFloor(null);
+}, [selectedFloor, toggleModal, handleMoveAction, navigate, navigateToFloor]);
 
   // ─── Keyboard submit (login) ─────────────────────────────────────────────
 
@@ -264,11 +322,15 @@ const Dashboard = () => {
       await logEvent("info", "Keyboard login attempt started");
       setShowGlobalLoading(true);
       const result = await dispatch(login(value)).unwrap();
-      await logEvent("info", `Login successful, ASSIGN_NO=${result?.ASSIGN_NO}`);
+      if (!result || !result.SCHOOLNO) {
+        throw new Error("User not found");
+      }
+
+      await logEvent("info", `Login successful, ASSIGN_NO=${result?.SCHOOLNO}`);
 
       const showModal = shouldShowModal(result);
 
-      if ((!result || result.ASSIGN_NO === "0") && !selectedFloor) {
+      if (result.ASSIGN_NO === "0" && !selectedFloor) {
         await logEvent("info", "No booking found, opening floor selection modal");
         openFloorSelectionModal();
         return;
@@ -297,6 +359,22 @@ const Dashboard = () => {
     }
   }, [dispatch, selectedFloor, shouldShowModal, navigateToFloor, t, openLoginErrorModal, openFloorSelectionModal]);
 
+const fetchBookingInfo = async (bseqno) => {
+  if (!bseqno) return;
+
+  try {
+    const res = await getBookingBseqno({ bseqno });
+    if (res?.body?.SEATNO) {
+      setSeatno(res.body.SEATNO);
+    }
+  } catch (error) {
+    console.error("Error fetching booking info:", error);
+  }
+};
+useEffect(() => {
+  if (!selectedAssignNo) return;
+  fetchBookingInfo(selectedAssignNo);
+}, [selectedAssignNo]);
   // ─── Effects ──────────────────────────────────────────────────────────────
 
   // Sync API language
@@ -315,20 +393,7 @@ const Dashboard = () => {
     }
   }, [dispatch]);
 
-  // Init authenticated user on mount
-  useEffect(() => {
-    const init = async () => {
-      if (localStorage.getItem("authenticated") !== "true") return;
-      try {
-        await logEvent("info", "Fetching kiosk user info on dashboard mount");
-        const info = await getKioskUserInfo();
-        if (info?.successYN === "Y") dispatch(setUserInfo(info.bookingInfo));
-      } catch (error) {
-        await logEvent("error", `Failed to fetch kiosk user info: ${error.message}`);
-      }
-    };
-    init();
-  }, [dispatch]);
+
 
   // Global loading tied to floors fetch
   useEffect(() => {
@@ -429,20 +494,6 @@ const Dashboard = () => {
     speakMainScreen();
     dispatch(clearHeadphoneFocus());
   }, [earphoneInjected, dispatch, speakMainScreen]);
-
-  // Network restore → reload data
-  useEffect(() => {
-    const handler = () => {
-      dispatch(fetchFloorList(1));
-      if (localStorage.getItem("authenticated") === "true") {
-        getKioskUserInfo()
-          .then((info) => { if (info?.successYN === "Y") dispatch(setUserInfo(info.bookingInfo)); })
-          .catch(() => { });
-      }
-    };
-    window.addEventListener("NETWORK_RESTORED", handler);
-    return () => window.removeEventListener("NETWORK_RESTORED", handler);
-  }, [dispatch]);
 
   // QR login success
   useEffect(() => {
@@ -711,7 +762,7 @@ const Dashboard = () => {
 
       <SeatActionModal
         mode="extension"
-        assignNo={selectedAssignNo}
+        assignNo={seatno}
         isOpen={modalStates[MODAL_TYPES.EXTENSION]}
         onClose={() => toggleModal(MODAL_TYPES.EXTENSION, false)}
         onBackToUserInfo={handleBackToUserInfo}

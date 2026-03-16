@@ -9,7 +9,8 @@ export const fetchSectorList = createAsyncThunk(
   async ({ floor, floorno }, { rejectWithValue }) => {
     try {
       const response = await getSectorList({ floor, floorno });
-      return response?.SectorList || response;
+       console.log("Sector thunk response:", response);
+      return response;
     } catch (error) {
       return rejectWithValue(
         error?.response?.data || "Failed to fetch sector list"

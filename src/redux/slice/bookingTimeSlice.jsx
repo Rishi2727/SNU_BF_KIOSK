@@ -5,16 +5,16 @@ import { getBookingTimeSeat } from "../../services/api";
 /* ---------------- THUNK FOR FETCH ---------------- */
 export const fetchBookingTime = createAsyncThunk(
   "bookingTime/fetch",
-  async ({ assignno, seatno }, { rejectWithValue }) => {
+  async ({seatno }, { rejectWithValue }) => {
     try {
-      const res = await getBookingTimeSeat({ assignno, seatno });
+      const res = await getBookingTimeSeat({seatno });
 
       console.log("API RAW RESPONSE --->", res);
 
       // Remove the .data - the response already IS the data object
       return {
-        seatTimeInfo: res?.seatTimeInfo,        // Changed from res.data.seatTimeInfo
-        bookingSeatInfo: res?.bookingSeatInfo   // Changed from res.data.bookingSeatInfo
+        seatTimeInfo: res,        // Changed from res.data.seatTimeInfo
+        bookingSeatInfo: res   // Changed from res.data.bookingSeatInfo
       };
     } catch (err) {
       return rejectWithValue(err.response?.data || "Failed to fetch time info");

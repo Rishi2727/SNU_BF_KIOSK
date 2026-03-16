@@ -713,7 +713,6 @@ const RoomView = ({
   /* ================= RENDER ================= */
   const canShowMinimap = !loadingSeats && selectedSector?.SECTOR_IMAGE && sectors.length > 0;
   const canShowSeats = selectedMiniSectorLocal && !loadingSeats;
-
   return (
     <>
       <div
@@ -734,7 +733,7 @@ const RoomView = ({
             }}
           >
             <SectorZoomMiniMap
-              roomImage={`${baseUrl}${selectedSector.SECTOR_IMAGE}`}
+              roomImage={`${baseUrl}${selectedSector?.SECTOR_IMAGE}`}
               mode="room"
               onSectorSelect={handleSectorSelect}
               focusedSector={null}
@@ -766,7 +765,7 @@ const RoomView = ({
               >
                 <img
                   ref={mainImageRef}
-                  src={`${baseUrl}${selectedSector.SECTOR_IMAGE}`}
+                  src={`${baseUrl}${selectedSector?.SECTOR_IMAGE}`}
                   alt="Room"
                   style={{
                     width: '100%',
