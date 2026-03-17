@@ -336,10 +336,8 @@ export const getUserInfo = async ({ schoolno }) => {
 
   const res = await ApiClientPrimary.get("/SEATAPI/GetUserInfo.asp", {
     params: { schoolno },
-    headers: {
-      lang: getLang()   // "en" or "ko"
-    }
   });
+  console.log("use info ", res?.data)
   return res.data;
 };
 
@@ -347,7 +345,9 @@ export const QRValidate = async (qrCode) => {
   await ensureInitialized();
   await logEvent("info", `QR validation attempt`);
   const encodedQrCode = encodeURIComponent(qrCode);
-  return await ApiClientQR.get("/qrCheck.do", { params: { code: qrCode } });
+  const res = await ApiClientPrimary.get("/SEATAPI/GetUserLogin_NEW.asp", { params: { qrCd: qrCode } });
+  console.log("qr data", res?.data?.body)
+  return res?.data?.body;
 };
 /* ===============================
    💺 SEAT

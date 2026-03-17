@@ -201,11 +201,12 @@ const FooterControls = ({
     const currentTime = new Date().toLocaleTimeString("en-GB", {
       hour: "2-digit", minute: "2-digit", hour12: false,
     });
+    console.log("usedata", userData)
     return {
       0: `${t("speech.Current Time")} ${currentTime}`,
       [idx(1, 1)]: userInfo ? t("speech.Logout") : t("speech.Login"),
-      ...(userInfo?.SCHOOLNO
-        ? { [idx(2, -1)]: t("speech.UserIDMessage", { id: userInfo.SCHOOLNO }) }
+      ...(userData?.NAME
+        ? { [idx(2, -1)]: t("speech.UserIDMessage", { id: userData.NAME }) }
         : { [idx(2, -1)]: t("speech.UserID") }
       ),
       [idx(3, 2)]: t("speech.Language") + t("speech.Korean"),
@@ -314,7 +315,7 @@ const FooterControls = ({
             ) : (
               <button
                 onClick={() => openKeyboard(false)}
-                className={`px-6 py-2 rounded-full bg-[#D7D8D2] text-white text-[28px] ${fc(1)}`}
+                className={`login-btn px-6 py-2 rounded-full bg-[#D7D8D2] text-[#000] text-[28px] ${fc(1)}`}
               >
                 {t("translations.Login")}
               </button>

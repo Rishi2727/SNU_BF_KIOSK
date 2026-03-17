@@ -39,17 +39,17 @@ const floorSlice = createSlice({
       })
       .addCase(fetchFloorList.fulfilled, (state, action) => {
         state.loading = false;
+
         state.floors = action.payload.map((f) => ({
           id: f.FLOORNO,
-          title: f.EN_NAME,
+          title: f.EN_NAME,      // 🔹 ALWAYS use for routing (stable)
+          name: f.NAME,          // 🔹 localized (API already respects lang)
           floor: String(f.FLOOR),
           floorno: String(f.FLOORNO),
           total: Number(f.TOTAL_CNT),
           occupied: Number(f.USE_CNT),
-          name: f.NAME,
         }));
-      })
-      .addCase(fetchFloorList.rejected, (state, action) => {
+      }).addCase(fetchFloorList.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

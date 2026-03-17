@@ -1,6 +1,6 @@
 /**
  * SerialPortContext - Manages serial port connections and hardware device communication
- * 
+ *
  * Handles:
  * - Serial port initialization and lifecycle management
  * - QR/RFID scanner data processing
@@ -89,17 +89,6 @@ export const SerialPortProvider = ({ children }) => {
 
   /**
    * Enable focus and speech accessibility for SweetAlert modals
-   * 
-   * Features:
-   * - Announces modal content via text-to-speech
-   * - Keyboard navigation between modal text and buttons (use * key to toggle)
-   * - Visual focus indicators with orange outline
-   * - Enter key to confirm when focused on button
-   * - Blocks speech when modal is closed to prevent audio leaks
-   * 
-   * @param {Function} speak - TTS function from useVoice hook
-   * @param {Function} t - Translation function from i18n
-   * @returns {Function} Cleanup function to remove event listeners
    */
   const enableFocusAndSpeakPolling = (speak, t) => {
     let keyHandler = null;
@@ -112,7 +101,7 @@ export const SerialPortProvider = ({ children }) => {
     const okBtn = Swal.getConfirmButton();
 
     const speakSafe = (msg) => {
-      if (blockSpeakRef.current) return;   // 🔥 DO NOT SPEAK OUTSIDE MODAL
+      if (blockSpeakRef.current) return;
       if (isClosed) return;
       try {
         speak(String(msg));
@@ -175,7 +164,7 @@ export const SerialPortProvider = ({ children }) => {
 
     return () => {
       isClosed = true;
-      blockSpeakRef.current = true;   // Block speech after modal closes
+      blockSpeakRef.current = true;
       document.removeEventListener("keydown", keyHandler, true);
     };
   };
@@ -184,10 +173,6 @@ export const SerialPortProvider = ({ children }) => {
   /*                    SERIAL PORT CONFIGURATION FUNCTIONS                     */
   /* ========================================================================== */
 
-  /**
-   * List all available serial ports from the system
-   * Called from Rust backend via Tauri invoke
-   */
   const listSerialPorts = async () => {
     try {
       const ports = await invoke("list_serial_ports");
@@ -197,16 +182,11 @@ export const SerialPortProvider = ({ children }) => {
     }
   };
 
-  /**
-   * Read kiosk configuration from Rust backend
-   * Loads serial port configurations and machine metadata
-   */
   const readConfig = async () => {
     try {
       const config = await invoke("read_config");
       setSerialPortsData(config.serialdata || []);
 
-      // Store machine metadata for API headers
       if (config) {
         setKioskConfiguration({
           machineUid: config.machine_uid || '',
@@ -218,10 +198,6 @@ export const SerialPortProvider = ({ children }) => {
     }
   };
 
-  /**
-   * Match configured ports with available system ports
-   * Only ports present in both config and system will be connected
-   */
   const matchPorts = () => {
     const matches = serialPortsData.filter((configPort) => {
       return listedSerialPorts.some(
@@ -236,10 +212,6 @@ export const SerialPortProvider = ({ children }) => {
   /*                    SERIAL PORT CONNECTION MANAGEMENT                       */
   /* ========================================================================== */
 
-  /**
-   * Stop all active serial port connections
-   * Called during system cleanup or application shutdown
-   */
   const stopSerialReading = async () => {
     try {
       await invoke("stop_serial_reading");
@@ -254,7 +226,6 @@ export const SerialPortProvider = ({ children }) => {
     }
   };
 
-  // Stop serial reading only when window/app closes
   useEffect(() => {
     const handleBeforeUnload = () => {
       console.log('🚪 App closing, stopping serial connections...');
@@ -268,23 +239,16 @@ export const SerialPortProvider = ({ children }) => {
     };
   }, []);
 
-  /**
-   * Perform 24-hour system cleanup to prevent memory leaks
-   * Restarts all serial connections and forces garbage collection
-   */
   const performSystemCleanup = async () => {
     const now = Date.now();
     const timeSinceLastCleanup = now - systemHealthRef.current.lastCleanup;
 
-    // Auto cleanup every 24 hours
     if (timeSinceLastCleanup > 24 * 60 * 60 * 1000) {
       try {
-        // Stop and restart all connections to prevent resource leaks
         if (activeSerialConnections.size > 0) {
           await stopSerialReading();
           await new Promise(resolve => setTimeout(resolve, 2000));
 
-          // Restart connections if we have matched ports
           if (matchedPorts.length > 0) {
             for (const portConfig of matchedPorts) {
               await startContinuousRead(portConfig);
@@ -293,7 +257,6 @@ export const SerialPortProvider = ({ children }) => {
           }
         }
 
-        // Force garbage collection if available
         if (window.gc && typeof window.gc === 'function') {
           window.gc();
         }
@@ -311,7 +274,6 @@ export const SerialPortProvider = ({ children }) => {
   /*                     KIOSK LOGIN POLLING (NETWORK CHECK)                    */
   /* ========================================================================== */
 
-
   useEffect(() => {
     networkErrorRef.current = networkError;
   }, [networkError]);
@@ -322,7 +284,6 @@ export const SerialPortProvider = ({ children }) => {
 
     const checkNetwork = async () => {
 
-      // ✅ NEVER show modal on configuration page
       if (location.pathname === "/configuration") {
         if (modalShownRef.current) {
           stop();
@@ -334,7 +295,6 @@ export const SerialPortProvider = ({ children }) => {
         return;
       }
 
-      // ✅ INTERNET RESTORED → close modal + reload API silently
       if (navigator.onLine && modalShownRef.current) {
         networkErrorRef.current = false;
         modalShownRef.current = false;
@@ -345,7 +305,6 @@ export const SerialPortProvider = ({ children }) => {
         setIsModalOpen(false);
         window.dispatchEvent(new Event("NETWORK_RESTORED"));
 
-        // 🔥 reload API automatically after reconnect
         setTimeout(async () => {
           try {
             await invoke("request_kiosk_login");
@@ -362,7 +321,6 @@ export const SerialPortProvider = ({ children }) => {
 
         if (!mounted) return;
 
-        // if request success → close modal
         if (networkErrorRef.current) {
           networkErrorRef.current = false;
           modalShownRef.current = false;
@@ -398,22 +356,16 @@ export const SerialPortProvider = ({ children }) => {
       }
     };
 
-
-    // ✅ Listen for online status to immediately retry/close logic
-
-
     interval = setInterval(checkNetwork, 5000);
 
     return () => {
       mounted = false;
       if (interval) clearInterval(interval);
-
     };
 
   }, [location.pathname]);
 
 
-  // ✅ INSTANTLY CLOSE NETWORK MODAL WHEN ENTERING CONFIGURATION PAGE
   useEffect(() => {
     if (location.pathname === "/configuration") {
       if (modalShownRef.current || isModalOpen) {
@@ -427,15 +379,13 @@ export const SerialPortProvider = ({ children }) => {
   }, [location.pathname, isModalOpen, stop]);
 
 
-
   /* ========================================================================== */
-  /*                    NETWORK MODAL ACCESSIBILITY (DASHBOARD STYLE)           */
+  /*                    NETWORK MODAL ACCESSIBILITY                             */
   /* ========================================================================== */
 
   useEffect(() => {
     if (!networkError || !isModalOpen) return;
 
-    // 🔥 When modal opens → focus TEXT first (same as dashboard)
     setNetworkModalButtonFocused(false);
 
     stop();
@@ -466,7 +416,6 @@ export const SerialPortProvider = ({ children }) => {
         });
       }
 
-      // ✅ ENTER triggers retry (same as dashboard modal)
       if (e.key === "Enter") {
         if (networkModalButtonFocused) {
           e.preventDefault();
@@ -482,23 +431,15 @@ export const SerialPortProvider = ({ children }) => {
 
   /**
    * Start continuous reading from a serial port
-   * 
-   * @param {Object} portConfig - Port configuration object
-   * @param {string} portConfig.port - COM port name (e.g., "COM19")
-   * @param {string} portConfig.name - Device type (e.g., "QR", "RFID", "HUMAN_SENSOR")
-   * @param {number} portConfig.baudrate - Baud rate for serial communication
-   * @returns {boolean} Success status
    */
   const startContinuousRead = async (portConfig) => {
     const portKey = `${portConfig.port}_${portConfig.name}`;
 
-    // Skip if already connected
     if (activeSerialConnections.has(portKey)) {
       return true;
     }
 
     try {
-      // Handle HUMAN_SENSOR differently - use pin monitoring instead of data reading
       if (portConfig.name === "HUMAN_SENSOR") {
         await invoke("start_human_sensor_monitoring", {
           portName: portConfig.port,
@@ -519,14 +460,11 @@ export const SerialPortProvider = ({ children }) => {
     } catch (error) {
       console.error(`Error starting port ${portConfig.port}:`, error.message);
 
-      // Attempt recovery for access denied errors (only once per port)
       if ((error.toString().includes("Access is denied") || error.toString().includes("access denied")) && !portConfig._retryAttempted) {
         try {
-          // Mark retry attempt and wait for port release
           portConfig._retryAttempted = true;
           await new Promise(resolve => setTimeout(resolve, 2000));
 
-          // Retry connection
           if (portConfig.name === "HUMAN_SENSOR") {
             await invoke("start_human_sensor_monitoring", {
               portName: portConfig.port,
@@ -552,13 +490,6 @@ export const SerialPortProvider = ({ children }) => {
     }
   };
 
-  /**
-   * Write data to serial port (for printer, etc.)
-   * 
-   * @param {Object} portConfig - Port configuration
-   * @param {Object} printOptions - Print options to send
-   * @returns {boolean} Success status
-   */
   const writeToSerialPort = async (portConfig, printOptions) => {
     try {
       await invoke("stop_serial_reading");
@@ -582,9 +513,6 @@ export const SerialPortProvider = ({ children }) => {
     };
 
     initialize();
-
-    // No cleanup - let serial connections run continuously
-    // Cleanup will only happen when app closes completely
   }, []);
 
   useEffect(() => {
@@ -597,20 +525,18 @@ export const SerialPortProvider = ({ children }) => {
       matchPorts();
     }
 
-    // Optimize polling - only poll if we have data that can change
     let intervalId;
     let cleanupIntervalId;
 
     if (shouldMatch()) {
       intervalId = setInterval(() => {
         matchPorts();
-      }, 30000); // Reduced frequency to 30 seconds to reduce memory pressure
+      }, 30000);
     }
 
-    // Setup 24-hour cleanup cycle for long-term stability
     cleanupIntervalId = setInterval(() => {
       performSystemCleanup();
-    }, 60 * 60 * 1000); // Check every hour
+    }, 60 * 60 * 1000);
 
     return () => {
       if (intervalId) clearInterval(intervalId);
@@ -622,12 +548,7 @@ export const SerialPortProvider = ({ children }) => {
   /*                   EFFECTS - CONNECTION MANAGEMENT                          */
   /* ========================================================================== */
 
-  /**
-   * Connect to new matched ports and maintain active connections
-   * Implements debouncing and periodic checks to prevent memory leaks
-   */
   useEffect(() => {
-    // Compare two port arrays for equality
     const arePortsEqual = (ports1, ports2) => {
       if (ports1.length !== ports2.length) return false;
 
@@ -638,7 +559,6 @@ export const SerialPortProvider = ({ children }) => {
     };
 
     const connectToNewPorts = async () => {
-      // Skip if ports haven't changed
       if (arePortsEqual(matchedPorts, previousMatchedPortsRef.current) && isInitializedRef.current) {
         return;
       }
@@ -646,7 +566,6 @@ export const SerialPortProvider = ({ children }) => {
       const now = Date.now();
       const timeSinceLastAttempt = now - lastConnectionAttemptRef.current;
 
-      // Debounce rapid connection attempts (minimum 3 seconds)
       if (timeSinceLastAttempt < 3000) {
         return;
       }
@@ -659,12 +578,10 @@ export const SerialPortProvider = ({ children }) => {
           clearTimeout(connectionTimeoutRef.current);
         }
 
-        // Connect to new ports only (don't stop existing connections)
         if (matchedPorts.length > 0) {
           for (const portConfig of matchedPorts) {
             const portKey = `${portConfig.port}_${portConfig.name}`;
 
-            // Skip if already connected
             if (activeSerialConnections.has(portKey)) {
               continue;
             }
@@ -680,11 +597,9 @@ export const SerialPortProvider = ({ children }) => {
       }
     };
 
-    // Initial connection when ports first become available
     if (!isInitializedRef.current && matchedPorts.length > 0) {
       connectToNewPorts();
     }
-    // Periodic port check every 5 minutes
     else if (isInitializedRef.current) {
       if (portCheckIntervalRef.current) {
         clearInterval(portCheckIntervalRef.current);
@@ -709,10 +624,6 @@ export const SerialPortProvider = ({ children }) => {
   /*                      EFFECTS - SERIAL DATA LISTENERS                       */
   /* ========================================================================== */
 
-  /**
-   * Listen for serial data events from QR, RFID, and other devices
-   * Handles automatic QR-based authentication
-   */
   useEffect(() => {
     let unlisten;
     let timeoutId;
@@ -720,84 +631,140 @@ export const SerialPortProvider = ({ children }) => {
 
     /**
      * Handle QR code login flow
-     * 1. Validate QR code with external API
-     * 2. Parse XML response to JSON
-     * 3. Extract user ID and dispatch login action
+     *
+     * ✅ NEW LOGIC:
+     * - If LOGIN_YN === "Y" and login succeeds:
+     *   → Check if user already has a booking (ASSIGN_NO !== "0")
+     *   → If booking exists: fire QR_LOGIN_SUCCESS_WITH_BOOKING so Dashboard opens UserInfoModal
+     *   → If no booking: fire QR_LOGIN_SUCCESS so Dashboard opens floor selection modal
      */
+
+    // const handleQRLogin = async (qrCode) => {
+    //   try {
+    //     const cleanedQrCode = qrCode.trim();
+
+    //     // Validate QR code
+    //     const qrResponse = await QRValidate(cleanedQrCode);
+
+    //     // Parse XML response to JSON
+    //     if (typeof qrResponse.data === 'string') {
+    //       // Extract values from CDATA sections using regex
+    //       const resultCodeMatch = qrResponse.data.match(/<resultCode><!\[CDATA\[(.*?)\]\]><\/resultCode>/);
+    //       const resultMsgMatch = qrResponse.data.match(/<resultMsg><!\[CDATA\[(.*?)\]\]><\/resultMsg>/);
+    //       const userIDMatch = qrResponse.data.match(/<userID><!\[CDATA\[(.*?)\]\]><\/userID>/);
+    //       const patCdMatch = qrResponse.data.match(/<patCd><!\[CDATA\[(.*?)\]\]><\/patCd>/);
+    //       const patNmMatch = qrResponse.data.match(/<patNm><!\[CDATA\[(.*?)\]\]><\/patNm>/);
+    //       const deptCdMatch = qrResponse.data.match(/<deptCd><!\[CDATA\[(.*?)\]\]><\/deptCd>/);
+    //       const deptNmMatch = qrResponse.data.match(/<deptNm><!\[CDATA\[(.*?)\]\]><\/deptNm>/);
+
+    //       // Build JSON object from extracted data
+    //       const jsonData = {
+    //         resultCode: resultCodeMatch ? resultCodeMatch[1].trim() : "",
+    //         resultMsg: resultMsgMatch ? resultMsgMatch[1].trim() : "Unknown error",
+    //         item: {
+    //           userID: userIDMatch ? userIDMatch[1].trim() : "",
+    //           patCd: patCdMatch ? patCdMatch[1].trim() : "",
+    //           patNm: patNmMatch ? patNmMatch[1].trim() : "",
+    //           deptCd: deptCdMatch ? deptCdMatch[1].trim() : "",
+    //           deptNm: deptNmMatch ? deptNmMatch[1].trim() : ""
+    //         }
+    //       };
+
+    //       const { resultCode, resultMsg, item } = jsonData;
+    //       const userId = item.userID;
+
+    //       // Validate result code
+    //       if (resultCode === "1") {
+    //         console.error("QR validation failed:", resultMsg);
+    //         speak(resultMsg || t("QR code validation failed"));
+    //         return;
+    //       }
+
+    //       if (resultCode !== "0") {
+    //         console.error("Unexpected result code:", resultCode);
+    //         speak(t("Unexpected response from server"));
+    //         return;
+    //       }
+
+    //       if (!userId) {
+    //         console.error("No user ID found in QR response");
+    //         speak(t("Unable to extract user information"));
+    //         return;
+    //       }
+
+    //       // Login with extracted user ID
+    //       window.dispatchEvent(new Event("LOGIN_LOADING_START"));
+    //       await dispatch(login(userId)).unwrap();
+
+    //       speak(t("Login successful"));
+    //       window.dispatchEvent(new Event("LOGIN_LOADING_END"));
+    //       window.dispatchEvent(new Event("QR_LOGIN_SUCCESS"));
+
+    //     } else {
+    //       console.error("Expected XML string response");
+    //       speak(t("Invalid response format"));
+    //     }
+    //   } catch (error) {
+    //     console.error("QR login failed:", error.message);
+    //     speak(t("Login failed. Please try again."));
+    //   }
+    // };
+
     const handleQRLogin = async (qrCode) => {
       try {
         const cleanedQrCode = qrCode.trim();
 
-        // Validate QR code
-        const qrResponse = await QRValidate(cleanedQrCode);
+        const response = await QRValidate(cleanedQrCode);
+        console.log("QR Response:", response);
 
-        // Parse XML response to JSON
-        if (typeof qrResponse.data === 'string') {
-          // Extract values from CDATA sections using regex
-          const resultCodeMatch = qrResponse.data.match(/<resultCode><!\[CDATA\[(.*?)\]\]><\/resultCode>/);
-          const resultMsgMatch = qrResponse.data.match(/<resultMsg><!\[CDATA\[(.*?)\]\]><\/resultMsg>/);
-          const userIDMatch = qrResponse.data.match(/<userID><!\[CDATA\[(.*?)\]\]><\/userID>/);
-          const patCdMatch = qrResponse.data.match(/<patCd><!\[CDATA\[(.*?)\]\]><\/patCd>/);
-          const patNmMatch = qrResponse.data.match(/<patNm><!\[CDATA\[(.*?)\]\]><\/patNm>/);
-          const deptCdMatch = qrResponse.data.match(/<deptCd><!\[CDATA\[(.*?)\]\]><\/deptCd>/);
-          const deptNmMatch = qrResponse.data.match(/<deptNm><!\[CDATA\[(.*?)\]\]><\/deptNm>/);
-
-          // Build JSON object from extracted data
-          const jsonData = {
-            resultCode: resultCodeMatch ? resultCodeMatch[1].trim() : "",
-            resultMsg: resultMsgMatch ? resultMsgMatch[1].trim() : "Unknown error",
-            item: {
-              userID: userIDMatch ? userIDMatch[1].trim() : "",
-              patCd: patCdMatch ? patCdMatch[1].trim() : "",
-              patNm: patNmMatch ? patNmMatch[1].trim() : "",
-              deptCd: deptCdMatch ? deptCdMatch[1].trim() : "",
-              deptNm: deptNmMatch ? deptNmMatch[1].trim() : ""
-            }
-          };
-
-          const { resultCode, resultMsg, item } = jsonData;
-          const userId = item.userID;
-
-          // Validate result code
-          if (resultCode === "1") {
-            console.error("QR validation failed:", resultMsg);
-            speak(resultMsg || t("QR code validation failed"));
-            return;
-          }
-
-          if (resultCode !== "0") {
-            console.error("Unexpected result code:", resultCode);
-            speak(t("Unexpected response from server"));
-            return;
-          }
-
-          if (!userId) {
-            console.error("No user ID found in QR response");
-            speak(t("Unable to extract user information"));
-            return;
-          }
-
-          // Login with extracted user ID
-          window.dispatchEvent(new Event("LOGIN_LOADING_START"));
-          await dispatch(login(userId)).unwrap();
-
-          speak(t("Login successful"));
-          window.dispatchEvent(new Event("LOGIN_LOADING_END"));
-          window.dispatchEvent(new Event("QR_LOGIN_SUCCESS"));
-
-        } else {
-          console.error("Expected XML string response");
-          speak(t("Invalid response format"));
+        if (!response) {
+          speak(t("Invalid response from server"));
+          return;
         }
+
+        const { LOGIN_YN, MESSAGE, USERID } = response;
+
+        if (LOGIN_YN !== "Y") {
+          console.error("QR validation failed:", MESSAGE);
+          speak(MESSAGE || t("QR validation failed"));
+          return;
+        }
+
+        if (!USERID) {
+          console.error("USERID missing");
+          speak(t("User information not found"));
+          return;
+        }
+
+        window.dispatchEvent(new Event("LOGIN_LOADING_START"));
+
+        const result = await dispatch(login(USERID)).unwrap();
+
+        console.log("QR login result:", result); // ← check what's returned
+
+        window.dispatchEvent(new Event("LOGIN_LOADING_END"));
+        speak(t("Login successful"));
+
+        // Save to localStorage BEFORE dispatching the event
+        localStorage.setItem("bookingInfo", JSON.stringify(result));
+
+        if (result?.ASSIGN_NO && result.ASSIGN_NO !== "0") {
+          // Has existing booking → open UserInfoModal
+          window.dispatchEvent(new Event("QR_LOGIN_SUCCESS_WITH_BOOKING"));
+        } else {
+          // No booking → open floor selection modal
+          window.dispatchEvent(new Event("QR_LOGIN_SUCCESS"));
+        }
+
       } catch (error) {
-        console.error("QR login failed:", error.message);
+        console.error("QR login failed:", error);
+        window.dispatchEvent(new Event("LOGIN_LOADING_END"));
         speak(t("Login failed. Please try again."));
       }
     };
 
     const setupListener = async () => {
       try {
-        // Clean up previous listener if it exists
         if (serialListenerRef.current && typeof serialListenerRef.current === "function") {
           try {
             await serialListenerRef.current();
@@ -814,15 +781,12 @@ export const SerialPortProvider = ({ children }) => {
 
           const { device_name, data } = event.payload;
 
-          // Store serial data in Redux
           dispatch(setSerialData({ deviceName: device_name, data }));
 
-          // Handle QR code data
           if (device_name === "QR" && data && data.trim()) {
             await handleQRLogin(data.trim());
           }
 
-          // Handle RFID data (placeholder for future implementation)
           if (device_name === "RFID" && data && data.trim()) {
             // Add RFID login logic here if needed
           }
@@ -870,7 +834,6 @@ export const SerialPortProvider = ({ children }) => {
 
   /**
    * Listen for human sensor state changes
-   * Tracks human presence detection for kiosk interaction
    */
   useEffect(() => {
     let isMounted = true;
@@ -901,10 +864,6 @@ export const SerialPortProvider = ({ children }) => {
   /*                            CONTEXT PROVIDER                                */
   /* ========================================================================== */
 
-  /**
-   * Get system health metrics for monitoring
-   * @returns {Object} System health statistics
-   */
   const getSystemHealth = () => {
     const now = Date.now();
     const uptime = now - systemHealthRef.current.startTime;
@@ -924,17 +883,16 @@ export const SerialPortProvider = ({ children }) => {
   /* ========================================================================== */
   /*                            RETRY NETWORK REQUEST                            */
   /* ========================================================================== */
+
   const retryKioskLogin = async () => {
     try {
       await invoke("request_kiosk_login");
-      // ✅ Success → close modal cleanly, no page refresh
       blockSpeakRef.current = true;
       stop();
       setNetworkError(false);
       setIsModalOpen(false);
       modalShownRef.current = false;
     } catch (error) {
-      // ✅ If internet is available but request failed, close modal anyway
       if (navigator.onLine) {
         blockSpeakRef.current = true;
         stop();
@@ -984,17 +942,16 @@ export const SerialPortProvider = ({ children }) => {
           size="medium"
           showCloseButton={false}
           closeFocused={false}
-
           className="outline-[6px] outline-[#dc2f02]"
           footer={
             <div className="flex justify-center">
               <button
                 onClick={retryKioskLogin}
                 className={`
-px-10 py-3 text-2xl bg-orange-600 text-white rounded-lg
-hover:bg-orange-700 transition-all
-${networkModalButtonFocused ? "outline-[6px] outline-[#dc2f02]" : ""}
-`}
+                  px-10 py-3 text-2xl bg-orange-600 text-white rounded-lg
+                  hover:bg-orange-700 transition-all
+                  ${networkModalButtonFocused ? "outline-[6px] outline-[#dc2f02]" : ""}
+                `}
               >
                 {t("translations.Retry")}
               </button>
@@ -1005,14 +962,12 @@ ${networkModalButtonFocused ? "outline-[6px] outline-[#dc2f02]" : ""}
             className={`text-center py-4 outline-none ${!networkModalButtonFocused ? "outline-[6px] outline-[#dc2f02]" : ""
               }`}
           >
-
             <p className="text-2xl">
               {t("translations.Network error. Please check your internet connection and try again.")}
             </p>
           </div>
         </Modal>
       )}
-
 
       {children}
     </SerialPortContext.Provider>

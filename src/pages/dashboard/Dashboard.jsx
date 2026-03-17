@@ -210,104 +210,93 @@ const Dashboard = () => {
 
   // ─── Move action ─────────────────────────────────────────────────────────
 
-const handleMoveAction = useCallback(async (assignNo) => {
-  if (userInfo?.MOVE_YN !== "Y") return;
+  const handleMoveAction = useCallback(async (assignNo) => {
+    if (userInfo?.MOVE_YN !== "Y") return;
 
-  try {
-    let bookingData = null;
-
-    // 1️⃣ Check Redux booking list first
-    if (bookingList?.length) {
-      bookingData = bookingList.find(
-        (item) => item.STATUS === 3 && item.MOVE_YN === "Y"
-      );
-    }
-
-    // 2️⃣ If not found → call API
-    if (!bookingData) {
+    try {
+      let bookingData = null;
       setApiLang(lang);
 
-      const today = formatDateNum();
+      // 1️⃣ Check Redux booking list first
+      if (bookingList?.length) {
+        bookingData = bookingList.find(
+          (item) => item.STATUS === 3 && item.MOVE_YN === "Y"
+        );
+      }
 
-      const result = await dispatch(
-        fetchBookingList({
-          schoolno: userInfo.SCHOOLNO,
-          sDate: today,
-          eDate: today,
-        })
-      ).unwrap();
+      // 2️⃣ If not found → call API
+      if (!bookingData) {
+        const today = formatDateNum();
+        const result = await dispatch(
+          fetchBookingList({ schoolno: userInfo.SCHOOLNO, sDate: today, eDate: today })
+        ).unwrap();
 
-      bookingData = result?.find(
-        (item) => item.STATUS === 3 && item.MOVE_YN === "Y"
-      );
+        const list = Array.isArray(result) ? result : result?.body ?? [];
+        bookingData = list.find(
+          (item) => item.STATUS === 3 && item.MOVE_YN === "Y"
+        );
+      }
+
+      if (!bookingData) return;
+
+      const { FLOOR_NAME, SECTORNO } = bookingData;
+
+      // ✅ Extract the number from Korean "6층" or English "6F" → "6"
+      const floorNumber = FLOOR_NAME?.replace(/[^\d]/g, "");
+
+      // ✅ Find the matching floor from Redux (already translated for current lang)
+      const matchedFloor = floors.find((f) => f.floor === floorNumber || f.id === floorNumber);
+
+      if (!matchedFloor) {
+        console.error("Matched floor not found for:", FLOOR_NAME);
+        return;
+      }
+
+      console.log("matchedFloor", matchedFloor);
+      setCurrentFloor(matchedFloor);
+
+      // ✅ Use matchedFloor.title so the route is always in the current language
+      navigate(`/floor/${matchedFloor.title}/${SECTORNO}/move`, {
+        state: {
+          mode: "move",
+          floorInfo: matchedFloor,
+          selectedSectorNo: SECTORNO,
+        },
+      });
+
+    } catch (error) {
+      await logEvent("error", `Error fetching booking info for move: ${error.message}`);
     }
-
-    if (!bookingData) return;
-
-    const { FLOOR_NAME, SECTORNO } = bookingData;
-
-    // Extract floorId from "6F"
-    const floorId = FLOOR_NAME?.replace(/[^\d]/g, "");
-
-    const floorInfo = {
-      id: floorId,
-      title: FLOOR_NAME,
-      floor: floorId,
-    };
-
-    setCurrentFloor(floorInfo);
-    // 3️⃣ Navigate according to routes config
-    navigate(`/floor/${floorInfo?.title}/${SECTORNO}/move`, {
-      state: {
-        mode: "move",
-        floorInfo,
-        selectedSectorNo: SECTORNO,
-      },
-    });
-
-  } catch (error) {
-    await logEvent(
-      "error",
-      `Error fetching booking info for move: ${error.message}`
-    );
-  }
-}, [
-  userInfo,
-  bookingList,
-  dispatch,
-  navigate,
-  setCurrentFloor,
-  lang
-]);
+  }, [userInfo, bookingList, floors, dispatch, navigate, setCurrentFloor, lang]);
   // ─── User action from UserInfoModal ──────────────────────────────────────
 
   const handleUserAction = useCallback(async (actionType, assignNo) => {
-  await logEvent("info", `User action selected: ${actionType}, assignNo=${assignNo}`);
+    await logEvent("info", `User action selected: ${actionType}, assignNo=${assignNo}`);
 
-  setIsUserInfoModalOpen(false);
-  setSelectedAssignNo(assignNo);
+    setIsUserInfoModalOpen(false);
+    setSelectedAssignNo(assignNo);
 
-  const actionHandlers = {
-    extend: () => toggleModal(MODAL_TYPES.EXTENSION, true),
-    move: () => handleMoveAction(assignNo),
-    return: () => toggleModal(MODAL_TYPES.RETURN, true),
-    check: () => navigate("/booking/check"),
-    cancel: () => navigate("/booking/cancel"),
-    assign: () =>
-      selectedFloor
-        ? navigateToFloor(selectedFloor)
-        : navigate("/floor/select"),
-    assignCheck: () => toggleModal(MODAL_TYPES.ASSIGN_CHECK, true),
-  };
+    const actionHandlers = {
+      extend: () => toggleModal(MODAL_TYPES.EXTENSION, true),
+      move: () => handleMoveAction(assignNo),
+      return: () => toggleModal(MODAL_TYPES.RETURN, true),
+      check: () => navigate("/booking/check"),
+      cancel: () => navigate("/booking/cancel"),
+      assign: () =>
+        selectedFloor
+          ? navigateToFloor(selectedFloor)
+          : navigate("/floor/select"),
+      assignCheck: () => toggleModal(MODAL_TYPES.ASSIGN_CHECK, true),
+    };
 
-  if (actionHandlers[actionType]) {
-    await actionHandlers[actionType]();
-  } else {
-    console.warn("Unknown action:", actionType);
-  }
+    if (actionHandlers[actionType]) {
+      await actionHandlers[actionType]();
+    } else {
+      console.warn("Unknown action:", actionType);
+    }
 
-  setSelectedFloor(null);
-}, [selectedFloor, toggleModal, handleMoveAction, navigate, navigateToFloor]);
+    setSelectedFloor(null);
+  }, [selectedFloor, toggleModal, handleMoveAction, navigate, navigateToFloor]);
 
   // ─── Keyboard submit (login) ─────────────────────────────────────────────
 
@@ -359,22 +348,22 @@ const handleMoveAction = useCallback(async (assignNo) => {
     }
   }, [dispatch, selectedFloor, shouldShowModal, navigateToFloor, t, openLoginErrorModal, openFloorSelectionModal]);
 
-const fetchBookingInfo = async (bseqno) => {
-  if (!bseqno) return;
+  const fetchBookingInfo = async (bseqno) => {
+    if (!bseqno) return;
 
-  try {
-    const res = await getBookingBseqno({ bseqno });
-    if (res?.body?.SEATNO) {
-      setSeatno(res.body.SEATNO);
+    try {
+      const res = await getBookingBseqno({ bseqno });
+      if (res?.body?.SEATNO) {
+        setSeatno(res.body.SEATNO);
+      }
+    } catch (error) {
+      console.error("Error fetching booking info:", error);
     }
-  } catch (error) {
-    console.error("Error fetching booking info:", error);
-  }
-};
-useEffect(() => {
-  if (!selectedAssignNo) return;
-  fetchBookingInfo(selectedAssignNo);
-}, [selectedAssignNo]);
+  };
+  useEffect(() => {
+    if (!selectedAssignNo) return;
+    fetchBookingInfo(selectedAssignNo);
+  }, [selectedAssignNo]);
   // ─── Effects ──────────────────────────────────────────────────────────────
 
   // Sync API language
@@ -496,6 +485,7 @@ useEffect(() => {
   }, [earphoneInjected, dispatch, speakMainScreen]);
 
   // QR login success
+  // QR login success (no booking) → open floor selection
   useEffect(() => {
     const handler = () => {
       const bookingInfo = JSON.parse(localStorage.getItem("bookingInfo") || "null");
@@ -504,6 +494,22 @@ useEffect(() => {
     window.addEventListener("QR_LOGIN_SUCCESS", handler);
     return () => window.removeEventListener("QR_LOGIN_SUCCESS", handler);
   }, [openFloorSelectionModal]);
+
+  // ✅ ADD THIS — QR login success WITH booking → open UserInfoModal
+  useEffect(() => {
+    const handler = () => {
+      const bookingInfo = JSON.parse(localStorage.getItem("bookingInfo") || "null");
+      if (!bookingInfo) return;
+      if (shouldShowModal(bookingInfo)) {
+        setIsUserInfoModalOpen(true);
+      } else {
+        // Booking exists but all flags are settled — open floor selection
+        openFloorSelectionModal();
+      }
+    };
+    window.addEventListener("QR_LOGIN_SUCCESS_WITH_BOOKING", handler);
+    return () => window.removeEventListener("QR_LOGIN_SUCCESS_WITH_BOOKING", handler);
+  }, [shouldShowModal, openFloorSelectionModal]);
 
   // QR loading events
   useEffect(() => {

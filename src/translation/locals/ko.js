@@ -213,7 +213,7 @@ const koTranslations = {
     booked: "사용 중",
     fixed: "고정 좌석",
     "UserID": "사용자 ID",
-    "UserIDMessage": "사용자 ID {{id}}"
+    "UserIDMessage": "사용자 이름 {{id}}"
   },
   translations: {
     Confirm: "확인",

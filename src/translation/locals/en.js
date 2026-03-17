@@ -181,7 +181,7 @@ const enTranslations = {
     booked: "booked",
     fixed: "fixed",
     UserID: "User ID",
-    UserIDMessage: "User ID {{id}}",
+    UserIDMessage: "User Name {{id}}",
   },
   translations: {
     Confirm: "Confirm",

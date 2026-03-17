@@ -1,4 +1,4 @@
-import { CheckCircle, CheckCircle2, Clock, LogOut, Move, User, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, LogOut, Move } from "lucide-react";
 import Modal from "../../common/Modal";
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useVoice } from "../../../context/voiceContext";
@@ -37,30 +37,6 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
       action: () => onAction("return", userInfo?.ASSIGN_NO),
     },
     {
-      id: "check",
-      title: t("translations.Reservation Check"),
-      icon: <CheckCircle className="w-12 h-12" />,
-      enabled: userInfo?.BOOKING_CHECK_YN === "Y",
-      color: "from-green-500 to-green-600",
-      action: () => onAction("check"),
-    },
-    {
-      id: "cancel",
-      title: t("translations.Reservation Cancel"),
-      icon: <XCircle className="w-12 h-12" />,
-      enabled: userInfo?.CANCEL_YN === "Y",
-      color: "from-red-500 to-red-600",
-      action: () => onAction("cancel"),
-    },
-    {
-      id: "assign",
-      title: t("translations.Seat Assignment"),
-      icon: <User className="w-12 h-12" />,
-      enabled: userInfo?.ASSIGN_YN === "Y",
-      color: "from-indigo-500 to-indigo-600",
-      action: () => onAction("assign"),
-    },
-    {
       id: "assignCheck",
       title: t("translations.Assignment Check"),
       icon: <CheckCircle2 className="w-12 h-12" />,
@@ -68,15 +44,24 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
       color: "from-cyan-500 to-cyan-600",
       action: () => onAction("assignCheck", userInfo?.ASSIGN_NO),
     },
+    // ✅ NEW LOGOUT BUTTON
+    {
+      id: "logout",
+      title: t("translations.Logout"),
+      icon: <LogOut className="w-12 h-12" />,
+      enabled: true,
+      color: "from-red-500 to-red-600",
+      action: () => {
+        onAction("logout");
+        onClose(); 
+      },
+    },
   ];
 
   const focusableActions = useMemo(
     () => actions.filter((a) => a.enabled),
     [actions]
   );
-
-  // ⭐ Close button treated as last focus item
-  const CLOSE_BUTTON_INDEX = focusableActions.length;
 
   /* ================= OPEN / CLOSE ================= */
   useEffect(() => {
@@ -104,7 +89,7 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
     if (!isOpen || !isModalFocused) return;
 
     const handleKeyDown = (e) => {
-      const maxIndex = focusableActions.length; // include close button
+      const maxIndex = focusableActions.length - 1;
 
       switch (e.key) {
         case "ArrowRight":
@@ -125,9 +110,7 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
 
         case "Enter":
           e.preventDefault();
-          if (focusIndex === CLOSE_BUTTON_INDEX) {
-            onClose();
-          } else {
+          if (focusIndex !== null) {
             focusableActions[focusIndex]?.action();
           }
           break;
@@ -139,7 +122,7 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, isModalFocused, focusIndex, focusableActions, onClose]);
+  }, [isOpen, isModalFocused, focusIndex, focusableActions]);
 
   const isFocused = useCallback(
     (index) => isModalFocused && focusIndex === index,
@@ -152,13 +135,6 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
 
     if (!hasSpokenIntroRef.current) {
       hasSpokenIntroRef.current = true;
-      return;
-    }
-
-    // ⭐ Close button speech
-    if (focusIndex === CLOSE_BUTTON_INDEX) {
-      stop();
-      speak(t("speech.Close"));
       return;
     }
 
@@ -178,11 +154,10 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
       isOpen={isOpen}
       onClose={onClose}
       closeOnBackdrop={false}
-      showCloseButton={true}
+      showCloseButton={false} // ❌ removed close button
       title={t("translations.User Information")}
       size="large"
       className="user-info-modal h-[50vh]! outline-[6px] outline-[#dc2f02]!"
-      closeFocused={focusIndex === CLOSE_BUTTON_INDEX}
     >
       <div className="space-y-7">
         <div className="bg-linear-to-r from-teal-50 to-cyan-50 rounded-lg p-6 border-l-4 border-teal-500">
@@ -204,24 +179,21 @@ const UserInfoModal = ({ isOpen, onClose, userInfo, onAction }) => {
                 key={action.id}
                 onClick={action.enabled ? action.action : undefined}
                 disabled={!action.enabled}
-                className={`relative overflow-hidden rounded-lg p-2 transition-all duration-300
-                ${
-                  action.enabled
+                className={`relative overflow-hidden rounded-lg p-2 transition-all duration-300 user-action-btn
+                ${action.enabled
                     ? `bg-linear-to-br ${action.color} text-white hover:shadow-xl cursor-pointer`
                     : "bg-gray-200 text-gray-400 cursor-not-allowed opacity-60"
-                }
-                ${
-                  enabledIndex !== -1 && isFocused(enabledIndex)
+                  }
+                ${enabledIndex !== -1 && isFocused(enabledIndex)
                     ? "outline-[6px] outline-[#dc2f02]"
                     : ""
-                }
+                  }
               `}
               >
                 <div className="flex gap-2 items-center">
                   <div
-                    className={`flex items-center justify-center w-7 h-7 rounded-full ${
-                      action.enabled ? "bg-white/20" : "bg-gray-300/50"
-                    }`}
+                    className={`flex items-center justify-center w-7 h-7 rounded-full ${action.enabled ? "bg-white/20" : "bg-gray-300/50"
+                      }`}
                   >
                     {action.icon}
                   </div>

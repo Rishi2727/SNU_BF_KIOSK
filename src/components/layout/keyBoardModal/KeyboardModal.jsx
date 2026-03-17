@@ -23,7 +23,7 @@ const KeyboardModal = ({
   const { t } = useTranslation();
   const { speak } = useVoice();
   const [isShiftActive, setIsShiftActive] = useState(false);
-
+  const lastSpokenRef = useRef("");
 
   // ✅keyboard sections
   const KBFocus = isFocused
@@ -133,40 +133,53 @@ const KeyboardModal = ({
 
 
 
-  // -----------------------------
-  // 🔊 SPEAK ON FOCUS / CURSOR CHANGE
-  // -----------------------------
-  useEffect(() => {
-    if (!isFocused) return;
+ const speakTimeoutRef = useRef(null);
 
-    if (kbFocus === KBFocus.HEADING) {
-      speak(t("speech.Virtual Keyboard"));
-      return;
-    }
+useEffect(() => {
+  if (!isFocused) return;
 
-    if (kbFocus === KBFocus.INPUT) {
-      speak(t("speech.Type here"));
-      return;
-    }
+  let textToSpeak = "";
 
-    if (kbFocus === KBFocus.KEYS) {
-      const selectedKey = keyboardKeys[keyCursor];
-      const label = getKeySpeechLabel(selectedKey);
-      speak(label);
-      return;
-    }
+  if (kbFocus === KBFocus.HEADING) {
+    textToSpeak = t("speech.Virtual Keyboard");
+  } else if (kbFocus === KBFocus.INPUT) {
+    textToSpeak = t("speech.Type here");
+  } else if (kbFocus === KBFocus.KEYS) {
+    const selectedKey = keyboardKeys[keyCursor];
+    textToSpeak = getKeySpeechLabel(selectedKey);
+  } else if (kbFocus === KBFocus.BUTTONS) {
+    textToSpeak =
+      buttonCursor === 0
+        ? t("speech.Submit")
+        : t("speech.Close");
+  }
 
-    if (kbFocus === KBFocus.BUTTONS) {
-      if (buttonCursor === 0) speak(t("speech.Submit"));
-      if (buttonCursor === 1) speak(t("speech.Close"));
+  if (!textToSpeak) return;
+
+  // ✅ Clear previous timeout
+  if (speakTimeoutRef.current) {
+    clearTimeout(speakTimeoutRef.current);
+  }
+
+  // ✅ Prevent duplicate + debounce
+  speakTimeoutRef.current = setTimeout(() => {
+    if (lastSpokenRef.current !== textToSpeak) {
+      lastSpokenRef.current = textToSpeak;
+
+      // 🔥 stop previous speech
+      window.speechSynthesis?.cancel();
+
+      speak(textToSpeak);
     }
-  }, [
-    kbFocus,
-    keyCursor,
-    buttonCursor,
-    isFocused,
-    layoutName   // ⭐ important
-  ]);
+  }, 50); // small delay fixes double trigger
+}, [kbFocus, keyCursor, buttonCursor, isFocused, layoutName]);
+useEffect(() => {
+  return () => {
+    if (speakTimeoutRef.current) {
+      clearTimeout(speakTimeoutRef.current);
+    }
+  };
+}, []);
   const startTimer = () => {
     clearTimer();
     if (autoCloseTime) {
@@ -295,7 +308,7 @@ const KeyboardModal = ({
           }
           onSubmit(input);
           handleClose();
-       } else {
+        } else {
           setInput((prev) => prev + cleaned);
 
           // reset shift after typing
@@ -347,7 +360,7 @@ const KeyboardModal = ({
     startTimer();
   };
 
- const handleKeyPress = (button) => {
+  const handleKeyPress = (button) => {
     startTimer();
 
     if (button === "{shift}") {

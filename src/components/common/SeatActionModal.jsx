@@ -262,6 +262,10 @@ const SeatActionModal = ({
 
         try {
             setLoading(true);
+
+            // ── Sync lang before every API call ──
+            await setApiLang(lang);
+
             if ((isBooking || isMove) && seat) {
                 setSeatInfo({
                     FLOOR_NAME: seat.SECTOR_NAME || "",
@@ -269,6 +273,7 @@ const SeatActionModal = ({
                     SEAT_VNAME: seat.VNAME || "",
                 });
             }
+
             const res = await executeApiCall();
             onClose();
 
@@ -292,8 +297,7 @@ const SeatActionModal = ({
         } finally {
             setLoading(false);
         }
-    }, [isReturn, isMove, isBooking, isExtension, selectedIndex, isAvailable, executeApiCall, onClose, seat, t]);
-
+    }, [isReturn, isMove, isBooking, isExtension, selectedIndex, isAvailable, executeApiCall, onClose, seat, lang]);
     const handleResultModalClose = useCallback(async () => {
         setShowResultModal(false);
         const wasSuccessful = actionResult?.success;
@@ -387,6 +391,9 @@ const SeatActionModal = ({
         if (!isOpen) return;
         setIsModalFocused(!disableFocusAndSpeech);
         setFocusIndex(0);
+        setConfirmStep(false); // ← ADD THIS LINE
+        setSelectedIndex(null); // ← also reset selection
+        setEndTime(null);       // ← and end time
     }, [isOpen, disableFocusAndSpeech]);
 
     useEffect(() => {
@@ -459,7 +466,6 @@ const SeatActionModal = ({
                 if (isBooking && seat?.SEATNO && isAvailable) {
                     await dispatch(fetchBookingTime({ seatno: seat.SEATNO }));
                 } else if ((isExtension || isReturn || isMove) && assignNo) {
-                    console.log("assignNo", assignNo)
                     await dispatch(fetchBookingTime({ seatno: assignNo }));
                 }
             } finally {
@@ -627,6 +633,15 @@ const SeatActionModal = ({
         const headerClass = `mb-10 p-2 border-4 border-[#DDAB2C] rounded-2xl shadow-md ${isFocused("header") ? focusClass : ""}`;
         const textClass = "text-center text-[30px] text-[#DDAB2C] font-bold";
 
+        // ❌ Don't show anything while loading
+        if (loading) {
+            return (
+                <div className="mb-10 p-4">
+                    <div className="h-8 bg-gray-300 animate-pulse rounded w-2/3 mx-auto"></div>
+                </div>
+            );
+        }
+
         if (isAssignCheck && seatInfo) {
             return (
                 <div className={headerClass}>
@@ -637,6 +652,7 @@ const SeatActionModal = ({
                 </div>
             );
         }
+
         if ((isBooking || isMove || isExtension || isReturn) && (seat || activeBooking)) {
             return (
                 <div className={headerClass}>
@@ -650,13 +666,22 @@ const SeatActionModal = ({
                 </div>
             );
         }
-        return (
-            <div className={headerClass}>
-                <p className={textClass}>{t("Seat")} {MODE_LABELS[mode]} {t("Request")}</p>
-            </div>
-        );
-    }, [isAssignCheck, isBooking, isMove, isExtension, isReturn, seatInfo, seat, activeBooking, mode, isFocused, t, lang]);
-
+       
+    }, [
+        loading, // ✅ ADD THIS
+        isAssignCheck,
+        isBooking,
+        isMove,
+        isExtension,
+        isReturn,
+        seatInfo,
+        seat,
+        activeBooking,
+        mode,
+        isFocused,
+        t,
+        lang
+    ]);
     const renderTimeSelection = useMemo(() => (
         <div className="grid grid-cols-3 gap-2">
             {timeOptions.map((opt, i) => (
@@ -750,10 +775,14 @@ const SeatActionModal = ({
     ), [handleResultModalClose, handlePrint, actionResult, isFocused, isBooking, isMove, t]);
 
     // ─── Render ──────────────────────────────────────────────────────────────────
-
+    const isTimeReady =
+        isAssignCheck ||
+        isReturn ||
+        isMove ||
+        (timeOptions.length > 0 && !loadingTime);
     return (
         <>
-            {isInitialLoading && (
+            {isOpen && (isInitialLoading || !isTimeReady) && (
                 <div className="fixed inset-0 z-9999 flex items-center justify-center bg-black/40 backdrop-blur-sm">
                     <LoadingSpinner size={120} />
                 </div>

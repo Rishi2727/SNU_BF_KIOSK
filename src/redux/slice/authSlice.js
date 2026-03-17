@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { loginBySchoolNo,} from "../../services/api";
+import { loginBySchoolNo, getUserInfo} from "../../services/api";
 import { setUserInfo, clearUserInfo } from "./userInfo";
 
 const initialState = {
@@ -20,28 +20,39 @@ const clearAuthStorage = () => {
   localStorage.removeItem("isAuthenticated");
 };
 
-/* =========================  
-   LOGIN
-========================= */
+
+
 export const login = createAsyncThunk(
   "auth/login",
   async (schoolNo, { dispatch, rejectWithValue }) => {
     try {
-      const response = await loginBySchoolNo(schoolNo);
+      // Step 1: Call getUserInfo as the login API
+      const userInfoResponse = await getUserInfo({ schoolno: schoolNo });
 
-      if (response?.header?.resultCode !== "200") {
+      if (userInfoResponse?.header?.resultCode !== "200") {
         return rejectWithValue({
-          errorCode: "ERROR_API",
-          errorMessage: response?.header?.resultMsg || "Login failed",
+          errorCode: "ERROR_USER_NOT_FOUND",
+          errorMessage: "사용자 정보가 없습니다",
         });
       }
 
-      const bookingInfo = response.body;
+      // Step 2: Check SCHOOLNO exists in loginBySchoolNo response
+      const bookingResponse = await loginBySchoolNo(schoolNo);
 
-      // Save auth state
+      const bookingInfo = bookingResponse?.body;
+
+      const returnedSchoolNo =
+        bookingInfo?.SCHOOLNO;
+
+      if (!returnedSchoolNo || String(returnedSchoolNo) !== String(schoolNo)) {
+        return rejectWithValue({
+          errorCode: "ERROR_USER_NOT_FOUND",
+          errorMessage: "사용자 정보가 없습니다",
+        });
+      }
+
+      // Step 3: Both checks passed — save and proceed
       localStorage.setItem("authenticated", "true");
-
-      // Save user info in Redux
       dispatch(setUserInfo(bookingInfo));
 
       return bookingInfo;
@@ -53,7 +64,6 @@ export const login = createAsyncThunk(
     }
   },
 );
-
 export const logout = createAsyncThunk(
   "auth/logout",
   async (_, { dispatch }) => {

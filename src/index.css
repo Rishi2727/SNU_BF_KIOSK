@@ -272,7 +272,9 @@ html[data-contrast="high"] .modal-panel .bg-linear-to-r {
 html[data-contrast="high"] .modal-panel h2 {
   color: #FFD640 !important;
 }
-
+html[data-contrast="high"] .login-btn {
+  color: #000 !important;
+}
 /* modal body */
 html[data-contrast="high"] .modal-panel .overflow-y-auto {
   background: #000 !important;
@@ -285,9 +287,9 @@ html[data-contrast="high"] .modal-panel .bg-gray-50 {
 }
 
 /* close icon */
-html[data-contrast="high"] .modal-panel button {
+/* html[data-contrast="high"] .modal-panel button {
   color: #FFD640 !important;
-}
+} */
 
 /* close button focus */
 html[data-contrast="high"] .modal-panel button.outline-\[6px\] {
@@ -407,10 +409,10 @@ html[data-contrast="high"] .user-info-modal .bg-gray-200 {
 }
 
 /* enabled action buttons */
-html[data-contrast="high"] .user-info-modal button:not(:disabled) {
+/* html[data-contrast="high"] .user-info-modal button:not(:disabled) {
   background: #FFD640 !important;
   color: #000 !important;
-}
+} */
 
 /* icon circle */
 html[data-contrast="high"] .user-info-modal .bg-white\/20 {
@@ -425,4 +427,47 @@ html[data-contrast="high"] .user-info-modal .outline-\[6px\] {
 /* High contrast logo */
 html[data-contrast="high"] .logo-image {
   filter: brightness(0) invert(1) contrast(1.2) !important;
+}
+/* ============================= */
+/* USER INFO BUTTON DARK MODE */
+/* ============================= */
+
+/* base button */
+html[data-contrast="high"] .user-info-modal .user-action-btn {
+  background-image: none !important;
+  color: #fff !important;
+  border: 2px solid transparent;
+}
+
+/* keep original colors but darker */
+html[data-contrast="high"] .user-info-modal .from-teal-500 {
+  background: #0f766e !important;
+}
+
+html[data-contrast="high"] .user-info-modal .bg-yellow-500\/90 {
+  background: #b45309 !important;
+}
+
+html[data-contrast="high"] .user-info-modal .bg-\[\#9A7D4C\] {
+  background: #6b5e3c !important;
+}
+
+html[data-contrast="high"] .user-info-modal .from-cyan-500 {
+  background: #0e7490 !important;
+}
+
+html[data-contrast="high"] .user-info-modal .from-red-500 {
+  background: #b91c1c !important;
+}
+
+/* hover */
+html[data-contrast="high"] .user-info-modal .user-action-btn:hover {
+  filter: brightness(1.2);
+}
+
+/* disabled */
+html[data-contrast="high"] .user-info-modal .user-action-btn:disabled {
+  background: #222 !important;
+  color: #666 !important;
+  border: 2px solid #444;
 }
