@@ -43,7 +43,7 @@ export default function GlobalShortcuts() {
   useEffect(() => {
     if (location.pathname === "/") {
       // Reset Volume
-      // dispatch(setVolume(0.5));
+      dispatch(setVolume(1));
 
       // Disable Magnifier
       dispatch(disableMagnifier());
