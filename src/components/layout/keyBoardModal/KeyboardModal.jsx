@@ -148,30 +148,25 @@ useEffect(() => {
     const selectedKey = keyboardKeys[keyCursor];
     textToSpeak = getKeySpeechLabel(selectedKey);
   } else if (kbFocus === KBFocus.BUTTONS) {
-    textToSpeak =
-      buttonCursor === 0
-        ? t("speech.Submit")
-        : t("speech.Close");
+    textToSpeak = buttonCursor === 0
+      ? t("speech.Submit")
+      : t("speech.Close");
   }
 
   if (!textToSpeak) return;
 
-  // ✅ Clear previous timeout
-  if (speakTimeoutRef.current) {
-    clearTimeout(speakTimeoutRef.current);
-  }
+  // ✅ Build a unique key that includes position, not just text
+  // This prevents skipping speech when same label appears at different positions
+  const speakKey = `${kbFocus}:${keyCursor}:${buttonCursor}:${textToSpeak}`;
 
-  // ✅ Prevent duplicate + debounce
+  if (speakTimeoutRef.current) clearTimeout(speakTimeoutRef.current);
+
   speakTimeoutRef.current = setTimeout(() => {
-    if (lastSpokenRef.current !== textToSpeak) {
-      lastSpokenRef.current = textToSpeak;
-
-      // 🔥 stop previous speech
-      window.speechSynthesis?.cancel();
-
-      speak(textToSpeak);
-    }
-  }, 50); // small delay fixes double trigger
+    if (lastSpokenRef.current === speakKey) return; // true dedup
+    lastSpokenRef.current = speakKey;
+    stop();
+    speak(textToSpeak);
+  }, 80); // slightly longer debounce
 }, [kbFocus, keyCursor, buttonCursor, isFocused, layoutName]);
 useEffect(() => {
   return () => {
