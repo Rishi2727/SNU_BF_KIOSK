@@ -901,7 +901,7 @@ const SeatActionModal = ({
                         {t(`translations.${MODE_LABELS[mode]}`)}
                     </h2>
                     <p className="text-[30px] text-gray-700 font-bold mb-4">
-                        {t(`translations.${actionResult?.message}`)}
+                        {t(`${actionResult?.message}`)}
                     </p>
                 </div>
             </Modal>

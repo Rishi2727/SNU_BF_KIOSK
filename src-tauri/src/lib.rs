@@ -33,11 +33,6 @@ struct AppInfo {
 /// Command to fetch app information (version and release date)
 #[tauri::command]
 async fn get_app_info(logger: State<'_, Arc<Logger>>) -> Result<AppInfo, String> {
-    // dotenv().ok();
-
-    // let version = env::var("RELEASE_VERSION").unwrap_or_else(|_| "0.1.0".to_string());
-    // let release_date = env::var("RELEASE_DATE").unwrap_or_else(|_| "2023-10-01".to_string());
-
     let version = "1.1.3".to_string();
     let release_date = "2025-10-28".to_string();
 
@@ -116,7 +111,10 @@ fn restart_app(app_handle: tauri::AppHandle, logger: State<'_, Arc<Logger>>) -> 
         .log(LogLevel::INFO, "Restart command invoked from frontend")
         .unwrap();
 
-    app_handle.restart()
+    // app_handle.restart() returns ! (never), so we need Ok(()) after it
+    // to satisfy the Result<(), String> return type at compile time.
+    app_handle.restart();
+    Ok(())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
