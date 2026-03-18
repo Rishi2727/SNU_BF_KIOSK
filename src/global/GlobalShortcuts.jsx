@@ -4,6 +4,8 @@ import {
   increaseVolume,
   decreaseVolume,
   toggleMagnifier,
+  setVolume,
+  disableMagnifier,
 } from "../redux/slice/accessibilitySlice";
 import { useTranslation } from "react-i18next";
 import { useVoice } from "../context/voiceContext";
@@ -11,7 +13,7 @@ import { disableNextFocus } from "../redux/slice/headphoneSlice";
 import { logout } from "../redux/slice/authSlice";
 import { useNavigateContext } from "../context/NavigateContext";
 import { useLocation } from "react-router-dom";
-import { managerCall,  MACHINE_NAME } from "../services/api";
+import { managerCall, MACHINE_NAME } from "../services/api";
 import moment from "moment-timezone";
 import "moment/dist/locale/ko";
 import i18n from "i18next";
@@ -38,7 +40,23 @@ export default function GlobalShortcuts() {
 
 
   const isDashboard = location.pathname === "/";
+  useEffect(() => {
+    if (location.pathname === "/") {
+      // Reset Volume
+      // dispatch(setVolume(0.5));
 
+      // Disable Magnifier
+      dispatch(disableMagnifier());
+
+      // Disable Contrast
+      try {
+        document.documentElement.setAttribute("data-contrast", "normal");
+        localStorage.setItem("contrastMode", "normal");
+      } catch (err) {
+        console.error("Failed to reset contrast mode", err);
+      }
+    }
+  }, [location.pathname, dispatch]);
   /* ===============================
      Send API to Manager
   =============================== */

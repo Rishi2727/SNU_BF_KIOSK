@@ -71,7 +71,7 @@ const NoticeBanner = ({ isFocused, lang }) => {
       speak(`${heading}${currentNotice.TITLE}. ${currentNotice.CONTENTS}`);
 
       hasAnnouncedHeadingRef.current = true;
-    }, 300);
+    }, 0);
 
     return () => clearTimeout(timer);
   }, [isFocused, noticeIndex, notices, speak, stop, t]);

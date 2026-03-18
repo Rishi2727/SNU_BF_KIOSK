@@ -33,6 +33,8 @@ const enTranslations = {
     SEAT_MODAL_FAILURE: "Seat action failed",
     From: "From",
     To: "To",
+    "to" : "to",
+    "dateDurationRange": "Date Duration: {{start}} to {{end}}",
     Total: "Total",
     "This screen is the floor or reading room selection screen.":
       "This is the floor or reading room selection screen. On the left side is the floor and reading room selection sidebar. You can select a floor at the top of the sidebar and view information about the reading rooms on that floor. On the right side is the floor and reading room map. When a floor is selected, its map is displayed. When a reading room is selected, you will move to the seat layout screen, where you can reserve a seat. At the bottom left of the screen is the login button, and next to it is the language selection button. At the bottom right of the screen are the function buttons in the following order: volume down, current volume, volume up, information, magnifier, and high contrast. You can select a screen area using the * key on the numeric keypad. If you need assistance, please call an administrator.",
