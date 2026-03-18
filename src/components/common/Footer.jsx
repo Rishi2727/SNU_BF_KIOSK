@@ -25,11 +25,11 @@ const applyContrastMode = (mode) => {
 const FooterButton = ({ icon, label, onClick, active, isSelected, isFocused }) => (
   <button
     onClick={onClick}
-    className={`h-14 px-4 flex items-center gap-3 rounded-xl shadow-lg
+    className={`h-13 px-4 flex items-center gap-3 rounded-xl shadow-lg
 hover:bg-[#FFD640] active:scale-95 transition-all
 ${active ? "bg-[#e2ac37] text-white" : "bg-[#FFCA08] text-[#9A7D4C]"}
 ${isSelected ? "footer-selected" : ""}
-${isFocused && isSelected ? "outline-[6px] outline-[#dc2f02]" : ""}`}
+${isFocused && isSelected ? "outline-[5px] outline-[#dc2f02]" : ""}`}
   >
     {icon}
     <span className="text-[30px] font-semibold whitespace-nowrap">{label}</span>
@@ -260,13 +260,13 @@ const FooterControls = ({
 
   // ─── Shared focus class helper ────────────────────────────────────────────
 
-  const fc = (i) => cursor === i && isFocused ? "outline-[6px] outline-[#dc2f02]" : "";
+  const fc = (i) => cursor === i && isFocused ? "outline-[5px] outline-[#dc2f02] z-100" : "";
 
   // ─── Render ───────────────────────────────────────────────────────────────
 
   return (
     <>
-      <div className="footer absolute bottom-px left-0 right-0 z-30 flex items-center justify-between px-7 py-1 bg-black/40 backdrop-blur-md">
+      <div className="footer absolute bottom-px left-0 right-0 z-30 flex items-center justify-between px-7 py-[11px] bg-black/40 backdrop-blur-md">
         {isFocused && (
           <div className="pointer-events-none absolute inset-0 border-[6px] border-[#dc2f02]" />
         )}
@@ -274,7 +274,7 @@ const FooterControls = ({
         <div className="flex items-center gap-3">
 
           {/* ⏰ Clock */}
-          <div className={`flex items-center gap-2 text-white py-3 rounded-lg ${fc(0)}`}>
+          <div className={`flex items-center gap-2 text-white  rounded-lg ${fc(0)}`}>
             <Clock className="w-8 h-8" />
             <span className="text-[30px] font-semibold">{time}</span>
           </div>
@@ -297,7 +297,7 @@ const FooterControls = ({
               <>
                 <button
                   onClick={logout}
-                  className={`flex items-center gap-2 bg-red-500 px-5 py-2 rounded-full text-white text-[26px]
+                  className={`flex items-center gap-2 bg-red-500 px-5 py-1.5 rounded-full text-white text-[26px]
                     ${fc(1 + BACK_OFFSET)}`}
                 >
                   <LogOut className="w-7 h-7" />
@@ -306,7 +306,7 @@ const FooterControls = ({
                     <span className="ml-2 font-mono rounded-md px-2 bg-[#ffffffa1]">{timer}</span>
                   )}
                 </button>
-                <div className={`flex items-center gap-2 bg-white text-black px-5 py-2 rounded-lg text-[26px]
+                <div className={`flex items-center gap-2 bg-white text-black px-5 py-1.5 rounded-lg text-[26px]
                     ${fc(2 + BACK_OFFSET)}`}>
                   <User className="w-7 h-7" />
                   {userData?.NAME}
@@ -315,7 +315,7 @@ const FooterControls = ({
             ) : (
               <button
                 onClick={() => openKeyboard(false)}
-                className={`login-btn px-6 py-2 rounded-full bg-[#D7D8D2] text-[#000] text-[28px] ${fc(1)}`}
+                className={`login-btn px-6 py-1.5 rounded-full bg-[#D7D8D2] text-[#000] text-[28px] ${fc(1)}`}
               >
                 {t("translations.Login")}
               </button>
@@ -328,7 +328,7 @@ const FooterControls = ({
               <button
                 key={lang}
                 onClick={() => handleLanguageChange(lang)}
-                className={`min-w-17 h-14 text-[28px] p-0.5 font-bold
+                className={`min-w-17 h-13 text-[28px] p-0.5 font-bold
                   ${language === lang ? "bg-[#FFCA08] rounded-lg text-white" : "bg-white text-black"}
                   ${fc(idx(3 + i, 2 + i))}`}
               >
