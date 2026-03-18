@@ -108,11 +108,15 @@ const Dashboard = () => {
   );
 
   // ─── Helpers ─────────────────────────────────────────────────────────────
-
   const speakMainScreen = useCallback(() => {
     if (isAnyModalOpen || window.__INFO_MODAL_OPEN__) return;
+    // ✅ Cancel any pending speak before firing
     stop();
-    speak(t("speech.This screen is the main screen."));
+    // Small defer so multiple simultaneous callers collapse into one
+    clearTimeout(window.__speakMainTimeout__);
+    window.__speakMainTimeout__ = setTimeout(() => {
+      speak(t("speech.This screen is the main screen."));
+    }, 1000);
   }, [speak, stop, t, isAnyModalOpen]);
 
   const shouldShowModal = useCallback((bookingInfo) => {
@@ -772,7 +776,7 @@ const Dashboard = () => {
         isOpen={modalStates[MODAL_TYPES.EXTENSION]}
         onClose={() => toggleModal(MODAL_TYPES.EXTENSION, false)}
         onBackToUserInfo={handleBackToUserInfo}
-        logoutOnSuccess= {true}
+        logoutOnSuccess={true}
       />
 
       <SeatActionModal
@@ -781,7 +785,7 @@ const Dashboard = () => {
         isOpen={modalStates[MODAL_TYPES.RETURN]}
         onClose={() => toggleModal(MODAL_TYPES.RETURN, false)}
         onBackToUserInfo={handleBackToUserInfo}
-        logoutOnSuccess= {true}
+        logoutOnSuccess={true}
       />
 
       <SeatActionModal

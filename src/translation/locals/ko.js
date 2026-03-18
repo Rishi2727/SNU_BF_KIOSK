@@ -260,6 +260,8 @@ const koTranslations = {
     minutes: "분",
     "Do you want to move to this seat?": "이 좌석으로 이동하시겠습니까?",
     "Do you want to return the seat?": "좌석을 반납하시겠습니까?",
+    "Do you want to extend the seat?" : "좌석을 더 넓히시겠습니까?",
+    "SEAT_MODAL_EXTENSION_CONFIRM" : "이 좌석을 연장하시겠습니까?",
     SEAT_CONFIRM_GENERIC: "이 좌석을 예약 하시겠습니까?",
     Booking: "예약",
     "Seat Extension": "좌석 연장",

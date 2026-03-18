@@ -42,7 +42,7 @@ const SeatActionModal = ({
     onClose,
     onBackToUserInfo,
     disableFocusAndSpeech = false,
-    logoutOnSuccess= false
+    logoutOnSuccess = false
 }) => {
     const modeFlags = useMemo(() => ({
         isBooking: mode === MODES.BOOKING,
@@ -520,8 +520,6 @@ const SeatActionModal = ({
         if (!element) return "";
 
         const booking = activeBooking;
-        console.log("booking", booking)
-
         switch (element.type) {
 
             case "title":
@@ -541,7 +539,7 @@ const SeatActionModal = ({
 
             case "name-label":
             case "name-value":
-                return t("speech.SEAT_MODAL_USER_NAME", { name: userInfo?.SCHOOLNO });
+                return t("speech.SEAT_MODAL_USER_NAME", { name: userData?.NAME });
 
             case "date-label":
             case "date-value": {
@@ -579,6 +577,7 @@ const SeatActionModal = ({
             case "confirmation-message":
                 if (isMove) return t("speech.SEAT_MODAL_MOVE_CONFIRM");
                 if (isReturn) return t("speech.SEAT_MODAL_RETURN_CONFIRM");
+                if (isExtension) return t("speech.SEAT_MODAL_EXTENSION_CONFIRM");
 
                 return t("speech.SEAT_MODAL_CONFIRM_GENERIC", {
                     action: t(`translations.${MODE_LABELS[mode]}`),
@@ -706,13 +705,18 @@ const SeatActionModal = ({
 
     const renderConfirmationMessage = () => {
         if (!isConfirmMode) return null;
+
         return (
             <p className="text-red-600 font-extrabold text-[30px]">
                 {isMove
                     ? t("translations.Do you want to move to this seat?")
                     : isReturn
                         ? t("translations.Do you want to return the seat?")
-                        : t("translations.SEAT_CONFIRM_GENERIC", { action: t(`translations.${MODE_LABELS[mode]}`) })}
+                        : isExtension
+                            ? t("translations.Do you want to extend the seat?") // ✅ ADD THIS
+                            : t("translations.SEAT_CONFIRM_GENERIC", {
+                                action: t(`translations.${MODE_LABELS[mode]}`)
+                            })}
             </p>
         );
     };
@@ -904,7 +908,7 @@ const SeatActionModal = ({
                         {t(`translations.${MODE_LABELS[mode]}`)}
                     </h2>
                     <p className="text-[30px] text-gray-700 font-bold mb-4">
-                        {t(`${actionResult?.message}`)}
+                        {t(`translations.${actionResult?.message}`)}
                     </p>
                 </div>
             </Modal>
