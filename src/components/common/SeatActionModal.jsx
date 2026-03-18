@@ -78,7 +78,7 @@ const SeatActionModal = ({
     const lastSpokenRef = useRef("");
     const isFirstOpenRef = useRef(false);
     const { writeToSerialPort, serialPortsData } = useSerialPort();
-
+    console.log("action errror", actionResult?.message)
     const languageCode = localStorage.getItem("lang") === "ko" ? "ko" : "en";
     const uiDateFormat = languageCode === "ko" ? DATE_FORMATS.KO_DATETIME : DATE_FORMATS.DATETIME;
     useEffect(() => {
@@ -941,7 +941,7 @@ const SeatActionModal = ({
                         {t(`translations.${MODE_LABELS[mode]}`)}
                     </h2>
                     <p className="text-[30px] text-gray-700 font-bold mb-4">
-                        {t(`translations.${actionResult?.message}`)}
+                        {t(`translations.${actionResult?.message}`, actionResult?.message)}
                     </p>
                 </div>
             </Modal>

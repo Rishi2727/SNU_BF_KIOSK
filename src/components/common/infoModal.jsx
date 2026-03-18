@@ -213,8 +213,8 @@ export default function InfoModal({ isOpen = true, onClose = () => { } }) {
 
     // UI RENDER
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-999 flex justify-center items-center">
-            <div className="info-modal-wrapper bg-white/95 w-[65%] h-[85%] flex flex-col rounded-3xl border shadow-2xl overflow-hidden">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-999 flex justify-center items-center contrast-overlay">
+            <div className="info-modal-wrapper  info-modal-wrapper bg-white/95 w-[65%] h-[85%] flex flex-col rounded-3xl border shadow-2xl overflow-hidden">
 
                 {/* HEADER */}
                 <div className="bg-linear-to-r from-[#FFCB35] to-[#cf9e0b] text-white text-[35px] px-8 py-3 font-bold flex justify-between items-center ">

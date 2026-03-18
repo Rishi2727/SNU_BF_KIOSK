@@ -472,3 +472,67 @@ html[data-contrast="high"] .user-info-modal .user-action-btn:disabled {
   border: 2px solid #444;
 }
 
+/* ============================= */
+/* INFO MODAL DARK MODE */
+/* ============================= */
+
+html[data-contrast="high"] .info-modal {
+  background: #000 !important;
+  color: #fff !important;
+  border: 3px solid #FFD640 !important;
+}
+
+/* HEADER */
+html[data-contrast="high"] .info-modal .bg-linear-to-r {
+  background: #111 !important;
+}
+
+/* CLOSE BUTTON */
+html[data-contrast="high"] .info-modal-close {
+  color: #FFD640 !important;
+}
+
+/* BODY */
+html[data-contrast="high"] .info-modal .bg-gray-50 {
+  background: #000 !important;
+}
+
+/* CARDS */
+html[data-contrast="high"] .info-detail-item {
+  background: #111 !important;
+  border: 2px solid #FFD640 !important;
+  color: #fff !important;
+}
+
+/* HEADER TEXT INSIDE CARD */
+html[data-contrast="high"] .info-detail-item div:first-child {
+  color: #FFD640 !important;
+}
+
+/* DESCRIPTION TEXT */
+html[data-contrast="high"] .info-detail-item div:last-child {
+  color: #ffffff !important;
+}
+
+/* FOOTER */
+html[data-contrast="high"] .info-buttons-container {
+  background: #000 !important;
+  border-top: 2px solid #FFD640 !important;
+}
+
+/* BUTTONS */
+html[data-contrast="high"] .info-modal button {
+  background: #FFD640 !important;
+  color: #000 !important;
+  border: 2px solid #FFD640;
+}
+
+/* PREV/NEXT hover */
+html[data-contrast="high"] .info-modal button:hover {
+  filter: brightness(1.2);
+}
+
+/* PAGE COUNT */
+html[data-contrast="high"] .info-buttons-container div {
+  color: #FFD640 !important;
+}

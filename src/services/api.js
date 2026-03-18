@@ -402,6 +402,7 @@ export const setSeatAssign = async (payload) => {
   await ensureInitialized();
   await logEvent("info", `Assigning seat: ${JSON.stringify(payload)}`);
   const res = await ApiClientPrimary.post("/SEATAPI/RunSeatAssign.asp", payload);
+  console.log("response", res?.data)
   return res?.data;
 };
 
