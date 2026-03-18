@@ -42,7 +42,9 @@ const SeatActionModal = ({
     onClose,
     onBackToUserInfo,
     disableFocusAndSpeech = false,
-    logoutOnSuccess = false
+    logoutOnSuccess = false,
+      persistedSelection = null,
+  onSelectionChange = null, 
 }) => {
     const modeFlags = useMemo(() => ({
         isBooking: mode === MODES.BOOKING,
@@ -74,6 +76,7 @@ const SeatActionModal = ({
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const lastSpokenRef = useRef("");
+    const isFirstOpenRef = useRef(false);
     const { writeToSerialPort, serialPortsData } = useSerialPort();
 
     const languageCode = localStorage.getItem("lang") === "ko" ? "ko" : "en";
@@ -255,7 +258,8 @@ const SeatActionModal = ({
         setSelectedIndex(index);
         setEndTime(addMinutes(value).toDate());
         lastSpokenRef.current = "";
-    }, []);
+          if (onSelectionChange) onSelectionChange({ selectedIndex: index, endTime: addMinutes(value).toDate() });
+    }, [onSelectionChange]);
 
     const handleFinalConfirm = useCallback(async () => {
         if (!isReturn && !isMove && selectedIndex === null) return;
@@ -390,14 +394,31 @@ const SeatActionModal = ({
 
     // ─── Effects ─────────────────────────────────────────────────────────────────
 
-    useEffect(() => {
-        if (!isOpen) return;
-        setIsModalFocused(!disableFocusAndSpeech);
-        setFocusIndex(0);
-        setConfirmStep(false); // ← ADD THIS LINE
-        setSelectedIndex(null); // ← also reset selection
-        setEndTime(null);       // ← and end time
-    }, [isOpen, disableFocusAndSpeech]);
+useEffect(() => {
+  if (!isOpen) {
+    isFirstOpenRef.current = false; // reset when closed
+    return;
+  }
+
+  // ✅ Only reset focusIndex on a genuine fresh open, not when persistedSelection updates
+  if (!isFirstOpenRef.current) {
+    isFirstOpenRef.current = true;
+    setIsModalFocused(!disableFocusAndSpeech);
+    setFocusIndex(0);
+    setConfirmStep(false);
+  } else {
+    // Modal is already open — only sync focus/speech toggle, don't touch focusIndex
+    setIsModalFocused(!disableFocusAndSpeech);
+  }
+
+  if (persistedSelection) {
+    setSelectedIndex(persistedSelection.selectedIndex);
+    setEndTime(persistedSelection.endTime);
+  } else {
+    setSelectedIndex(null);
+    setEndTime(null);
+  }
+}, [isOpen, disableFocusAndSpeech, persistedSelection]);
 
     useEffect(() => {
         if (isOpen && confirmStep) setFocusIndex(0);
@@ -449,13 +470,27 @@ const SeatActionModal = ({
 
     }, [isOpen, isAssignCheck, activeBooking, userInfo, lang]);
 
-    useEffect(() => {
-        if (isReturn || isMove || isAssignCheck) return;
-        if (defaultIndex !== null && timeOptions[defaultIndex]?.enabled) {
-            setSelectedIndex(defaultIndex);
-            setEndTime(addMinutes(timeOptions[defaultIndex].value).toDate());
-        }
-    }, [timeOptions, defaultIndex, isReturn, isMove, isAssignCheck]);
+useEffect(() => {
+  if (isReturn || isMove || isAssignCheck) return;
+  if (persistedSelection) return; // ✅ Don't override a restored selection
+
+  if (defaultIndex !== null && timeOptions[defaultIndex]?.enabled) {
+    setSelectedIndex(defaultIndex);
+    setEndTime(addMinutes(timeOptions[defaultIndex].value).toDate());
+  } else if (timeOptions.length > 0) {
+    // ✅ Fall back to 30 min default if API doesn't set a defaultIndex
+    const thirtyMinIndex = timeOptions.findIndex(opt => opt.enabled && opt.value === 30);
+    const fallbackIndex = thirtyMinIndex !== -1 ? thirtyMinIndex : timeOptions.findIndex(opt => opt.enabled);
+    if (fallbackIndex !== -1) {
+      setSelectedIndex(fallbackIndex);
+      setEndTime(addMinutes(timeOptions[fallbackIndex].value).toDate());
+      if (onSelectionChange) onSelectionChange({
+        selectedIndex: fallbackIndex,
+        endTime: addMinutes(timeOptions[fallbackIndex].value).toDate()
+      });
+    }
+  }
+}, [timeOptions, defaultIndex, isReturn, isMove, isAssignCheck, persistedSelection]);
 
     useEffect(() => {
         if (!isOpen) return;

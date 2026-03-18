@@ -84,6 +84,7 @@ const Floor = () => {
   const [showSessionReminder, setShowSessionReminder] = useState(false);
   const [sessionCursor, setSessionCursor] = useState(null);
   const [resetTimerOnTouch, setResetTimerOnTouch] = useState(true);
+  const [persistedSeatSelection, setPersistedSeatSelection] = useState(null);
 
   // ─── Refs ────────────────────────────────────────────────────────────────
   const mainImageRef = useRef(null);
@@ -552,6 +553,7 @@ const Floor = () => {
     setShowSeatModal(false);
     setSelectedSeat(null);
     setIsAnyModalOpen(false);
+      setPersistedSeatSelection(null)
   }, []);
 
 const handleSessionEnter = useCallback((index) => {
@@ -705,6 +707,8 @@ const handleSessionEnter = useCallback((index) => {
         isOpen={showSeatModal}
         onClose={handleCloseModal}
         disableFocusAndSpeech={showSessionReminder}
+          persistedSelection={persistedSeatSelection}
+  onSelectionChange={setPersistedSeatSelection}
       />
 
       {/* ═══ SESSION REMINDER MODAL ═══ */}
