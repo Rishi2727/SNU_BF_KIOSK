@@ -14,6 +14,7 @@ import i18n from "../../translation/language/i18n";
 import InfoModal from "./infoModal";
 import { fetchUserInfo } from "../../redux/slice/getUserDataSlice";
 import { setApiLang } from "../../services/api";
+import { BiLogIn } from "react-icons/bi";
 
 const applyContrastMode = (mode) => {
   document.documentElement.setAttribute("data-contrast", mode);
@@ -315,8 +316,9 @@ const FooterControls = ({
             ) : (
               <button
                 onClick={() => openKeyboard(false)}
-                className={`login-btn px-6 py-1.5 rounded-full bg-[#D7D8D2] text-[#000] text-[28px] ${fc(1)}`}
+                className={`login-btn px-4 py-1.5 rounded-full bg-[#D7D8D2] text-[#000] text-[28px] flex items-center gap-2 ${fc(1)}`}
               >
+                <BiLogIn size={30} />
                 {t("translations.Login")}
               </button>
             )}
