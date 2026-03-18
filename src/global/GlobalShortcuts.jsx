@@ -280,9 +280,9 @@ export default function GlobalShortcuts() {
       {showManagerModal && (
         <div className="fixed inset-0 z-[3000] bg-black/60 flex items-center justify-center ">
           <div
-            className={`bg-white rounded-2xl focus:outline-none
+            className={`modal-panel bg-white rounded-2xl focus:outline-none
  p-8 w-[700px] text-center shadow-2xl
-    ${modalCursor === 0 ? "outline-[6px] outline-[#dc2f02]" : ""}
+    ${modalCursor === 0 ? "outline-[6px] outline-[#dc2f02]" : "border border-[6px]"}
   `}
             role="dialog"
             aria-modal="true"

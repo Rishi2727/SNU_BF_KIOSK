@@ -292,9 +292,9 @@ html[data-contrast="high"] .modal-panel .bg-gray-50 {
 } */
 
 /* close button focus */
-html[data-contrast="high"] .modal-panel button.outline-\[6px\] {
+/* html[data-contrast="high"] .modal-panel button.outline-\[6px\] {
   outline: 6px solid #dc2f02;
-}
+} */
 
 /* ============================= */
 /* SEAT ACTION MODAL DARK MODE */
@@ -471,3 +471,4 @@ html[data-contrast="high"] .user-info-modal .user-action-btn:disabled {
   color: #666 !important;
   border: 2px solid #444;
 }
+
