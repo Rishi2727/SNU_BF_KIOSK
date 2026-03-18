@@ -413,7 +413,7 @@ useEffect(() => {
 
             {/* HEADING */}
             <div className={`flex items-center gap-5 p-2 justify-center`}>
-              <p className={`sm:text-xl xl:text-3xl 2xl:text-4xl font-semibold text-gray-600 ${headingFocusClass}`}>
+              <p className={`heading sm:text-xl xl:text-3xl 2xl:text-4xl font-semibold text-gray-600 ${headingFocusClass}`}>
                 {t("translations.Virtual Keyboard")}
               </p>
             </div>
