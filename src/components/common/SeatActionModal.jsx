@@ -217,12 +217,6 @@ const SeatActionModal = ({
     // ─── API calls ───────────────────────────────────────────────────────────────
     const executeApiCall = useCallback(async () => {
         if (isBooking) {
-            console.log("SeatAssign Payload:", {
-                seatno: seat.SEATNO,
-                date: formatDateNum(startTime),
-                useTime: `${formatTimeNum(startTime)}-${formatTimeNum(endTime)}`,
-                schoolno: userInfo.SCHOOLNO,
-            });
             return await setSeatAssign({
                 seatno: seat.SEATNO,
                 date: formatDateNum(startTime),
