@@ -41,7 +41,8 @@ const SeatActionModal = ({
     isOpen,
     onClose,
     onBackToUserInfo,
-    disableFocusAndSpeech = false
+    disableFocusAndSpeech = false,
+    logoutOnSuccess= false
 }) => {
     const modeFlags = useMemo(() => ({
         isBooking: mode === MODES.BOOKING,
@@ -300,9 +301,11 @@ const SeatActionModal = ({
     }, [isReturn, isMove, isBooking, isExtension, selectedIndex, isAvailable, executeApiCall, onClose, seat, lang]);
     const handleResultModalClose = useCallback(async () => {
         setShowResultModal(false);
+
         const wasSuccessful = actionResult?.success;
         setActionResult(null);
-        if (wasSuccessful) {
+
+        if (wasSuccessful || logoutOnSuccess) {
             try {
                 localStorage.removeItem("authenticated");
                 dispatch(clearUserInfo());
@@ -312,7 +315,7 @@ const SeatActionModal = ({
                 console.error("Logout error:", err);
             }
         }
-    }, [actionResult, dispatch, navigate]);
+    }, [actionResult, dispatch, navigate, logoutOnSuccess]);
 
     const handlePrint = useCallback(async () => {
         try {
@@ -666,7 +669,7 @@ const SeatActionModal = ({
                 </div>
             );
         }
-       
+
     }, [
         loading, // ✅ ADD THIS
         isAssignCheck,

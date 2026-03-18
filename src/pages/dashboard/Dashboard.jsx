@@ -772,6 +772,7 @@ const Dashboard = () => {
         isOpen={modalStates[MODAL_TYPES.EXTENSION]}
         onClose={() => toggleModal(MODAL_TYPES.EXTENSION, false)}
         onBackToUserInfo={handleBackToUserInfo}
+        logoutOnSuccess= {true}
       />
 
       <SeatActionModal
@@ -780,6 +781,7 @@ const Dashboard = () => {
         isOpen={modalStates[MODAL_TYPES.RETURN]}
         onClose={() => toggleModal(MODAL_TYPES.RETURN, false)}
         onBackToUserInfo={handleBackToUserInfo}
+        logoutOnSuccess= {true}
       />
 
       <SeatActionModal
