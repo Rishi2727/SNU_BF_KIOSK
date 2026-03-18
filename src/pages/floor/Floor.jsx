@@ -94,6 +94,7 @@ const Floor = () => {
   const lastFocusedRegionRef = useRef(null);
   const hasSpokenRoomRef = useRef(false);
   const hasSpokenFloorRef = useRef(false);
+  const savedFocusRegionRef = useRef(null);
 
   // ─── API urls ────────────────────────────────────────────────────────────
   const imageBaseUrl = getFloorImageUrl();
@@ -304,6 +305,8 @@ const Floor = () => {
 
   useEffect(() => {
     if (!showSessionReminder) return;
+
+      savedFocusRegionRef.current = focusedRegion;
     setIsAnyModalOpen(true);
     setFocusedRegion(null);
     setSessionCursor(null);
@@ -551,14 +554,20 @@ const Floor = () => {
     setIsAnyModalOpen(false);
   }, []);
 
-  const handleSessionEnter = useCallback((index) => {
-    if (index === 0) {
-      timeLeftRef.current = floorTimerConfig.time;
-      setTimeLeft(floorTimerConfig.time);
-    }
-    setShowSessionReminder(false);
-    setIsAnyModalOpen(false);
-  }, [floorTimerConfig.time]);
+const handleSessionEnter = useCallback((index) => {
+  if (index === 0) {
+    timeLeftRef.current = floorTimerConfig.time;
+    setTimeLeft(floorTimerConfig.time);
+  }
+  setShowSessionReminder(false);
+  setIsAnyModalOpen(false);
+  
+  // ✅ Restore focus that was active before the modal opened
+  if (savedFocusRegionRef.current !== null) {
+    setFocusedRegion(savedFocusRegionRef.current);
+    savedFocusRegionRef.current = null;
+  }
+}, [floorTimerConfig.time]);
 
   // ─── Render ───────────────────────────────────────────────────────────────
 

@@ -383,6 +383,7 @@ const koTranslations = {
     "Seat Extension": "좌석 연장",
     "Seat Move": "좌석 이동",
     "Seat Return": "좌석 반납",
+    "다른 구역으로는 좌석을 이동할 수 없습니다.|관리자에게 문의하세요.":"다른 구역으로는 좌석을 이동할 수 없습니다.|관리자에게 문의하세요."
   },
 };
 export default koTranslations;
