@@ -86,9 +86,7 @@ export default function GlobalShortcuts() {
 
       console.log("Sending manager call message:", message);
 
-      const res = await managerCall(messageRef.current);
-
-      console.log("Manager call response:", res);
+      const res = await managerCall(message);
 
       if (res.status !== 200) {
         speak(t("translations.Failed to send message to administrator"));

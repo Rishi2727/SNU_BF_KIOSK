@@ -465,7 +465,7 @@ export const managerCall = async (message) => {
   await ensureInitialized();
   const response = await fetch(
     `${managerIpUrl}/callMan.api?msg=${encodeURIComponent(message)}`,
-    { mode: "no-cors" },
+    {  method: "GET", mode: "no-cors" },
   );
   return await response.json();
 };
