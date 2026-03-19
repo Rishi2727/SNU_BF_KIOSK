@@ -808,7 +808,7 @@ const SeatActionModal = ({
                     onClick={handlePrint}
                     className={`px-15 py-4 bg-linear-to-r from-[#FFCB35] to-[#cf9e0b] hover:from-[#fccc3b] hover:to-[#c79706] text-white rounded-lg font-bold text-[30px] ${isFocused("print-button") ? focusClass : ""}`}
                 >
-                    {t("translations.Print Receipt")}
+                    {t("translations.Print")}
                 </button>
             )}
         </div>
