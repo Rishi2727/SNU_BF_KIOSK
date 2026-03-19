@@ -350,7 +350,7 @@ const enTranslations = {
     "This self-service kiosk by Wise Neosco India Pvt. Ltd. simplifies seat reservations, confirmations, cancellations, returns, and extensions. It also works with RFID, QR codes, and barcodes for fast, secure access.":
       "This self-service kiosk by Wise Neosco India Pvt. Ltd. simplifies seat reservations, confirmations, cancellations, returns, and extensions. It also works with RFID, QR codes, and barcodes for fast, secure access.",
     Date: "Date",
-    "Print Receipt": "Print Receipt",
+    "Print": "Print",
     "다른 구역으로는 좌석을 이동할 수 없습니다.|관리자에게 문의하세요.":"You cannot move your seat to another section. Please contact the manager.",
     "종료시간을 확인하세요." : "Please check the end time.",
     "Operation failed" : "Operation failed",

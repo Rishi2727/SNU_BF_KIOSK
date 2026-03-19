@@ -319,7 +319,7 @@ const SeatActionModal = ({
         try {
             const dateFormat = languageCode === "ko" ? DATE_FORMATS.KO_DATETIME : DATE_FORMATS.DATETIME;
             const formattedData = {
-                USER_NAME: userInfo?.NAME || "",
+                USER_NAME: userData?.NAME || "",
                 SCHOOL_NO: userInfo?.SCHOOLNO || "",
                 BOOKING_DATE: formatDate(startTime, dateFormat),
                 ROOM: seatInfo?.FLOOR_NAME || "",
@@ -623,7 +623,7 @@ const SeatActionModal = ({
                 return t("speech.Confirm");
 
             case "print-button":
-                return t("translations.Print Receipt");
+                return t("translations.Print");
 
             case "result-message":
                 return `${t(`translations.${MODE_LABELS[mode]}`)}. ${t(`translations.${actionResult?.message}`)}`;

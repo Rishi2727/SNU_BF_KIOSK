@@ -6,7 +6,7 @@
 !define MUI_UNICON "uninstall.ico"
 
 ; Define the name and file output directory
-Name "CNU BF KIOSK Installer"
+Name "SNU BF KIOSK Installer"
 OutFile "SNU BF KIOSK.exe"
 
 ; Set the default installation directory
