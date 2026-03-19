@@ -16,7 +16,7 @@ import React, {useEffect} from "react";
 
 function App() {
 
-  React.useEffect(() => {
+ useEffect(() => {
     const init = async () => {
       try {
         await initializeApi();
@@ -25,8 +25,67 @@ function App() {
       }
     };
     init();
-  }, []);
+ 
 
+
+    /* ==============================
+       🔒 KIOSK PROTECTION
+    ============================== */
+
+    // Disable Right Click
+    const disableRightClick = (e) => e.preventDefault();
+
+    // Disable Text Selection
+    const disableSelection = (e) => e.preventDefault();
+
+    // Disable Drag
+    const disableDrag = (e) => e.preventDefault();
+
+    // Disable Keyboard Shortcuts
+    const disableShortcuts = (e) => {
+      // F12
+      if (e.key === "F12") {
+        e.preventDefault();
+      }
+
+      // Ctrl+Shift+I / Ctrl+Shift+J / Ctrl+Shift+C
+      if (
+        e.ctrlKey &&
+        e.shiftKey &&
+        ["I", "J", "C"].includes(e.key.toUpperCase())
+      ) {
+        e.preventDefault();
+      }
+
+      // Ctrl+U (View source)
+      if (e.ctrlKey && e.key.toUpperCase() === "U") {
+        e.preventDefault();
+      }
+
+      // Ctrl+C (Copy)
+      if (e.ctrlKey && e.key.toUpperCase() === "C") {
+        e.preventDefault();
+      }
+
+      // Ctrl+A (Select all)
+      if (e.ctrlKey && e.key.toUpperCase() === "A") {
+        e.preventDefault();
+      }
+    };
+
+    document.addEventListener("contextmenu", disableRightClick);
+    document.addEventListener("selectstart", disableSelection);
+    document.addEventListener("dragstart", disableDrag);
+    document.addEventListener("keydown", disableShortcuts);
+
+    // Cleanup
+    return () => {
+      document.removeEventListener("contextmenu", disableRightClick);
+      document.removeEventListener("selectstart", disableSelection);
+      document.removeEventListener("dragstart", disableDrag);
+      document.removeEventListener("keydown", disableShortcuts);
+    };
+  }, []);
 
   return (
     <BrowserRouter>

@@ -33,8 +33,8 @@ struct AppInfo {
 /// Command to fetch app information (version and release date)
 #[tauri::command]
 async fn get_app_info(logger: State<'_, Arc<Logger>>) -> Result<AppInfo, String> {
-    let version = "1.1.3".to_string();
-    let release_date = "2025-10-28".to_string();
+    let version = env!("APP_VERSION").to_string();
+    let release_date = env!("APP_RELEASE_DATE").to_string();
 
     logger
         .log(

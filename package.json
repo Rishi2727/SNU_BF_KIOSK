@@ -1,13 +1,15 @@
 {
   "name": "snu_kiosk",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
+  "releaseDate": "2026-03-19",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "build:win": "tauri build && node scripts/rename-installer.js"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.11.2",
