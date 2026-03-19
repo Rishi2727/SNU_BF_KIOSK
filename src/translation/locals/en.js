@@ -36,10 +36,8 @@ const enTranslations = {
     "to" : "to",
     "dateDurationRange": "Date Duration: {{start}} to {{end}}",
     Total: "Total",
-    "This screen is the floor or reading room selection screen.":
-      "This is the floor or reading room selection screen. On the left side is the floor and reading room selection sidebar. You can select a floor at the top of the sidebar and view information about the reading rooms on that floor. On the right side is the floor and reading room map. When a floor is selected, its map is displayed. When a reading room is selected, you will move to the seat layout screen, where you can reserve a seat. At the bottom left of the screen is the login button, and next to it is the language selection button. At the bottom right of the screen are the function buttons in the following order: volume down, current volume, volume up, information, magnifier, and high contrast. You can select a screen area using the * key on the numeric keypad. If you need assistance, please call an administrator.",
-    "This screen is the main screen.":
-      "This is the main screen. In the center of the screen, there is a library selection button, and announcements are displayed below it. At the bottom left of the screen is the login button, and next to it is the language selection button. At the bottom right of the screen are the function buttons in the following order: volume down, current volume, volume up, information, magnifier, and high contrast. You can select a screen area using the * key on the numeric keypad. To select a library, please choose the New Building in the center. If you need assistance, please call an administrator.",
+    "This screen is the floor or reading room selection screen.": "This is the library floor selection screen for the Central Library. The main map in the center displays different areas to select sector for seat booking process. At the bottom, you can switch between floors (6F, 7F, and 8F) and view seat availability. The bottom left shows the current time, logout button, user name, and language selection. The bottom right contains function buttons in order: volume down, current volume level, volume up, information, magnifier, and contrast. You can select any screen area using the * key on the numeric keypad.Use the left or right navigation arrows on the sides to explore the map. Please select your desired area from the map to proceed.",
+    "This screen is the main screen.":"This is the main screen. In the center, there are library selection buttons, with announcements displayed below it. At the bottom left of the screen, you will find the current time and the login button, followed by the language selection button. At the bottom right, the function buttons are arranged in the following order: volume down, current volume, volume up, information, magnifier, and high contrast. You can select any screen area using the * key on the numeric keypad. To select a library, please choose desired library in the center. If you need assistance, please contact an administrator.",
     "This screen is the Seat selection screen.":
       "This screen is the Seat selection screen.",
     "Please select a desired floor": "Please select a desired floor",
@@ -178,7 +176,7 @@ const enTranslations = {
     "Seat Label": "Seat {{seat}}",
     "Booking Failed": "Booking Failed",
     "This is room page select your desired seat":
-      "This is room page select your desired seat",
+      "This is the seat selection screen for the Central Library. The main map in the center displays available seats for booking. At the bottom, you can switch between floors (6F, 7F, and 8F) and view seat availability. The bottom left shows the current time, back button, logout button, user name, and language selection. The bottom right contains function buttons in the following order: volume down, current volume level, volume up, information, magnifier, and contrast. You can select any screen area using the * key on the numeric keypad. Use the left or right navigation arrows to explore the map. Please select your desired seat from the map to proceed.",
     "Seat Label": "seat {{seat}} {{state}}",
     available: "available",
     booked: "booked",
