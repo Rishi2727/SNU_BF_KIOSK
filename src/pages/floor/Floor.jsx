@@ -23,6 +23,7 @@ import { useVoice } from "../../context/voiceContext";
 import { formatFloorForSpeech } from "../../utils/speechFormatter";
 import { isMinimapAtBottom } from "../../utils/config";
 import { logout } from "../../redux/slice/authSlice";
+import { logEvent } from "../../logger";
 
 // ─── Module-level constants ───────────────────────────────────────────────────
 
@@ -100,6 +101,7 @@ const Floor = () => {
   // ─── API urls ────────────────────────────────────────────────────────────
   const imageBaseUrl = getFloorImageUrl();
   const SeatImagebaseUrl = getImageBaseUrl();
+
   // ─── Floor data hook ─────────────────────────────────────────────────────
   const {
     floors, currentFloor, setCurrentFloor, sectorList,
@@ -160,7 +162,6 @@ const Floor = () => {
 
   useEffect(() => {
     const init = async () => {
-
       try {
         await initializeApi();
         const timers = getPopupTimers();
@@ -171,8 +172,12 @@ const Floor = () => {
           if (floorCfg) { setFloorTimerConfig(floorCfg); setTimeLeft(floorCfg.time); timeLeftRef.current = floorCfg.time; }
           if (reminderCfg) setSessionReminderConfig(reminderCfg);
           if (resetCfg) setResetTimerOnTouch(resetCfg.state);
+          logEvent("info", `Timer config loaded — floor: ${floorCfg?.time}s, reminder: ${reminderCfg?.time}s, resetOnTouch: ${resetCfg?.state}`);
         }
-      } catch (err) { console.error("Failed to load timer config:", err); }
+      } catch (err) {
+        logEvent("error", `Failed to load timer config: ${err.message}`);
+        console.error("Failed to load timer config:", err);
+      }
     };
     init();
   }, [dispatch]);
@@ -185,7 +190,12 @@ const Floor = () => {
   useEffect(() => {
     if (!sectorNo || !sectorList?.length) return;
     const sector = sectorList.find((s) => String(s.SECTORNO) === String(sectorNo));
-    if (sector) { setSelectedSector(sector); setShowRoomView(true); fetchSeats(sector); }
+    if (sector) {
+      logEvent("info", `Sector loaded from route param: ${sector.MAPLABEL} (sectorNo=${sectorNo})`);
+      setSelectedSector(sector);
+      setShowRoomView(true);
+      fetchSeats(sector);
+    }
   }, [sectorList, sectorNo]);
 
   // ─── Modal open → clear focus + stop speech ───────────────────────────────
@@ -235,7 +245,9 @@ const Floor = () => {
       e.stopPropagation();
       setFocusedRegion((prev) => {
         const idx = focusOrder.indexOf(prev);
-        return focusOrder[(idx + 1) % focusOrder.length];
+        const next = focusOrder[(idx + 1) % focusOrder.length];
+        logEvent("info", `Focus region cycled via * key: ${prev} → ${next}`);
+        return next;
       });
     };
     window.addEventListener("keydown", onKeyDown);
@@ -253,25 +265,35 @@ const Floor = () => {
 
       if (e.key === "ArrowRight") {
         e.preventDefault();
-        setMainContentCursor((prev) =>
-          prev === null ? 0 : (prev + 1 >= mainContentItemCount ? 0 : prev + 1)
-        );
+        setMainContentCursor((prev) => {
+          const next = prev === null ? 0 : (prev + 1 >= mainContentItemCount ? 0 : prev + 1);
+          logEvent("info", `Keyboard ArrowRight in ${focusedRegion} — cursor: ${prev} → ${next}`);
+          return next;
+        });
       } else if (e.key === "ArrowLeft") {
         e.preventDefault();
-        setMainContentCursor((prev) =>
-          prev === null ? mainContentItemCount - 1 : (prev - 1 < 0 ? mainContentItemCount - 1 : prev - 1)
-        );
+        setMainContentCursor((prev) => {
+          const next = prev === null ? mainContentItemCount - 1 : (prev - 1 < 0 ? mainContentItemCount - 1 : prev - 1);
+          logEvent("info", `Keyboard ArrowLeft in ${focusedRegion} — cursor: ${prev} → ${next}`);
+          return next;
+        });
       } else if (e.key === "Enter" && mainContentCursor !== null) {
         e.preventDefault();
         if (mainContentCursor < LEGEND_BAR_COUNT) return;
         const contentIndex = mainContentCursor - LEGEND_BAR_COUNT;
         if (focusedRegion === FocusRegion.MAP && displayableSectors?.length) {
+          logEvent("info", `Keyboard Enter selected sector: ${displayableSectors[contentIndex]?.MAPLABEL} (index=${contentIndex})`);
           handleSectorClick(displayableSectors[contentIndex]);
         }
         if (focusedRegion === FocusRegion.ROOM) {
           const seat = visibleSeats[contentIndex];
           if (!seat) return;
-          if (seat.USECNT === 0 && (seat.STATUS === 1 || seat.STATUS === 2)) handleSeatClick(seat);
+          if (seat.USECNT === 0 && (seat.STATUS === 1 || seat.STATUS === 2)) {
+            logEvent("info", `Keyboard Enter selected seat: ${seat.VNAME}`);
+            handleSeatClick(seat);
+          } else {
+            logEvent("info", `Keyboard Enter on unavailable seat: ${seat.VNAME} (USECNT=${seat.USECNT}, STATUS=${seat.STATUS})`);
+          }
         }
       }
     };
@@ -289,10 +311,18 @@ const Floor = () => {
       if (e.key === "*" || e.code === "NumpadMultiply" || e.keyCode === 106) return;
       if (e.key === "ArrowRight") {
         e.preventDefault();
-        setMiniMapCursor((prev) => prev === -1 ? 0 : (prev + 1) % minimapSectorCount);
+        setMiniMapCursor((prev) => {
+          const next = prev === -1 ? 0 : (prev + 1) % minimapSectorCount;
+          logEvent("info", `Keyboard ArrowRight in MiniMap — cursor: ${prev} → ${next}`);
+          return next;
+        });
       } else if (e.key === "ArrowLeft") {
         e.preventDefault();
-        setMiniMapCursor((prev) => prev === -1 ? minimapSectorCount - 1 : (prev - 1 + minimapSectorCount) % minimapSectorCount);
+        setMiniMapCursor((prev) => {
+          const next = prev === -1 ? minimapSectorCount - 1 : (prev - 1 + minimapSectorCount) % minimapSectorCount;
+          logEvent("info", `Keyboard ArrowLeft in MiniMap — cursor: ${prev} → ${next}`);
+          return next;
+        });
       } else if (e.key === "Enter") {
         e.preventDefault();
       }
@@ -306,8 +336,8 @@ const Floor = () => {
 
   useEffect(() => {
     if (!showSessionReminder) return;
-
-      savedFocusRegionRef.current = focusedRegion;
+    logEvent("info", "Session reminder modal opened");
+    savedFocusRegionRef.current = focusedRegion;
     setIsAnyModalOpen(true);
     setFocusedRegion(null);
     setSessionCursor(null);
@@ -436,10 +466,12 @@ const Floor = () => {
     timerRef.current = setInterval(() => {
       timeLeftRef.current -= 1;
       if (sessionReminderConfig.state && timeLeftRef.current === sessionReminderConfig.time) {
+        logEvent("info", `Session reminder triggered at ${sessionReminderConfig.time}s remaining`);
         setShowSessionReminder(true);
       }
       if (timeLeftRef.current <= 0) {
         clearInterval(timerRef.current);
+        logEvent("info", "Session expired — idle timer reached zero, logging out");
         localStorage.removeItem("authenticated");
         dispatch(clearUserInfo());
         navigate("/");
@@ -471,6 +503,7 @@ const Floor = () => {
   // ─── Action handlers ──────────────────────────────────────────────────────
 
   const handleLogout = useCallback(() => {
+    logEvent("info", "User logged out from floor page");
     localStorage.removeItem("authenticated");
     dispatch(logout());
     dispatch(clearUserInfo());
@@ -478,6 +511,7 @@ const Floor = () => {
   }, [dispatch, navigate]);
 
   const handleImageError = useCallback(() => {
+    logEvent("error", `Failed to load floor image: ${floorImageUrl}`);
     console.error("Failed to load floor image:", floorImageUrl);
     setImageError(true);
   }, [floorImageUrl, setImageError]);
@@ -485,15 +519,14 @@ const Floor = () => {
   const fetchSeats = useCallback(async (sector) => {
     if (!sector) return;
     setLoadingSeats(true);
+    logEvent("info", `Fetching seats for sector: ${sector.MAPLABEL} (sectorNo=${sector.SECTORNO})`);
     try {
-      const seatList = await getSeatList({
-        sectorno: sector?.SECTORNO,
-      });
-
+      const seatList = await getSeatList({ sectorno: sector?.SECTORNO });
       console.log("seat res---------->", seatList);
-
+      logEvent("info", `Seats loaded for sector ${sector.MAPLABEL}: ${Array.isArray(seatList) ? seatList.length : 0} seats`);
       setSeats(Array.isArray(seatList) ? seatList : []);
     } catch (err) {
+      logEvent("error", `Seat fetch error for sector ${sector.MAPLABEL}: ${err.message}`);
       console.error("Seat fetch error:", err);
       setSeats([]);
     } finally {
@@ -502,6 +535,7 @@ const Floor = () => {
   }, []);
 
   const backToFloorMap = useCallback(() => {
+    logEvent("info", `Navigating back to floor map: ${currentFloor?.title}`);
     navigate(buildFloorPath(currentFloor?.title), {
       replace: true,
       state: { sectorList, floorInfo: currentFloor, mode: isMoveMode ? "move" : undefined },
@@ -514,9 +548,13 @@ const Floor = () => {
 
   const handleFloorClick = useCallback((floor) => {
     if (currentFloor?.id === floor.id) {
-      if (showRoomView) backToFloorMap();
+      if (showRoomView) {
+        logEvent("info", `Same floor re-selected (${floor.title}) while in room view — returning to floor map`);
+        backToFloorMap();
+      }
       return;
     }
+    logEvent("info", `Floor switched: ${currentFloor?.title} → ${floor.title}`);
     setCurrentFloor(floor);
     setSelectedSector(null);
     setShowRoomView(false);
@@ -527,6 +565,7 @@ const Floor = () => {
   }, [currentFloor, showRoomView, backToFloorMap, setCurrentFloor, buildFloorPath, navigate, isMoveMode]);
 
   const handleSectorClick = useCallback(async (sector) => {
+    logEvent("info", `Sector selected: ${sector.MAPLABEL} (sectorNo=${sector.SECTORNO}, floor=${sector.FLOOR})`);
     setSelectedSector(sector);
     setShowRoomView(true);
     navigate(buildFloorPath(sector.FLOOR, sector.SECTORNO), {
@@ -538,38 +577,44 @@ const Floor = () => {
 
   const handleMiniSectorClick = useCallback((sector) => {
     if (!sector) return;
+    logEvent("info", `Mini-map sector clicked — panning to x:${sector.x1}, y:${sector.y1}`);
     setImageTransform((prev) => ({ ...prev, x: -sector.x1, y: -sector.y1 }));
   }, []);
 
   const handleSeatClick = useCallback((seat) => {
     const isAvailable = seat.USECNT === 0 && (seat.STATUS === 1 || seat.STATUS === 2);
     if (!isAvailable) return;
+    logEvent("info", `Seat selected: ${seat.VNAME} (STATUS=${seat.STATUS}, USECNT=${seat.USECNT})`);
     setSelectedSeat(seat);
     setShowSeatModal(true);
     setIsAnyModalOpen(true);
   }, []);
 
   const handleCloseModal = useCallback(() => {
+    logEvent("info", `Seat booking modal closed — seat: ${selectedSeat?.VNAME ?? "none"}`);
     setShowSeatModal(false);
     setSelectedSeat(null);
     setIsAnyModalOpen(false);
-      setPersistedSeatSelection(null)
-  }, []);
+    setPersistedSeatSelection(null);
+  }, [selectedSeat]);
 
-const handleSessionEnter = useCallback((index) => {
-  if (index === 0) {
-    timeLeftRef.current = floorTimerConfig.time;
-    setTimeLeft(floorTimerConfig.time);
-  }
-  setShowSessionReminder(false);
-  setIsAnyModalOpen(false);
-  
-  // ✅ Restore focus that was active before the modal opened
-  if (savedFocusRegionRef.current !== null) {
-    setFocusedRegion(savedFocusRegionRef.current);
-    savedFocusRegionRef.current = null;
-  }
-}, [floorTimerConfig.time]);
+  const handleSessionEnter = useCallback((index) => {
+    if (index === 0) {
+      logEvent("info", "Session extended by user");
+      timeLeftRef.current = floorTimerConfig.time;
+      setTimeLeft(floorTimerConfig.time);
+    } else {
+      logEvent("info", "Session extension declined by user");
+    }
+    setShowSessionReminder(false);
+    setIsAnyModalOpen(false);
+
+    // ✅ Restore focus that was active before the modal opened
+    if (savedFocusRegionRef.current !== null) {
+      setFocusedRegion(savedFocusRegionRef.current);
+      savedFocusRegionRef.current = null;
+    }
+  }, [floorTimerConfig.time]);
 
   // ─── Render ───────────────────────────────────────────────────────────────
 
@@ -617,7 +662,10 @@ const handleSessionEnter = useCallback((index) => {
                 isPanning={isPanning}
                 onMiniSectorClick={handleMiniSectorClick}
                 onSeatClick={handleSeatClick}
-                onMiniMapError={() => setMiniMapError(true)}
+                onMiniMapError={() => {
+                  logEvent("error", `Mini-map image failed to load for sector: ${selectedSector?.MAPLABEL}`);
+                  setMiniMapError(true);
+                }}
                 isMinimapFocused={focusedRegion === FocusRegion.MINI_MAP}
                 minimapFocusIndex={miniMapCursor}
                 focusedRegion={focusedRegion}
@@ -707,8 +755,8 @@ const handleSessionEnter = useCallback((index) => {
         isOpen={showSeatModal}
         onClose={handleCloseModal}
         disableFocusAndSpeech={showSessionReminder}
-          persistedSelection={persistedSeatSelection}
-  onSelectionChange={setPersistedSeatSelection}
+        persistedSelection={persistedSeatSelection}
+        onSelectionChange={setPersistedSeatSelection}
       />
 
       {/* ═══ SESSION REMINDER MODAL ═══ */}

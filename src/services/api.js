@@ -165,13 +165,6 @@ const syncServerLocale = async (lang) => {
 };
 
 const KioskLangInterceptor = async (config) => {
-  console.log(
-    "🔍 KioskLangInterceptor: runtimeLang =",
-    runtimeLang,
-    "lastSyncedLang =",
-    lastSyncedLang,
-  );
-
   // ✅ Always sync if not yet synced or language changed
   if (lastSyncedLang !== runtimeLang) {
     console.log("🔄 Language mismatch detected, syncing...");
@@ -289,6 +282,7 @@ export const getFloorImageUrl = () => PRIMARY_SERVER_URL;
 
 export const getFloorList = async (libno) => {
   await ensureInitialized();
+  await logEvent("info", `Fetching floor list for libno: ${libno}`);
   const res = await ApiClientPrimary.get("/SEATAPI/GetFloorUsingCount.asp", {
     params: { libno },
   });
@@ -297,13 +291,14 @@ export const getFloorList = async (libno) => {
 
 export const getNoticeInfo = async () => {
   await ensureInitialized();
+  await logEvent("info", "Fetching notice info");
   const res = await ApiClientPrimary.get("/SEATAPI/GetNoticeInfo.asp");
   return res.data;
 };
 
 export const getSectorList = async ({ floor, floorno }) => {
   await ensureInitialized();
-
+  await logEvent("info", `Fetching sector list for floor: ${floor}, floorno: ${floorno}`);
   const res = await ApiClientPrimary.post("/SEATAPI/GetSector.asp", {
     floor,
     floorno,
@@ -333,7 +328,7 @@ export const loginBySchoolNo = async (schoolno) => {
 
 export const getUserInfo = async ({ schoolno }) => {
   await ensureInitialized();
-
+  await logEvent("info", `Fetching user info for schoolno: ${schoolno}`);
   const res = await ApiClientPrimary.get("/SEATAPI/GetUserInfo.asp", {
     params: { schoolno },
   });
@@ -349,20 +344,23 @@ export const QRValidate = async (qrCode) => {
   console.log("qr data", res?.data?.body)
   return res?.data?.body;
 };
+
 /* ===============================
    💺 SEAT
 ================================ */
 
 export const getSeatList = async ({ sectorno }) => {
   await ensureInitialized();
+  await logEvent("info", `Fetching seat list for sectorno: ${sectorno}`);
   const res = await ApiClientPrimary.post("/SEATAPI/GetBookingSeat.asp", {
     sectorno,
   });
   return res?.data?.body?.SeatList || [];
 };
+
 export const getBookingBseqno = async ({ bseqno }) => {
   await ensureInitialized();
-
+  await logEvent("info", `Fetching booking for bseqno: ${bseqno}`);
   const res = await ApiClientPrimary.get(
     "/SEATAPI/GetBookingBseqno.asp",
     {
@@ -371,8 +369,10 @@ export const getBookingBseqno = async ({ bseqno }) => {
   );
   return res?.data;
 };
+
 export const getBookingTimeSeat = async ({ seatno, assignno }) => {
   await ensureInitialized();
+  await logEvent("info", `Fetching booking time for seatno: ${seatno}`);
   const res = await ApiClientPrimary.post("/SEATAPI/GetBookingTimeSeat.asp", {
     ...(seatno && { seatno }),
   });
@@ -381,7 +381,7 @@ export const getBookingTimeSeat = async ({ seatno, assignno }) => {
 
 export const getBookingList = async ({ schoolno, sDate, eDate }) => {
   await ensureInitialized();
-
+  await logEvent("info", `Fetching booking list for schoolno: ${schoolno}, sDate: ${sDate}, eDate: ${eDate}`);
   const res = await ApiClientPrimary.get(
     "/SEATAPI/GetBookingListSchoolno.asp",
     {
@@ -394,6 +394,7 @@ export const getBookingList = async ({ schoolno, sDate, eDate }) => {
   );
   return res?.data?.body?.BookingList || [];
 };
+
 /* ===============================
    ✅ BOOKING
 ================================ */
@@ -441,6 +442,7 @@ export const setMove = async ({ bseqno, newSeatno }) => {
   });
   return res?.data;
 };
+
 export const setReturnSeat = async (payload) => {
   await ensureInitialized();
   await logEvent("info", `Returning seat: ${JSON.stringify(payload)}`);
@@ -448,9 +450,10 @@ export const setReturnSeat = async (payload) => {
   const res = await ApiClientPrimary.post("/SEATAPI/RunReturnSeat.asp", payload);
   return res?.data;
 };
+
 export const setAssignSeatInfo = async ({ schoolno, date, seatno, useTime }) => {
   await ensureInitialized();
-
+  await logEvent("info", `Booking seat: schoolno=${schoolno}, date=${date}, seatno=${seatno}, useTime=${useTime}`);
   const res = await ApiClientPrimary.get("/SEATAPI/RunSeatBooking.asp", {
     params: {
       schoolno,
@@ -464,9 +467,10 @@ export const setAssignSeatInfo = async ({ schoolno, date, seatno, useTime }) => 
 
 export const managerCall = async (message) => {
   await ensureInitialized();
+  await logEvent("info", `Manager call with message: ${message}`);
   const response = await fetch(
     `${managerIpUrl}/callMan.api?msg=${encodeURIComponent(message)}`,
-    {  method: "GET", mode: "no-cors" },
+    { method: "GET", mode: "no-cors" },
   );
   return await response.json();
 };

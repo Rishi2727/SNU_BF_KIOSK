@@ -6,6 +6,9 @@ import { useTranslation } from "react-i18next";
 import { getRoomConfig } from "../../../utils/config";
 import SectorZoomMiniMap from "./SectorZoomMiniMap.jsx";
 import seatUserIcon from "../../../assets/images/SeatIcons.png";
+import { logEvent } from "../../../logger.js";
+
+
 /* ================= SEAT IMAGE ================= */
 const getRSeatImage = (seat) => {
   const SeatImagebaseUrl = getImageBaseUrl();
@@ -40,7 +43,7 @@ const RoomView = ({
   const mainImageRef = useRef(null);
   const containerRef = useRef(null);
   const seatRefs = useRef({});
-  const prevSectorNoRef = useRef(null); // Track previous sector number
+  const prevSectorNoRef = useRef(null);
 
   const [seatBounds, setSeatBounds] = useState(null);
   const [sectors, setSectors] = useState([]);
@@ -55,6 +58,7 @@ const RoomView = ({
   const [firstSectorSet, setFirstSectorSet] = useState(false);
   const imageWrapperRef = useRef(null);
   const SeatImagebaseUrl = getImageBaseUrl();
+
   const isRoomStillLoading =
     loadingSeats ||
     !isImageLoaded ||
@@ -64,17 +68,14 @@ const RoomView = ({
   /* ================= ROOM CONFIG ================= */
   const roomConfig = useMemo(() => {
     const config = getRoomConfig(selectedSector?.SECTORNO);
-    return {
-      ...config
-    };
+    return { ...config };
   }, [selectedSector?.SECTORNO]);
-
-
 
   /* ================= COMPLETE RESET ON SECTOR CHANGE ================= */
   useEffect(() => {
     if (prevSectorNoRef.current === selectedSector?.SECTORNO) return;
 
+    logEvent("info", `RoomView sector changed: ${prevSectorNoRef.current} → ${selectedSector?.SECTORNO} (${selectedSector?.MAPLABEL})`);
     prevSectorNoRef.current = selectedSector?.SECTORNO;
 
     setSelectedMiniSectorLocal(null);
@@ -87,12 +88,8 @@ const RoomView = ({
     setDisplayDimensions({ width: 0, height: 0 });
     setRefsReady(false);
     setFirstSectorSet(false);
-
     seatRefs.current = {};
-
   }, [selectedSector?.SECTORNO]);
-
-
 
   /* ================= PARSE SEAT POSITION ================= */
   const parseSeatPosition = (seat) => {
@@ -122,10 +119,9 @@ const RoomView = ({
       height: seat.POSH * scaleY,
     };
   };
+
   const parseSeatIconPosition = (seat) => {
-    if (!naturalDimensions.width || !displayDimensions.width) {
-      return null;
-    }
+    if (!naturalDimensions.width || !displayDimensions.width) return null;
 
     const referenceDimensions = roomConfig.USE_LEGACY_SYSTEM_MAPPING
       ? {
@@ -137,7 +133,6 @@ const RoomView = ({
     const scaleX = displayDimensions.width / referenceDimensions.width;
     const scaleY = displayDimensions.height / referenceDimensions.height;
 
-    // ✅ Use MANX/MANY if available
     if (seat.MANX != null && seat.MANY != null) {
       return {
         left: seat.MANX * scaleX,
@@ -145,7 +140,6 @@ const RoomView = ({
       };
     }
 
-    // ✅ Fallback → center of seat
     const seatPosition = parseSeatPosition(seat);
     if (!seatPosition) return null;
 
@@ -154,6 +148,7 @@ const RoomView = ({
       top: seatPosition.top + seatPosition.height / 2,
     };
   };
+
   /* ================= UPDATE CONTAINER SIZE ================= */
   useEffect(() => {
     const updateContainerSize = () => {
@@ -210,6 +205,8 @@ const RoomView = ({
 
     setDisplayDimensions({ width: displayWidth, height: displayHeight });
     setIsImageLoaded(true);
+
+    logEvent("info", `Room image loaded for sector ${selectedSector?.SECTORNO}: natural=${img.naturalWidth}x${img.naturalHeight}, display=${displayWidth}x${displayHeight}, scale=${finalScale.toFixed(3)}`);
   };
 
   /* ================= CALCULATE SEAT BOUNDS ================= */
@@ -268,34 +265,21 @@ const RoomView = ({
     maxX = Math.min(displayDimensions.width, maxX + roomConfig.SEAT_BOUNDS_MARGIN);
     maxY = Math.min(displayDimensions.height, maxY + roomConfig.SEAT_BOUNDS_MARGIN);
 
-    const bounds = {
-      minX,
-      minY,
-      maxX,
-      maxY,
-      width: maxX - minX,
-      height: maxY - minY
-    };
-
+    const bounds = { minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY };
     setSeatBounds(bounds);
+
+    logEvent("info", `Seat bounds calculated for sector ${selectedSector?.SECTORNO}: ${seats.length} seats, bounds=${Math.round(bounds.width)}x${Math.round(bounds.height)}`);
   }, [seats, naturalDimensions, displayDimensions, isImageLoaded, roomConfig]);
 
   /* ================= CALCULATE SECTORS ================= */
   useEffect(() => {
     if (!seatBounds || !containerSize.width || !containerSize.height) {
-      console.log('⏸️ Sector calc waiting for:', {
-        hasSeatBounds: !!seatBounds,
-        containerSize
-      });
+      console.log('⏸️ Sector calc waiting for:', { hasSeatBounds: !!seatBounds, containerSize });
       return;
     }
 
     if (!seats.length || !naturalDimensions.width || !displayDimensions.width) {
-      console.log('⏸️ Sector calc waiting for dimensions:', {
-        seatsCount: seats.length,
-        naturalDimensions,
-        displayDimensions
-      });
+      console.log('⏸️ Sector calc waiting for dimensions:', { seatsCount: seats.length, naturalDimensions, displayDimensions });
       return;
     }
 
@@ -317,7 +301,6 @@ const RoomView = ({
     const numHorizontalSectors = Math.ceil(boundsWidth / containerWidth);
     const numVerticalSectors = Math.ceil(boundsHeight / containerHeight);
 
-
     const horizontalStep = numHorizontalSectors > 1
       ? (boundsWidth - containerWidth) / (numHorizontalSectors - 1)
       : 0;
@@ -336,10 +319,7 @@ const RoomView = ({
         const x2 = x1 + containerWidth;
         const y2 = y1 + containerHeight;
 
-        let uniqueX1 = x1;
-        let uniqueX2 = x2;
-        let uniqueY1 = y1;
-        let uniqueY2 = y2;
+        let uniqueX1 = x1, uniqueX2 = x2, uniqueY1 = y1, uniqueY2 = y2;
 
         if (col > 0) {
           const leftSectorX1 = minX + ((col - 1) * horizontalStep);
@@ -349,7 +329,6 @@ const RoomView = ({
           const rightSectorX1 = minX + ((col + 1) * horizontalStep);
           uniqueX2 = (x1 + rightSectorX1) / 2 + containerWidth / 2;
         }
-
         if (row > 0) {
           const topSectorY1 = minY + ((row - 1) * verticalStep);
           uniqueY1 = (topSectorY1 + y1) / 2 + containerHeight / 2;
@@ -362,7 +341,6 @@ const RoomView = ({
         const centerX = (uniqueX1 + uniqueX2) / 2;
         const centerY = (uniqueY1 + uniqueY2) / 2;
 
-        // Check if any seat is COMPLETELY within this sector
         const hasCompleteSeat = seats.some(seat => {
           const sx1 = seat.POSX * scaleX;
           const sy1 = seat.POSY * scaleY;
@@ -374,38 +352,22 @@ const RoomView = ({
           const overlapRight = Math.min(sx2, x2);
           const overlapBottom = Math.min(sy2, y2);
 
-          const isComplete = overlapLeft < overlapRight && overlapTop < overlapBottom;
-
-
-
-          return isComplete;
+          return overlapLeft < overlapRight && overlapTop < overlapBottom;
         });
-
-
 
         const sectorData = {
           id: sectorId,
-          x1: Math.round(x1),
-          y1: Math.round(y1),
-          x2: Math.round(x2),
-          y2: Math.round(y2),
-          uniqueX1: Math.round(uniqueX1),
-          uniqueY1: Math.round(uniqueY1),
-          uniqueX2: Math.round(uniqueX2),
-          uniqueY2: Math.round(uniqueY2),
-          centerX: Math.round(centerX),
-          centerY: Math.round(centerY),
+          x1: Math.round(x1), y1: Math.round(y1),
+          x2: Math.round(x2), y2: Math.round(y2),
+          uniqueX1: Math.round(uniqueX1), uniqueY1: Math.round(uniqueY1),
+          uniqueX2: Math.round(uniqueX2), uniqueY2: Math.round(uniqueY2),
+          centerX: Math.round(centerX), centerY: Math.round(centerY),
           enabled: hasCompleteSeat,
-          row,
-          col
+          row, col
         };
 
         allSectors.push(sectorData);
-
-        if (hasCompleteSeat) {
-          calculatedSectors.push(sectorData);
-        }
-
+        if (hasCompleteSeat) calculatedSectors.push(sectorData);
         sectorId++;
       }
     }
@@ -416,20 +378,18 @@ const RoomView = ({
       enabledIds: calculatedSectors.map(s => s.id)
     });
 
+    logEvent("info", `Mini-map sectors calculated for sector ${selectedSector?.SECTORNO}: ${calculatedSectors.length} enabled of ${allSectors.length} total (grid=${numHorizontalSectors}x${numVerticalSectors})`);
+
     setSectors(calculatedSectors);
     setAllSectors(allSectors);
-
   }, [seatBounds, containerSize, seats, naturalDimensions, displayDimensions, roomConfig]);
 
   // 🔄 Geometry changed → allow first sector to be set again
   useEffect(() => {
     if (!seatBounds) return;
-
     console.log("♻️ Geometry changed → resetting first sector lock");
-
     setFirstSectorSet(false);
     setSelectedMiniSectorLocal(null);
-
   }, [
     seatBounds?.minX,
     seatBounds?.minY,
@@ -450,22 +410,14 @@ const RoomView = ({
     if (!firstSector) return;
 
     console.log("🎯 Auto-selected sector:------------->", firstSector.id, allSectors);
+    logEvent("info", `Auto-selected first mini-map sector: id=${firstSector.id} for sector ${selectedSector?.SECTORNO}`);
 
     setFirstSectorSet(true);
     setSelectedMiniSectorLocal(firstSector);
     setImagePanOffset({ x: -firstSector.x1, y: -firstSector.y1 });
 
     if (onMiniSectorClick) onMiniSectorClick(firstSector);
-
-  }, [
-    sectors,
-    isImageLoaded,
-    seatBounds,
-    containerSize,
-    firstSectorSet,
-    onMiniSectorClick
-  ]);
-
+  }, [sectors, isImageLoaded, seatBounds, containerSize, firstSectorSet, onMiniSectorClick]);
 
   /* ================= CHECK SEAT VISIBILITY BY OVERLAP ================= */
   const isSeatVisibleByOverlap = (seat) => {
@@ -475,17 +427,12 @@ const RoomView = ({
     if (!sector) return true;
 
     const threshold = roomConfig.SEAT_OVERLAP_THRESHOLD || 0.1;
-
     const position = parseSeatPosition(seat);
     if (!position) return false;
 
-    const seatLeft = position.left;
-    const seatTop = position.top;
-    const seatWidth = position.width;
-    const seatHeight = position.height;
-    const seatRight = seatLeft + seatWidth;
-    const seatBottom = seatTop + seatHeight;
-    const seatArea = seatWidth * seatHeight;
+    const seatLeft = position.left, seatTop = position.top;
+    const seatRight = seatLeft + position.width, seatBottom = seatTop + position.height;
+    const seatArea = position.width * position.height;
 
     const overlapLeft = Math.max(seatLeft, sector.x1);
     const overlapTop = Math.max(seatTop, sector.y1);
@@ -494,9 +441,7 @@ const RoomView = ({
 
     if (overlapLeft < overlapRight && overlapTop < overlapBottom) {
       const overlapArea = (overlapRight - overlapLeft) * (overlapBottom - overlapTop);
-      const overlapPercentage = overlapArea / seatArea;
-
-      return overlapPercentage >= (1 - threshold);
+      return (overlapArea / seatArea) >= (1 - threshold);
     }
 
     return false;
@@ -504,7 +449,6 @@ const RoomView = ({
 
   /* ================= MINIMAP HIDE CHECK ================= */
   const isSeatHiddenByMinimap = (seat) => {
-
     if (!miniMapRef.current || !containerRef.current) return false;
 
     const position = parseSeatPosition(seat);
@@ -512,27 +456,16 @@ const RoomView = ({
 
     const threshold = roomConfig.SEAT_OVERLAP_THRESHOLD || 0.1;
 
-    // Seat position in image coordinates (before pan transform)
-    const seatInImageCoords = {
-      left: position.left,
-      top: position.top,
-      right: position.left + position.width,
-      bottom: position.top + position.height,
-    };
-
-    // Apply pan offset to get seat position in viewport
     const seatInViewport = {
-      left: seatInImageCoords.left + imagePanOffset.x,
-      top: seatInImageCoords.top + imagePanOffset.y,
-      right: seatInImageCoords.right + imagePanOffset.x,
-      bottom: seatInImageCoords.bottom + imagePanOffset.y,
+      left: position.left + imagePanOffset.x,
+      top: position.top + imagePanOffset.y,
+      right: position.left + position.width + imagePanOffset.x,
+      bottom: position.top + position.height + imagePanOffset.y,
     };
 
-    // Get minimap position relative to container
     const containerRect = containerRef.current.getBoundingClientRect();
     const miniRect = miniMapRef.current.getBoundingClientRect();
 
-    // Minimap position in viewport (relative to container)
     const minimapInViewport = {
       left: miniRect.left - containerRect.left,
       top: miniRect.top - containerRect.top,
@@ -540,36 +473,29 @@ const RoomView = ({
       bottom: miniRect.bottom - containerRect.top,
     };
 
-    // Calculate overlap area
     const overlapLeft = Math.max(seatInViewport.left, minimapInViewport.left);
     const overlapTop = Math.max(seatInViewport.top, minimapInViewport.top);
     const overlapRight = Math.min(seatInViewport.right, minimapInViewport.right);
     const overlapBottom = Math.min(seatInViewport.bottom, minimapInViewport.bottom);
 
-    // Check if there's any overlap
     if (overlapLeft < overlapRight && overlapTop < overlapBottom) {
       const seatArea = position.width * position.height;
       const overlapArea = (overlapRight - overlapLeft) * (overlapBottom - overlapTop);
-      const overlapPercentage = overlapArea / seatArea;
-
-      // Hide seat if overlap exceeds threshold (e.g., more than 10% of seat is hidden)
-      return overlapPercentage >= threshold;
+      return (overlapArea / seatArea) >= threshold;
     }
 
     return false;
   };
-
 
   /* ================= HANDLE SECTOR SELECTION ================= */
   const handleSectorSelect = (sectorId) => {
     console.log("🎯 Manual sector selection:", sectorId);
     const sector = sectors.find(s => s.id === sectorId);
     if (sector) {
+      logEvent("info", `Mini-map sector manually selected: id=${sectorId} for sector ${selectedSector?.SECTORNO}`);
       setSelectedMiniSectorLocal(sector);
       setImagePanOffset({ x: -sector.x1, y: -sector.y1 });
-      if (onMiniSectorClick) {
-        onMiniSectorClick(sector);
-      }
+      if (onMiniSectorClick) onMiniSectorClick(sector);
     }
   };
 
@@ -580,10 +506,8 @@ const RoomView = ({
     const position = parseSeatPosition(seat);
     if (!position) return false;
 
-    const seatLeft = position.left;
-    const seatTop = position.top;
-    const seatRight = seatLeft + position.width;
-    const seatBottom = seatTop + position.height;
+    const seatLeft = position.left, seatTop = position.top;
+    const seatRight = seatLeft + position.width, seatBottom = seatTop + position.height;
 
     const viewportLeft = -imagePanOffset.x;
     const viewportTop = -imagePanOffset.y;
@@ -600,37 +524,23 @@ const RoomView = ({
 
   /* ================= VISIBLE SEATS MEMO ================= */
   const visibleSeats = useMemo(() => {
-    if (!seats?.length || !selectedMiniSectorLocal) {
-      return [];
-    }
+    if (!seats?.length || !selectedMiniSectorLocal) return [];
 
     const visible = seats.filter(seat => {
       if (!isSeatInViewport(seat)) return false;
       if (!isSeatVisibleByOverlap(seat)) return false;
-
-      // 👉 hide if covered by minimap
       if (isSeatHiddenByMinimap(seat)) return false;
-
       return true;
     });
 
-
     const sorted = visible.sort((a1, b1) => {
-      const a = a1.VNAME;
-      const b = b1.VNAME;
-
+      const a = a1.VNAME, b = b1.VNAME;
       const re = /^([A-Za-z]*)(\d*)$/;
       const [, aPrefix, aNum] = a.match(re);
       const [, bPrefix, bNum] = b.match(re);
-
-      if (aPrefix !== bPrefix) {
-        return aPrefix.localeCompare(bPrefix);
-      }
-
-      return (parseInt(aNum || 0) - parseInt(bNum || 0));
+      if (aPrefix !== bPrefix) return aPrefix.localeCompare(bPrefix);
+      return parseInt(aNum || 0) - parseInt(bNum || 0);
     });
-
-
 
     return sorted;
   }, [seats, selectedMiniSectorLocal, imagePanOffset, containerSize, miniMapRef.current]);
@@ -638,11 +548,7 @@ const RoomView = ({
   /* ================= MARK REFS AS READY ================= */
   useEffect(() => {
     if (!seats?.length || !isImageLoaded) return;
-
-    const timer = setTimeout(() => {
-      setRefsReady(true);
-    }, 200);
-
+    const timer = setTimeout(() => setRefsReady(true), 200);
     return () => clearTimeout(timer);
   }, [seats, isImageLoaded]);
 
@@ -657,17 +563,10 @@ const RoomView = ({
     if (!sector) return;
 
     console.log("👀 Minimap focus moved to sector:", sector.id);
+    logEvent("info", `Mini-map keyboard focus moved to sector id=${sector.id} (index=${clampedIndex})`);
 
-    // 🔊 SPEAK
     speak(t("speech.Mini map sector") + " " + sector.id);
-
-  }, [
-    minimapFocusIndex,
-    isMinimapFocused,
-    sectors,
-    speak,
-    t
-  ]);
+  }, [minimapFocusIndex, isMinimapFocused, sectors, speak, t]);
 
   useEffect(() => {
     if (!isMinimapFocused) return;
@@ -681,11 +580,10 @@ const RoomView = ({
       if (!sector) return;
 
       console.log("✅ ENTER pressed → selecting sector:", sector.id);
+      logEvent("info", `Mini-map sector confirmed via Enter: id=${sector.id} for sector ${selectedSector?.SECTORNO}`);
 
       setSelectedMiniSectorLocal(sector);
       setImagePanOffset({ x: -sector.x1, y: -sector.y1 });
-
-      // 🔊 SPEAK CONFIRMATION
       speak(t("speech.Selected mini map sector") + " " + sector.id);
 
       if (onMiniSectorClick) onMiniSectorClick(sector);
@@ -693,9 +591,7 @@ const RoomView = ({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-
   }, [isMinimapFocused, minimapFocusIndex, sectors, onMiniSectorClick, speak, t]);
-
 
   // Notify parent of sector count and visible seats
   useEffect(() => {
@@ -713,6 +609,7 @@ const RoomView = ({
   /* ================= RENDER ================= */
   const canShowMinimap = !loadingSeats && selectedSector?.SECTOR_IMAGE && sectors.length > 0;
   const canShowSeats = selectedMiniSectorLocal && !loadingSeats;
+
   return (
     <>
       <div
@@ -720,7 +617,6 @@ const RoomView = ({
         className="room-view flex flex-col w-full h-full relative"
       >
         {isRoomStillLoading && <LoadingSpinner message={t("Loading room and seats")} />}
-
 
         {/* MINIMAP */}
         {canShowMinimap && (
@@ -767,12 +663,9 @@ const RoomView = ({
                   ref={mainImageRef}
                   src={`${baseUrl}${selectedSector?.SECTOR_IMAGE}`}
                   alt="Room"
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'fill'
-                  }}
+                  style={{ width: '100%', height: '100%', objectFit: 'fill' }}
                   onLoad={handleImageLoad}
+                  onError={() => logEvent("error", `Room image failed to load for sector ${selectedSector?.SECTORNO}: ${baseUrl}${selectedSector?.SECTOR_IMAGE}`)}
                   draggable={false}
                 />
 
@@ -785,12 +678,9 @@ const RoomView = ({
 
                   const isAvailable =
                     seat.USECNT === 0 && (seat.STATUS === 1 || seat.STATUS === 2);
-                  const isBooked = !isAvailable;
                   const isHandicap = seat.STATUS === 9;
+                  const iconPos = !isAvailable ? parseSeatIconPosition(seat) : null;
 
-                  const iconPos = !isAvailable
-                    ? parseSeatIconPosition(seat)
-                    : null;
                   return (
                     <div key={seat.SEATNO}>
 
@@ -798,8 +688,7 @@ const RoomView = ({
                       {seat.ICONTYPE >= 2 && seat.ICONTYPE <= 7 && (
                         <div
                           ref={(el) => (seatRefs.current[seat.SEATNO] = el)}
-                          className={`absolute cursor-pointer transition-all hover:opacity-80 ${isFocused ? "ring-[6px] ring-[#dc2f02] ring-offset-2 z-50" : ""
-                            }`}
+                          className={`absolute cursor-pointer transition-all hover:opacity-80 ${isFocused ? "ring-[6px] ring-[#dc2f02] ring-offset-2 z-50" : ""}`}
                           style={{
                             left: `${position.left}px`,
                             top: `${position.top}px`,
@@ -808,19 +697,15 @@ const RoomView = ({
                           }}
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (!isPanning) onSeatClick(seat);
+                            if (!isPanning) {
+                              logEvent("info", `Seat clicked: ${seat.VNAME} (SEATNO=${seat.SEATNO}, STATUS=${seat.STATUS}, USECNT=${seat.USECNT}, ICONTYPE=${seat.ICONTYPE})`);
+                              onSeatClick(seat);
+                            }
                           }}
                         >
-                          <img
-                            src={getRSeatImage(seat)}
-                            className="w-full h-full"
-                            alt=""
-                          />
+                          <img src={getRSeatImage(seat)} className="w-full h-full" alt="" />
                           <span
-                            className={`absolute inset-0 font-medium flex items-center justify-center text-black drop-shadow ${!isAvailable
-                              ? "underline decoration-[#00B1B0] decoration-[5px] underline-offset-[6px]"
-                              : ""
-                              }`}
+                            className={`absolute inset-0 font-medium flex items-center justify-center text-black drop-shadow ${!isAvailable ? "underline decoration-[#00B1B0] decoration-[5px] underline-offset-[6px]" : ""}`}
                             style={{ fontSize: "30px" }}
                           >
                             {seat.VNAME}
@@ -853,18 +738,15 @@ const RoomView = ({
                           }}
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (!isPanning) onSeatClick(seat);
+                            if (!isPanning) {
+                              logEvent("info", `Seat clicked: ${seat.VNAME} (SEATNO=${seat.SEATNO}, STATUS=${seat.STATUS}, USECNT=${seat.USECNT}, ICONTYPE=${seat.ICONTYPE})`);
+                              onSeatClick(seat);
+                            }
                           }}
                         >
                           <span
-                            className={`font-medium ${!isAvailable
-                              ? "underline decoration-[#00B1B0] decoration-[5px] underline-offset-[6px] "
-                              : ""
-                              }`}
-                            style={{
-                              fontSize: "30px",
-                              color: "#2c2c2c",
-                            }}
+                            className={`font-medium ${!isAvailable ? "underline decoration-[#00B1B0] decoration-[5px] underline-offset-[6px]" : ""}`}
+                            style={{ fontSize: "30px", color: "#2c2c2c" }}
                           >
                             {seat.VNAME}
                           </span>
@@ -882,8 +764,6 @@ const RoomView = ({
                             top: `${iconPos.top}px`,
                             width: `30px`,
                             height: `30px`,
-
-
                           }}
                         />
                       )}

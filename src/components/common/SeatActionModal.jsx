@@ -30,6 +30,7 @@ import { getPrintData } from "../layout/floor/PrintSlip";
 import { FaCheck, FaTimes } from "react-icons/fa";
 import { fetchBookingList } from "../../redux/slice/bookingHistroySlice";
 import { fetchUserInfo } from "../../redux/slice/getUserDataSlice";
+import { logEvent } from "../../logger";
 
 // Label-only element types that should be skipped during keyboard nav
 const LABEL_TYPES = new Set(["name-label", "date-label", "start-label", "action-label"]);
@@ -59,7 +60,7 @@ const SeatActionModal = ({
     const { t } = useTranslation();
     const { userInfo } = useSelector((state) => state.userInfo);
     const { timeOptions, defaultIndex } = useSelector((state) => state.bookingTime);
-    const { bookingList: bookingSeatInfo, loading: bookingLoading } = useSelector((state) => state.booking)
+    const { bookingList: bookingSeatInfo, loading: bookingLoading } = useSelector((state) => state.booking);
     const { userInfo: userData, loading: userDataLoading } = useSelector((state) => state.user);
     const lang = useSelector((state) => state.lang.current);
     const [loading, setLoading] = useState(false);
@@ -78,18 +79,17 @@ const SeatActionModal = ({
     const lastSpokenRef = useRef("");
     const isFirstOpenRef = useRef(false);
     const { writeToSerialPort, serialPortsData } = useSerialPort();
-    console.log("action errror", actionResult?.message)
+    console.log("action errror", actionResult?.message);
     const languageCode = localStorage.getItem("lang") === "ko" ? "ko" : "en";
     const uiDateFormat = languageCode === "ko" ? DATE_FORMATS.KO_DATETIME : DATE_FORMATS.DATETIME;
+
     useEffect(() => {
         if (!isOpen) return;
-
         if (!(isReturn || isExtension || isMove || isAssignCheck)) return;
 
         const fetchBooking = async () => {
             try {
                 const today = formatDateNum(new Date());
-
                 await dispatch(
                     fetchBookingList({
                         schoolno: userInfo?.SCHOOLNO,
@@ -98,13 +98,14 @@ const SeatActionModal = ({
                     })
                 );
             } catch (err) {
+                logEvent("error", `Fetch booking list failed in SeatActionModal (mode=${mode}): ${err.message}`);
                 console.error("Fetch booking failed", err);
             }
         };
 
         fetchBooking();
-
     }, [isOpen, isReturn, isExtension, isMove, dispatch, userInfo]);
+
     const activeBooking = useMemo(() => {
         if (!bookingSeatInfo?.length) return null;
         return bookingSeatInfo.find(item => item.STATUS === 3);
@@ -115,6 +116,7 @@ const SeatActionModal = ({
             dispatch(fetchUserInfo({ schoolno: userInfo?.SCHOOLNO }));
         }
     }, [dispatch, userInfo?.SCHOOLNO]);
+
     // Derived flags
     const isAvailable = useMemo(() => {
         if (!(isBooking || isMove)) return true;
@@ -215,6 +217,7 @@ const SeatActionModal = ({
     }, [isModalFocused, focusIndex, getFocusableElements]);
 
     // ─── API calls ───────────────────────────────────────────────────────────────
+
     const executeApiCall = useCallback(async () => {
         if (isBooking) {
             return await setSeatAssign({
@@ -226,7 +229,6 @@ const SeatActionModal = ({
         }
         if (isExtension) {
             const minutes = Number(timeOptions[selectedIndex].value);
-
             return await setExtend({
                 bseqno: activeBooking?.BSEQNO,
                 min: minutes,
@@ -249,15 +251,18 @@ const SeatActionModal = ({
     // ─── Handlers ────────────────────────────────────────────────────────────────
 
     const handleTimeSelect = useCallback((index, value) => {
+        logEvent("info", `Time option selected in SeatActionModal (mode=${mode}): index=${index}, value=${value}min`);
         setSelectedIndex(index);
         setEndTime(addMinutes(value).toDate());
         lastSpokenRef.current = "";
         if (onSelectionChange) onSelectionChange({ selectedIndex: index, endTime: addMinutes(value).toDate() });
-    }, [onSelectionChange]);
+    }, [mode, onSelectionChange]);
 
     const handleFinalConfirm = useCallback(async () => {
         if (!isReturn && !isMove && selectedIndex === null) return;
         if ((isBooking || isMove) && !isAvailable) return;
+
+        logEvent("info", `SeatActionModal confirm initiated — mode=${mode}, seat=${seat?.VNAME ?? activeBooking?.SEAT_VNAME ?? "n/a"}, schoolno=${userInfo?.SCHOOLNO}`);
 
         try {
             setLoading(true);
@@ -282,25 +287,33 @@ const SeatActionModal = ({
                         : isExtension ? "Seat Extension Successful"
                             : "Seat Returned Successfully";
 
+            const success = res?.header?.resultCode === "200";
+
+            if (success) {
+                logEvent("info", `SeatActionModal API success — mode=${mode}, resultCode=${res?.header?.resultCode}, seat=${seat?.VNAME ?? activeBooking?.SEAT_VNAME ?? "n/a"}`);
+            } else {
+                logEvent("error", `SeatActionModal API failure — mode=${mode}, resultCode=${res?.header?.resultCode}, msg=${res?.header?.resultMsg}`);
+            }
+
             setActionResult({
-                success: res?.header?.resultCode === "200",
-                message: res?.header?.resultCode === "200"
-                    ? msgKey
-                    : res?.header?.resultMsg || "Operation failed"
+                success,
+                message: success ? msgKey : res?.header?.resultMsg || "Operation failed"
             });
             setShowResultModal(true);
         } catch (err) {
+            logEvent("error", `SeatActionModal API exception — mode=${mode}, seat=${seat?.VNAME ?? "n/a"}: ${err?.message}`);
             onClose();
             setActionResult({ success: false, message: err?.response?.data?.msg });
             setShowResultModal(true);
         } finally {
             setLoading(false);
         }
-    }, [isReturn, isMove, isBooking, isExtension, selectedIndex, isAvailable, executeApiCall, onClose, seat, lang]);
-    const handleResultModalClose = useCallback(async () => {
-        setShowResultModal(false);
+    }, [isReturn, isMove, isBooking, isExtension, selectedIndex, isAvailable, executeApiCall, onClose, seat, activeBooking, userInfo, lang, mode]);
 
+    const handleResultModalClose = useCallback(async () => {
         const wasSuccessful = actionResult?.success;
+        logEvent("info", `Result modal closed — mode=${mode}, success=${wasSuccessful}, logoutOnSuccess=${logoutOnSuccess}`);
+        setShowResultModal(false);
         setActionResult(null);
 
         if (wasSuccessful || logoutOnSuccess) {
@@ -310,12 +323,14 @@ const SeatActionModal = ({
                 dispatch(logout());
                 navigate("/");
             } catch (err) {
+                logEvent("error", `Logout error after result modal close (mode=${mode}): ${err.message}`);
                 console.error("Logout error:", err);
             }
         }
-    }, [actionResult, dispatch, navigate, logoutOnSuccess]);
+    }, [actionResult, dispatch, navigate, logoutOnSuccess, mode]);
 
     const handlePrint = useCallback(async () => {
+        logEvent("info", `Print initiated — seat=${seat?.VNAME ?? activeBooking?.SEAT_VNAME ?? "n/a"}, schoolno=${userInfo?.SCHOOLNO}`);
         try {
             const dateFormat = languageCode === "ko" ? DATE_FORMATS.KO_DATETIME : DATE_FORMATS.DATETIME;
             const formattedData = {
@@ -343,20 +358,24 @@ const SeatActionModal = ({
                 commands: printData.commands.map((c) => ({ type: c.type, value: c.value || null })),
             };
             await writeToSerialPort(printerConfig, printOptions);
+            logEvent("info", `Print completed — seat=${seat?.VNAME ?? activeBooking?.SEAT_VNAME ?? "n/a"}`);
             dispatch(logout());
             navigate("/");
         } catch (err) {
+            logEvent("error", `Print failed — seat=${seat?.VNAME ?? activeBooking?.SEAT_VNAME ?? "n/a"}: ${err.message}`);
             console.error("Error printing:", err);
         }
-    }, [userInfo, seat, activeBooking, seatInfo, startTime, endTime, serialPortsData, writeToSerialPort, t, dispatch, navigate, languageCode]);
+    }, [userInfo, seat, activeBooking, seatInfo, startTime, endTime, serialPortsData, writeToSerialPort, t, dispatch, navigate, languageCode, userData]);
 
     const handleEnterPress = useCallback((focusedElement) => {
         if (!focusedElement) return;
+        logEvent("info", `Keyboard Enter on element type="${focusedElement.type}" (mode=${mode})`);
         switch (focusedElement.type) {
             case "time-button":
                 handleTimeSelect(focusedElement.index, focusedElement.value);
                 break;
             case "cancel-button":
+                logEvent("info", `SeatActionModal cancelled via keyboard (mode=${mode})`);
                 setConfirmStep(false);
                 onClose();
                 if (onBackToUserInfo) setTimeout(() => onBackToUserInfo(), 200);
@@ -366,6 +385,7 @@ const SeatActionModal = ({
                 break;
             case "confirm-button":
                 if (isAssignCheck) {
+                    logEvent("info", `AssignCheck modal confirmed via keyboard`);
                     onClose();
                     if (onBackToUserInfo) setTimeout(() => onBackToUserInfo(), 300);
                     return;
@@ -375,6 +395,7 @@ const SeatActionModal = ({
                 } else if (isConfirmMode) {
                     handleFinalConfirm();
                 } else {
+                    logEvent("info", `SeatActionModal advancing to confirm step (mode=${mode})`);
                     setConfirmStep(true);
                 }
                 break;
@@ -384,24 +405,23 @@ const SeatActionModal = ({
             default:
                 break;
         }
-    }, [showResultModal, isConfirmMode, isAssignCheck, handleFinalConfirm, handlePrint, handleResultModalClose, onClose, onBackToUserInfo]);
+    }, [showResultModal, isConfirmMode, isAssignCheck, mode, handleFinalConfirm, handlePrint, handleResultModalClose, onClose, onBackToUserInfo]);
 
     // ─── Effects ─────────────────────────────────────────────────────────────────
 
     useEffect(() => {
         if (!isOpen) {
-            isFirstOpenRef.current = false; // reset when closed
+            isFirstOpenRef.current = false;
             return;
         }
 
-        // ✅ Only reset focusIndex on a genuine fresh open, not when persistedSelection updates
         if (!isFirstOpenRef.current) {
             isFirstOpenRef.current = true;
+            logEvent("info", `SeatActionModal opened — mode=${mode}, seat=${seat?.VNAME ?? "n/a"}, schoolno=${userInfo?.SCHOOLNO}`);
             setIsModalFocused(!disableFocusAndSpeech);
             setFocusIndex(0);
             setConfirmStep(false);
         } else {
-            // Modal is already open — only sync focus/speech toggle, don't touch focusIndex
             setIsModalFocused(!disableFocusAndSpeech);
         }
 
@@ -415,7 +435,10 @@ const SeatActionModal = ({
     }, [isOpen, disableFocusAndSpeech, persistedSelection]);
 
     useEffect(() => {
-        if (isOpen && confirmStep) setFocusIndex(0);
+        if (isOpen && confirmStep) {
+            logEvent("info", `SeatActionModal entered confirm step (mode=${mode})`);
+            setFocusIndex(0);
+        }
     }, [confirmStep, isOpen]);
 
     useEffect(() => {
@@ -434,6 +457,8 @@ const SeatActionModal = ({
                 setSeatInfo(null);
                 setApiLang(lang);
 
+                logEvent("info", `Fetching AssignSeatInfo — schoolno=${userInfo?.SCHOOLNO}, seatno=${activeBooking?.SEATNO}`);
+
                 const res = await setAssignSeatInfo({
                     schoolno: userInfo?.SCHOOLNO,
                     date: formatDateNum(new Date()),
@@ -451,9 +476,10 @@ const SeatActionModal = ({
                         USESTART: activeBooking?.USESTART,
                         USEEXPIRE: activeBooking?.USEEXPIRE
                     });
+                    logEvent("info", `AssignSeatInfo loaded — seat=${activeBooking?.SEAT_VNAME}, floor=${activeBooking?.FLOOR_NAME}`);
                 }
-
             } catch (err) {
+                logEvent("error", `AssignSeatInfo fetch failed — schoolno=${userInfo?.SCHOOLNO}, seatno=${activeBooking?.SEATNO}: ${err.message}`);
                 console.error("Seat booking API failed", err);
             } finally {
                 setLoading(false);
@@ -461,18 +487,16 @@ const SeatActionModal = ({
         };
 
         fetchInfo();
-
     }, [isOpen, isAssignCheck, activeBooking, userInfo, lang]);
 
     useEffect(() => {
         if (isReturn || isMove || isAssignCheck) return;
-        if (persistedSelection) return; // ✅ Don't override a restored selection
+        if (persistedSelection) return;
 
         if (defaultIndex !== null && timeOptions[defaultIndex]?.enabled) {
             setSelectedIndex(defaultIndex);
             setEndTime(addMinutes(timeOptions[defaultIndex].value).toDate());
         } else if (timeOptions.length > 0) {
-            // ✅ Fall back to 30 min default if API doesn't set a defaultIndex
             const thirtyMinIndex = timeOptions.findIndex(opt => opt.enabled && opt.value === 30);
             const fallbackIndex = thirtyMinIndex !== -1 ? thirtyMinIndex : timeOptions.findIndex(opt => opt.enabled);
             if (fallbackIndex !== -1) {
@@ -491,21 +515,24 @@ const SeatActionModal = ({
         if (isAssignCheck) return;
         dispatch(clearBookingTime());
         setApiLang(lang);
-        setLoadingTime(true); // ← add this
+        setLoadingTime(true);
 
         const fetchTime = async () => {
             try {
                 if (isBooking && seat?.SEATNO && isAvailable) {
+                    logEvent("info", `Fetching booking time options — seatno=${seat.SEATNO}`);
                     await dispatch(fetchBookingTime({ seatno: seat.SEATNO }));
                 } else if ((isExtension || isReturn || isMove) && assignNo) {
+                    logEvent("info", `Fetching booking time options — assignNo=${assignNo}, mode=${mode}`);
                     await dispatch(fetchBookingTime({ seatno: assignNo }));
                 }
             } finally {
-                setLoadingTime(false); // ← add this
+                setLoadingTime(false);
             }
         };
         fetchTime();
     }, [isOpen, seat, assignNo, isAvailable, isBooking, isExtension, isReturn, isMove]);
+
     useEffect(() => {
         if (disableFocusAndSpeech) return;
         if ((!isOpen && !showResultModal) || !isModalFocused) return;
@@ -545,12 +572,11 @@ const SeatActionModal = ({
     }, [isOpen, showResultModal, isModalFocused]);
 
     // ─── Speech ──────────────────────────────────────────────────────────────────
+
     const getSpeechForFocusedElement = useCallback((element) => {
         if (!element) return "";
-
         const booking = activeBooking;
         switch (element.type) {
-
             case "title":
                 return isAssignCheck
                     ? t("translations.Seat information")
@@ -559,10 +585,8 @@ const SeatActionModal = ({
             case "header": {
                 if (isAssignCheck && booking)
                     return `${t("translations.Central Library")} ${booking.FLOOR_NAME} ${booking.SECTOR_NAME} ${booking.SEAT_VNAME}`;
-
                 if (seat || booking)
                     return `${t("translations.Central Library")} ${seat?.ROOM_NAME || booking?.FLOOR_NAME} ${seat?.NAME || booking?.SECTOR_NAME} ${seat?.VNAME || booking?.SEAT_VNAME}`;
-
                 return "";
             }
 
@@ -574,28 +598,20 @@ const SeatActionModal = ({
             case "date-value": {
                 const startStr = formatDate(startTime, uiDateFormat);
                 const endStr = endTime ? formatDate(endTime, uiDateFormat) : "";
-
-                return t("speech.dateDurationRange", {
-                    start: startStr,
-                    end: endStr,
-                });
+                return t("speech.dateDurationRange", { start: startStr, end: endStr });
             }
 
             case "time-label":
             case "time-value": {
                 if (!booking?.USESTART || !booking?.USEEXPIRE)
                     return t("translations.Time of use");
-
                 return `${t("translations.Time of use")}: ${formatDate(booking.USESTART, uiDateFormat)} ${t("speech.to")} ${formatDate(booking.USEEXPIRE, uiDateFormat)}`;
             }
 
             case "start-label":
             case "start-value": {
                 const startStr = formatDate(startTime, uiDateFormat);
-                const endStr = booking?.USEEXPIRE
-                    ? formatDate(booking.USEEXPIRE, uiDateFormat)
-                    : "";
-
+                const endStr = booking?.USEEXPIRE ? formatDate(booking.USEEXPIRE, uiDateFormat) : "";
                 return `${t("translations.Start hours")}: ${startStr} ${t("speech.to")} ${endStr}.`;
             }
 
@@ -603,18 +619,13 @@ const SeatActionModal = ({
                 return t("speech.SEAT_MODAL_ACTION_SECTION");
 
             case "time-button":
-                return t("speech.SEAT_MODAL_TIME_OPTION", {
-                    time: formatDurationLabel(element.value),
-                });
+                return t("speech.SEAT_MODAL_TIME_OPTION", { time: formatDurationLabel(element.value) });
 
             case "confirmation-message":
                 if (isMove) return t("speech.SEAT_MODAL_MOVE_CONFIRM");
                 if (isReturn) return t("speech.SEAT_MODAL_RETURN_CONFIRM");
                 if (isExtension) return t("speech.SEAT_MODAL_EXTENSION_CONFIRM");
-
-                return t("speech.SEAT_MODAL_CONFIRM_GENERIC", {
-                    action: t(`translations.${MODE_LABELS[mode]}`),
-                });
+                return t("speech.SEAT_MODAL_CONFIRM_GENERIC", { action: t(`translations.${MODE_LABELS[mode]}`) });
 
             case "cancel-button":
                 return t("speech.Cancel");
@@ -631,22 +642,8 @@ const SeatActionModal = ({
             default:
                 return "";
         }
-    }, [
-        t,
-        mode,
-        userInfo,
-        isMove,
-        isReturn,
-        isAssignCheck,
-        actionResult,
-        startTime,
-        endTime,
-        seatInfo,
-        seat,
-        uiDateFormat,
-        formatDurationLabel,
-        activeBooking
-    ]);
+    }, [t, mode, userInfo, isMove, isReturn, isAssignCheck, actionResult, startTime, endTime, seatInfo, seat, uiDateFormat, formatDurationLabel, activeBooking]);
+
     useEffect(() => {
         if (disableFocusAndSpeech) return;
         if (!isOpen && !showResultModal) return;
@@ -668,7 +665,6 @@ const SeatActionModal = ({
         const headerClass = `mb-10 p-2 border-4 border-[#DDAB2C] rounded-2xl shadow-md ${isFocused("header") ? focusClass : ""}`;
         const textClass = "text-center text-[30px] text-[#DDAB2C] font-bold";
 
-        // ❌ Don't show anything while loading
         if (loading) {
             return (
                 <div className="mb-10 p-4">
@@ -701,22 +697,12 @@ const SeatActionModal = ({
                 </div>
             );
         }
-
     }, [
-        loading, // ✅ ADD THIS
-        isAssignCheck,
-        isBooking,
-        isMove,
-        isExtension,
-        isReturn,
-        seatInfo,
-        seat,
-        activeBooking,
-        mode,
-        isFocused,
-        t,
-        lang
+        loading,
+        isAssignCheck, isBooking, isMove, isExtension, isReturn,
+        seatInfo, seat, activeBooking, mode, isFocused, t, lang
     ]);
+
     const renderTimeSelection = useMemo(() => (
         <div className="grid grid-cols-3 gap-2">
             {timeOptions.map((opt, i) => (
@@ -738,7 +724,6 @@ const SeatActionModal = ({
 
     const renderConfirmationMessage = () => {
         if (!isConfirmMode) return null;
-
         return (
             <p className="text-red-600 font-extrabold text-[30px]">
                 {isMove
@@ -746,7 +731,7 @@ const SeatActionModal = ({
                     : isReturn
                         ? t("translations.Do you want to return the seat?")
                         : isExtension
-                            ? t("translations.Do you want to extend the seat?") // ✅ ADD THIS
+                            ? t("translations.Do you want to extend the seat?")
                             : t("translations.SEAT_CONFIRM_GENERIC", {
                                 action: t(`translations.${MODE_LABELS[mode]}`)
                             })}
@@ -777,13 +762,25 @@ const SeatActionModal = ({
         return (
             <div className="flex gap-4">
                 <button
-                    onClick={() => { setConfirmStep(false); onClose(); if (onBackToUserInfo) setTimeout(() => onBackToUserInfo(), 200); }}
+                    onClick={() => {
+                        logEvent("info", `SeatActionModal cancelled via Cancel button (mode=${mode})`);
+                        setConfirmStep(false);
+                        onClose();
+                        if (onBackToUserInfo) setTimeout(() => onBackToUserInfo(), 200);
+                    }}
                     className={`flex-1 text-[30px] px-6 py-4 bg-gray-300 hover:bg-gray-400 rounded-lg font-bold ${isFocused("cancel-button") ? focusClass : ""}`}
                 >
                     {t("translations.Cancel")}
                 </button>
                 <button
-                    onClick={isConfirmMode ? handleFinalConfirm : () => setConfirmStep(true)}
+                    onClick={() => {
+                        if (isConfirmMode) {
+                            handleFinalConfirm();
+                        } else {
+                            logEvent("info", `SeatActionModal advancing to confirm step via button (mode=${mode})`);
+                            setConfirmStep(true);
+                        }
+                    }}
                     disabled={isConfirmDisabled}
                     className={`flex-1 px-6 py-4 rounded-lg font-bold text-[30px]
                         ${confirmEnabled ? "bg-linear-to-r from-[#FFCB35] to-[#cf9e0b] text-white" : "bg-gray-300 text-gray-500 cursor-not-allowed"}
@@ -793,7 +790,7 @@ const SeatActionModal = ({
                 </button>
             </div>
         );
-    }, [isAssignCheck, isReturn, isMove, isBooking, isExtension, isAvailable, selectedIndex, endTime, isConfirmMode, onClose, onBackToUserInfo, handleFinalConfirm, isFocused, t]);
+    }, [isAssignCheck, isReturn, isMove, isBooking, isExtension, isAvailable, selectedIndex, endTime, isConfirmMode, onClose, onBackToUserInfo, handleFinalConfirm, isFocused, t, mode]);
 
     const resultFooter = useMemo(() => (
         <div className="flex gap-10 justify-center">
@@ -815,11 +812,13 @@ const SeatActionModal = ({
     ), [handleResultModalClose, handlePrint, actionResult, isFocused, isBooking, isMove, t]);
 
     // ─── Render ──────────────────────────────────────────────────────────────────
+
     const isTimeReady =
         isAssignCheck ||
         isReturn ||
         isMove ||
         (timeOptions.length > 0 && !loadingTime);
+
     return (
         <>
             {isOpen && (isInitialLoading || !isTimeReady) && (
@@ -852,7 +851,6 @@ const SeatActionModal = ({
                                 <span className="text-gray-700">:</span>
                                 <span className="font-extrabold text-[#f7c224]">{userData?.NAME}</span>
                             </div>
-
                             <div className={`grid grid-cols-[220px_25px_1fr] items-center font-bold rounded-lg p-2 ${isGroupFocused(["time-label", "time-value"]) ? focusClass : ""}`}>
                                 <span className="text-gray-700">{t("translations.Time of use")}</span>
                                 <span className="text-gray-700">:</span>

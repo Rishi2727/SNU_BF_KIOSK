@@ -15,6 +15,7 @@ import InfoModal from "./infoModal";
 import { fetchUserInfo } from "../../redux/slice/getUserDataSlice";
 import { setApiLang } from "../../services/api";
 import { BiLogIn } from "react-icons/bi";
+import { logEvent } from "../../logger";
 
 const applyContrastMode = (mode) => {
   document.documentElement.setAttribute("data-contrast", mode);
@@ -72,22 +73,19 @@ const FooterControls = ({
     () => (showBack ? 1 : 0) + (userInfo ? 11 : 10),
     [showBack, userInfo]
   );
+
   useEffect(() => {
     const updateLang = async () => {
       await setApiLang(lang);
-
       if (userInfo?.SCHOOLNO) {
         dispatch(fetchUserInfo({ schoolno: userInfo.SCHOOLNO }));
       }
     };
-
     updateLang();
   }, [lang, userInfo?.SCHOOLNO]);
+
   // ─── Index helpers ────────────────────────────────────────────────────────
 
-  // Returns the button index accounting for back offset and whether user is logged in.
-  // `loggedInIdx` is the index when userInfo exists (after back offset).
-  // `guestIdx` is the raw index when no userInfo (no back offset for guest auth row).
   const idx = useCallback(
     (loggedInIdx, guestIdx) =>
       userInfo ? loggedInIdx + BACK_OFFSET : guestIdx,
@@ -134,21 +132,23 @@ const FooterControls = ({
 
   const handleLanguageChange = useCallback((uiLang) => {
     const backendLang = uiLang === "KR" ? "ko" : "en";
+    logEvent("info", `Language changed: ${language} → ${uiLang} (backendLang=${backendLang})`);
     setLanguage(uiLang);
     localStorage.setItem("lang", backendLang);
     i18n.changeLanguage(backendLang);
     dispatch(setLanguageAction(backendLang));
-  }, [dispatch]);
+  }, [dispatch, language]);
 
   const toggleContrast = useCallback(() => {
     setContrastEnabled((prev) => {
       const next = prev ? "normal" : "high";
+      logEvent("info", `Contrast mode toggled: ${prev ? "high → normal" : "normal → high"}`);
       applyContrastMode(next);
       return !prev;
     });
   }, []);
 
-  // Unified action map — index → action, built once per relevant state
+  // Unified action map — index → action
   const footerActions = useMemo(() => ({
     0: null, // clock — no action
     [idx(1, 1)]: userInfo ? logout : () => openKeyboard(true),
@@ -166,8 +166,27 @@ const FooterControls = ({
 
   const handleFooterEnter = useCallback((index) => {
     if (index === null) return;
+
+    // Map index → label for logging
+    const labelMap = {
+      0: "clock",
+      [idx(1, 1)]: userInfo ? "logout" : "login",
+      ...(userInfo ? { [idx(2, -1)]: "user-id-display" } : {}),
+      [idx(3, 2)]: "language-KR",
+      [idx(4, 3)]: "language-EN",
+      [idx(5, 4)]: "volume-down",
+      [idx(6, 5)]: "volume-display",
+      [idx(7, 6)]: "volume-up",
+      [idx(8, 7)]: "info",
+      [idx(9, 8)]: "magnifier",
+      [idx(10, 9)]: "contrast",
+      ...(showBack ? { 1: "back" } : {}),
+    };
+
+    const label = labelMap[index] ?? `index-${index}`;
+    logEvent("info", `Footer keyboard Enter on: ${label}`);
     footerActions[index]?.();
-  }, [footerActions]);
+  }, [footerActions, idx, userInfo, showBack]);
 
   // ─── Keyboard navigation ──────────────────────────────────────────────────
 
@@ -177,13 +196,19 @@ const FooterControls = ({
       switch (e.key) {
         case "ArrowRight":
           e.preventDefault();
-          setCursor((prev) => prev === null ? 0 : (prev + 1) % FOOTER_BUTTON_COUNT);
+          setCursor((prev) => {
+            const next = prev === null ? 0 : (prev + 1) % FOOTER_BUTTON_COUNT;
+            logEvent("info", `Footer ArrowRight — cursor: ${prev} → ${next}`);
+            return next;
+          });
           break;
         case "ArrowLeft":
           e.preventDefault();
-          setCursor((prev) =>
-            prev === null ? FOOTER_BUTTON_COUNT - 1 : (prev - 1 + FOOTER_BUTTON_COUNT) % FOOTER_BUTTON_COUNT
-          );
+          setCursor((prev) => {
+            const next = prev === null ? FOOTER_BUTTON_COUNT - 1 : (prev - 1 + FOOTER_BUTTON_COUNT) % FOOTER_BUTTON_COUNT;
+            logEvent("info", `Footer ArrowLeft — cursor: ${prev} → ${next}`);
+            return next;
+          });
           break;
         case "Enter":
           e.preventDefault();
@@ -202,7 +227,7 @@ const FooterControls = ({
     const currentTime = new Date().toLocaleTimeString("en-GB", {
       hour: "2-digit", minute: "2-digit", hour12: false,
     });
-    console.log("usedata", userData)
+    console.log("usedata", userData);
     return {
       0: `${t("speech.Current Time")} ${currentTime}`,
       [idx(1, 1)]: userInfo ? t("speech.Logout") : t("speech.Login"),
@@ -233,6 +258,7 @@ const FooterControls = ({
   // Speak on magnifier toggle
   useEffect(() => {
     if (isAnyModalOpen) return;
+    logEvent("info", `Magnifier toggled: ${magnifierEnabled ? "enabled" : "disabled"}`);
     stop();
     speak(magnifierEnabled ? t("speech.Magnifier enabled") : t("speech.Magnifier disabled"));
   }, [magnifierEnabled]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -252,6 +278,8 @@ const FooterControls = ({
     }
     if (prevVolumeRef.current === volume) return;
     const percent = Math.round(volume * 100);
+    const direction = volume > prevVolumeRef.current ? "up" : "down";
+    logEvent("info", `Volume changed ${direction}: ${Math.round(prevVolumeRef.current * 100)}% → ${percent}%`);
     speak(t(
       volume > prevVolumeRef.current ? "speech.Volume Up With Percent" : "speech.Volume Down With Percent",
       { percent }
@@ -275,7 +303,7 @@ const FooterControls = ({
         <div className="flex items-center gap-3">
 
           {/* ⏰ Clock */}
-          <div className={`flex items-center gap-2 text-white  rounded-lg ${fc(0)}`}>
+          <div className={`flex items-center gap-2 text-white rounded-lg ${fc(0)}`}>
             <Clock className="w-8 h-8" />
             <span className="text-[30px] font-semibold">{time}</span>
           </div>
@@ -283,7 +311,10 @@ const FooterControls = ({
           {/* ⬅ Back */}
           {showBack && (
             <button
-              onClick={onBack}
+              onClick={() => {
+                logEvent("info", "Footer Back button clicked");
+                onBack();
+              }}
               className={`floor-legend-bar flex items-center gap-2 bg-[#FFCA08] text-[#9A7D4C]
                 px-3 py-1 rounded-lg text-[26px] font-bold ${fc(1)}`}
             >
@@ -297,7 +328,10 @@ const FooterControls = ({
             {userInfo ? (
               <>
                 <button
-                  onClick={logout}
+                  onClick={() => {
+                    logEvent("info", `Logout button clicked — schoolno=${userInfo?.SCHOOLNO}`);
+                    logout();
+                  }}
                   className={`flex items-center gap-2 bg-red-500 px-5 py-1.5 rounded-full text-white text-[26px]
                     ${fc(1 + BACK_OFFSET)}`}
                 >
@@ -315,7 +349,10 @@ const FooterControls = ({
               </>
             ) : (
               <button
-                onClick={() => openKeyboard(false)}
+                onClick={() => {
+                  logEvent("info", "Login button clicked — opening keyboard");
+                  openKeyboard(false);
+                }}
                 className={`login-btn px-4 py-1.5 rounded-full bg-[#D7D8D2] text-[#000] text-[28px] flex items-center gap-2 ${fc(1)}`}
               >
                 <BiLogIn size={30} />
@@ -354,11 +391,15 @@ const FooterControls = ({
             isSelected={cursor === idx(7, 6)} isFocused={isFocused} />
 
           <FooterButton icon={<InfoIcon size={28} />} label={t("translations.Info")}
-            onClick={() => setIsInfoOpen(true)}
+            onClick={() => {
+              logEvent("info", "Info modal opened from footer");
+              setIsInfoOpen(true);
+            }}
             isSelected={cursor === idx(8, 7)} isFocused={isFocused} />
 
           <FooterButton icon={<ZoomIn size={28} />} label={t("translations.Magnifier")}
-            active={magnifierEnabled} onClick={() => dispatch(toggleMagnifier())}
+            active={magnifierEnabled}
+            onClick={() => dispatch(toggleMagnifier())}
             isSelected={cursor === idx(9, 8)} isFocused={isFocused} />
 
           <FooterButton icon={<Contrast size={28} />} label={t("translations.Contrast")}
@@ -369,7 +410,11 @@ const FooterControls = ({
 
       <InfoModal
         isOpen={isInfoOpen}
-        onClose={() => { setIsInfoOpen(false); window.__ON_MODAL_CLOSE__?.(); }}
+        onClose={() => {
+          logEvent("info", "Info modal closed");
+          setIsInfoOpen(false);
+          window.__ON_MODAL_CLOSE__?.();
+        }}
       />
     </>
   );

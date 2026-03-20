@@ -21,6 +21,7 @@ import { logout } from "../redux/slice/authSlice";
 import { QRValidate } from "../services/api";
 import { login } from "../redux/slice/authSlice";
 import Modal from "../components/common/Modal";
+import { logEvent } from "../logger";
 
 /* ========================================================================== */
 /*                           CONTEXT INITIALIZATION                           */
@@ -35,36 +36,38 @@ export const SerialPortProvider = ({ children }) => {
   /* ========================================================================== */
 
   // Serial Port States
-  const [listedSerialPorts, setListedSerialPorts] = useState([]);           // Available system ports
-  const [serialPortsData, setSerialPortsData] = useState([]);               // Configured ports from config
-  const [matchedPorts, setMatchedPorts] = useState([]);                     // Ports available in both config and system
-  const [activeSerialConnections, setActiveSerialConnections] = useState(new Set()); // Currently connected ports
+  const [listedSerialPorts, setListedSerialPorts] = useState([]);
+  const [serialPortsData, setSerialPortsData] = useState([]);
+  const [matchedPorts, setMatchedPorts] = useState([]);
+  const [activeSerialConnections, setActiveSerialConnections] = useState(new Set());
   const networkErrorRef = useRef(false);
+
   // Configuration States
-  const [kioskConfiguration, setKioskConfiguration] = useState({});         // Machine UID and version
+  const [kioskConfiguration, setKioskConfiguration] = useState({});
 
   // Sensor & Device States
-  const [humanDetected, setHumanDetected] = useState(false);                // Human presence sensor state
-  const [rfidMessages, setRfidMessages] = useState([]);                     // RFID scan history
+  const [humanDetected, setHumanDetected] = useState(false);
+  const [rfidMessages, setRfidMessages] = useState([]);
 
-  // UI States (for future modal implementations)
+  // UI States
   const [isPolling, setIsPolling] = useState(false);
   const [pollingError, setPollingError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Refs for Connection Management
-  const serialListenerRef = useRef(null);                                   // Serial data event listener
-  const connectionTimeoutRef = useRef(null);                                // Connection timeout handler
-  const lastConnectionAttemptRef = useRef(0);                               // Debounce connection attempts
-  const previousMatchedPortsRef = useRef([]);                               // Track port changes
-  const isInitializedRef = useRef(false);                                   // Initial connection flag
-  const portCheckIntervalRef = useRef(null);                                // Periodic port check interval
+  const serialListenerRef = useRef(null);
+  const connectionTimeoutRef = useRef(null);
+  const lastConnectionAttemptRef = useRef(0);
+  const previousMatchedPortsRef = useRef([]);
+  const isInitializedRef = useRef(false);
+  const portCheckIntervalRef = useRef(null);
 
   // Refs for Accessibility Features
-  const blockSpeakRef = useRef(false);                                      // Prevent speech outside modals
-  const modalShownRef = useRef(false);                                      // Track modal display state
+  const blockSpeakRef = useRef(false);
+  const modalShownRef = useRef(false);
   const focusModeRef = useRef("MODAL");
-  // System Health Tracking (for long-term stability)
+
+  // System Health Tracking
   const systemHealthRef = useRef({
     startTime: Date.now(),
     connectionCount: 0,
@@ -82,14 +85,10 @@ export const SerialPortProvider = ({ children }) => {
   const [networkModalButtonFocused, setNetworkModalButtonFocused] = useState(false);
   const networkRecoveredRef = useRef(false);
 
-
   /* ========================================================================== */
   /*                      ACCESSIBILITY HELPER FUNCTIONS                        */
   /* ========================================================================== */
 
-  /**
-   * Enable focus and speech accessibility for SweetAlert modals
-   */
   const enableFocusAndSpeakPolling = (speak, t) => {
     let keyHandler = null;
     let mode = "TEXT";
@@ -177,7 +176,9 @@ export const SerialPortProvider = ({ children }) => {
     try {
       const ports = await invoke("list_serial_ports");
       setListedSerialPorts(ports);
+      logEvent("info", `Serial ports listed: [${ports.join(", ")}]`);
     } catch (error) {
+      logEvent("error", `Failed to list serial ports: ${error.message ?? error}`);
       console.error("Error listing serial ports:", error);
     }
   };
@@ -192,8 +193,10 @@ export const SerialPortProvider = ({ children }) => {
           machineUid: config.machine_uid || '',
           version: config.version || '1.0.0'
         });
+        logEvent("info", `Kiosk config loaded — machineUid=${config.machine_uid}, version=${config.version}, serialPorts=${config.serialdata?.length ?? 0}`);
       }
     } catch (error) {
+      logEvent("error", `Failed to read kiosk config: ${error.message ?? error}`);
       console.error("Error reading store config:", error);
     }
   };
@@ -206,6 +209,7 @@ export const SerialPortProvider = ({ children }) => {
     });
 
     setMatchedPorts(matches);
+    logEvent("info", `Port matching complete — ${matches.length} matched: [${matches.map(p => `${p.port}(${p.name})`).join(", ")}]`);
   };
 
   /* ========================================================================== */
@@ -220,7 +224,9 @@ export const SerialPortProvider = ({ children }) => {
       previousMatchedPortsRef.current = [];
       isInitializedRef.current = false;
       systemHealthRef.current.lastCleanup = Date.now();
+      logEvent("info", "Serial reading stopped and connections cleared");
     } catch (error) {
+      logEvent("error", `Error stopping serial connections: ${error.message ?? error}`);
       console.error("Error stopping serial connections:", error);
       systemHealthRef.current.errorCount++;
     }
@@ -229,14 +235,12 @@ export const SerialPortProvider = ({ children }) => {
   useEffect(() => {
     const handleBeforeUnload = () => {
       console.log('🚪 App closing, stopping serial connections...');
+      logEvent("info", "App closing — stopping serial connections");
       stopSerialReading();
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
 
   const performSystemCleanup = async () => {
@@ -244,6 +248,7 @@ export const SerialPortProvider = ({ children }) => {
     const timeSinceLastCleanup = now - systemHealthRef.current.lastCleanup;
 
     if (timeSinceLastCleanup > 24 * 60 * 60 * 1000) {
+      logEvent("info", `Performing 24h system cleanup — uptime=${Math.floor(timeSinceLastCleanup / 3600000)}h, errorCount=${systemHealthRef.current.errorCount}`);
       try {
         if (activeSerialConnections.size > 0) {
           await stopSerialReading();
@@ -262,13 +267,14 @@ export const SerialPortProvider = ({ children }) => {
         }
 
         systemHealthRef.current.lastCleanup = now;
+        logEvent("info", "System cleanup completed successfully");
       } catch (error) {
+        logEvent("error", `System cleanup failed: ${error.message ?? error}`);
         console.error('Error during system cleanup:', error);
         systemHealthRef.current.errorCount++;
       }
     }
   };
-
 
   /* ========================================================================== */
   /*                     KIOSK LOGIN POLLING (NETWORK CHECK)                    */
@@ -283,7 +289,6 @@ export const SerialPortProvider = ({ children }) => {
     let mounted = true;
 
     const checkNetwork = async () => {
-
       if (location.pathname === "/configuration") {
         if (modalShownRef.current) {
           stop();
@@ -304,6 +309,7 @@ export const SerialPortProvider = ({ children }) => {
         setNetworkError(false);
         setIsModalOpen(false);
         window.dispatchEvent(new Event("NETWORK_RESTORED"));
+        logEvent("info", "Network restored — modal dismissed, NETWORK_RESTORED event dispatched");
 
         setTimeout(async () => {
           try {
@@ -324,12 +330,11 @@ export const SerialPortProvider = ({ children }) => {
         if (networkErrorRef.current) {
           networkErrorRef.current = false;
           modalShownRef.current = false;
-
           stop();
           setNetworkError(false);
           setIsModalOpen(false);
+          logEvent("info", "Network recovered via kiosk login poll — error modal cleared");
         }
-
       } catch (error) {
         if (!mounted) return;
 
@@ -337,34 +342,29 @@ export const SerialPortProvider = ({ children }) => {
 
         if (
           !navigator.onLine &&
-          errorMsg ===
-          "Network error. Please check your internet connection and try again." &&
+          errorMsg === "Network error. Please check your internet connection and try again." &&
           !modalShownRef.current
         ) {
           modalShownRef.current = true;
           networkErrorRef.current = true;
           setNetworkError(true);
           setIsModalOpen(true);
+          logEvent("error", `Network error detected — device offline, showing modal`);
 
           blockSpeakRef.current = false;
           speak(
-            t(
-              "translations.Network error. Please check your internet connection and try again."
-            )
+            t("translations.Network error. Please check your internet connection and try again.")
           );
         }
       }
     };
 
     interval = setInterval(checkNetwork, 5000);
-
     return () => {
       mounted = false;
       if (interval) clearInterval(interval);
     };
-
   }, [location.pathname]);
-
 
   useEffect(() => {
     if (location.pathname === "/configuration") {
@@ -374,10 +374,10 @@ export const SerialPortProvider = ({ children }) => {
         setIsModalOpen(false);
         modalShownRef.current = false;
         networkErrorRef.current = false;
+        logEvent("info", "Navigated to /configuration — network error modal dismissed");
       }
     }
   }, [location.pathname, isModalOpen, stop]);
-
 
   /* ========================================================================== */
   /*                    NETWORK MODAL ACCESSIBILITY                             */
@@ -387,12 +387,9 @@ export const SerialPortProvider = ({ children }) => {
     if (!networkError || !isModalOpen) return;
 
     setNetworkModalButtonFocused(false);
-
     stop();
     speak(t("translations.Network error. Please check your internet connection and try again."));
-
   }, [networkError, isModalOpen, stop, speak, t]);
-
 
   useEffect(() => {
     if (!networkError || !isModalOpen) return;
@@ -403,15 +400,12 @@ export const SerialPortProvider = ({ children }) => {
 
         setNetworkModalButtonFocused((prev) => {
           const next = !prev;
-
           stop();
-
           if (next) {
             speak(t("translations.Retry"));
           } else {
             speak(t("translations.Network error. Please check your internet connection and try again."));
           }
-
           return next;
         });
       }
@@ -419,6 +413,7 @@ export const SerialPortProvider = ({ children }) => {
       if (e.key === "Enter") {
         if (networkModalButtonFocused) {
           e.preventDefault();
+          logEvent("info", "Network error modal — Retry triggered via keyboard Enter");
           retryKioskLogin();
         }
       }
@@ -426,12 +421,12 @@ export const SerialPortProvider = ({ children }) => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-
   }, [networkError, isModalOpen, networkModalButtonFocused, speak, stop, t]);
 
-  /**
-   * Start continuous reading from a serial port
-   */
+  /* ========================================================================== */
+  /*                       START CONTINUOUS PORT READ                           */
+  /* ========================================================================== */
+
   const startContinuousRead = async (portConfig) => {
     const portKey = `${portConfig.port}_${portConfig.name}`;
 
@@ -455,14 +450,17 @@ export const SerialPortProvider = ({ children }) => {
 
       setActiveSerialConnections(prev => new Set([...prev, portKey]));
       systemHealthRef.current.connectionCount++;
+      logEvent("info", `Serial port connected: ${portConfig.port} (${portConfig.name})`);
       return true;
 
     } catch (error) {
+      logEvent("error", `Failed to connect port ${portConfig.port} (${portConfig.name}): ${error.message ?? error}`);
       console.error(`Error starting port ${portConfig.port}:`, error.message);
 
       if ((error.toString().includes("Access is denied") || error.toString().includes("access denied")) && !portConfig._retryAttempted) {
         try {
           portConfig._retryAttempted = true;
+          logEvent("info", `Retrying access-denied port after 2s: ${portConfig.port} (${portConfig.name})`);
           await new Promise(resolve => setTimeout(resolve, 2000));
 
           if (portConfig.name === "HUMAN_SENSOR") {
@@ -479,9 +477,11 @@ export const SerialPortProvider = ({ children }) => {
           }
 
           setActiveSerialConnections(prev => new Set([...prev, portKey]));
+          logEvent("info", `Serial port connected on retry: ${portConfig.port} (${portConfig.name})`);
           return true;
 
         } catch (retryError) {
+          logEvent("error", `Retry failed for port ${portConfig.port} (${portConfig.name}): ${retryError.message ?? retryError}`);
           console.error(`Recovery failed for port ${portConfig.port}`);
           return false;
         }
@@ -491,23 +491,33 @@ export const SerialPortProvider = ({ children }) => {
   };
 
   const writeToSerialPort = async (portConfig, printOptions) => {
+    logEvent("info", `Print initiated — port=${portConfig?.port}`);
     try {
       await invoke("stop_serial_reading");
       await invoke("print_with_options", { printOptions });
+      logEvent("info", `Print completed successfully — port=${portConfig?.port}`);
       return true;
     } catch (error) {
+      logEvent("error", `Print failed — port=${portConfig?.port}: ${error.message ?? error}`);
       console.error(`Error writing to serial port ${portConfig.port}:`, error);
       return false;
     }
   };
 
+  /* ========================================================================== */
+  /*                     INITIALIZATION EFFECTS                                 */
+  /* ========================================================================== */
+
   useEffect(() => {
     const initialize = async () => {
       try {
+        logEvent("info", "SerialPortContext initializing — reading config and listing ports");
         await readConfig();
         await listSerialPorts();
+        logEvent("info", "SerialPortContext initialized successfully");
         console.log('🎉 SerialPortContext initialized successfully');
       } catch (error) {
+        logEvent("error", `SerialPortContext initialization failed: ${error.message ?? error}`);
         console.error('Error during SerialPortContext initialization:', error);
       }
     };
@@ -551,10 +561,8 @@ export const SerialPortProvider = ({ children }) => {
   useEffect(() => {
     const arePortsEqual = (ports1, ports2) => {
       if (ports1.length !== ports2.length) return false;
-
       const sorted1 = ports1.map(p => `${p.port}_${p.name}`).sort();
       const sorted2 = ports2.map(p => `${p.port}_${p.name}`).sort();
-
       return sorted1.every((port, index) => port === sorted2[index]);
     };
 
@@ -579,13 +587,13 @@ export const SerialPortProvider = ({ children }) => {
         }
 
         if (matchedPorts.length > 0) {
+          logEvent("info", `Connecting to ${matchedPorts.length} matched port(s): [${matchedPorts.map(p => `${p.port}(${p.name})`).join(", ")}]`);
+
           for (const portConfig of matchedPorts) {
             const portKey = `${portConfig.port}_${portConfig.name}`;
-
             if (activeSerialConnections.has(portKey)) {
               continue;
             }
-
             await startContinuousRead(portConfig);
             await new Promise(resolve => setTimeout(resolve, 300));
           }
@@ -593,30 +601,25 @@ export const SerialPortProvider = ({ children }) => {
           isInitializedRef.current = true;
         }
       } catch (error) {
+        logEvent("error", `Connection error during port setup: ${error.message ?? error}`);
         console.error('Connection error:', error);
       }
     };
 
     if (!isInitializedRef.current && matchedPorts.length > 0) {
       connectToNewPorts();
-    }
-    else if (isInitializedRef.current) {
+    } else if (isInitializedRef.current) {
       if (portCheckIntervalRef.current) {
         clearInterval(portCheckIntervalRef.current);
       }
-
       portCheckIntervalRef.current = setInterval(() => {
         connectToNewPorts();
       }, 5 * 60 * 1000);
     }
 
     return () => {
-      if (connectionTimeoutRef.current) {
-        clearTimeout(connectionTimeoutRef.current);
-      }
-      if (portCheckIntervalRef.current) {
-        clearInterval(portCheckIntervalRef.current);
-      }
+      if (connectionTimeoutRef.current) clearTimeout(connectionTimeoutRef.current);
+      if (portCheckIntervalRef.current) clearInterval(portCheckIntervalRef.current);
     };
   }, [matchedPorts]);
 
@@ -629,95 +632,15 @@ export const SerialPortProvider = ({ children }) => {
     let timeoutId;
     let isMounted = true;
 
-    /**
-     * Handle QR code login flow
-     *
-     * ✅ NEW LOGIC:
-     * - If LOGIN_YN === "Y" and login succeeds:
-     *   → Check if user already has a booking (ASSIGN_NO !== "0")
-     *   → If booking exists: fire QR_LOGIN_SUCCESS_WITH_BOOKING so Dashboard opens UserInfoModal
-     *   → If no booking: fire QR_LOGIN_SUCCESS so Dashboard opens floor selection modal
-     */
-
-    // const handleQRLogin = async (qrCode) => {
-    //   try {
-    //     const cleanedQrCode = qrCode.trim();
-
-    //     // Validate QR code
-    //     const qrResponse = await QRValidate(cleanedQrCode);
-
-    //     // Parse XML response to JSON
-    //     if (typeof qrResponse.data === 'string') {
-    //       // Extract values from CDATA sections using regex
-    //       const resultCodeMatch = qrResponse.data.match(/<resultCode><!\[CDATA\[(.*?)\]\]><\/resultCode>/);
-    //       const resultMsgMatch = qrResponse.data.match(/<resultMsg><!\[CDATA\[(.*?)\]\]><\/resultMsg>/);
-    //       const userIDMatch = qrResponse.data.match(/<userID><!\[CDATA\[(.*?)\]\]><\/userID>/);
-    //       const patCdMatch = qrResponse.data.match(/<patCd><!\[CDATA\[(.*?)\]\]><\/patCd>/);
-    //       const patNmMatch = qrResponse.data.match(/<patNm><!\[CDATA\[(.*?)\]\]><\/patNm>/);
-    //       const deptCdMatch = qrResponse.data.match(/<deptCd><!\[CDATA\[(.*?)\]\]><\/deptCd>/);
-    //       const deptNmMatch = qrResponse.data.match(/<deptNm><!\[CDATA\[(.*?)\]\]><\/deptNm>/);
-
-    //       // Build JSON object from extracted data
-    //       const jsonData = {
-    //         resultCode: resultCodeMatch ? resultCodeMatch[1].trim() : "",
-    //         resultMsg: resultMsgMatch ? resultMsgMatch[1].trim() : "Unknown error",
-    //         item: {
-    //           userID: userIDMatch ? userIDMatch[1].trim() : "",
-    //           patCd: patCdMatch ? patCdMatch[1].trim() : "",
-    //           patNm: patNmMatch ? patNmMatch[1].trim() : "",
-    //           deptCd: deptCdMatch ? deptCdMatch[1].trim() : "",
-    //           deptNm: deptNmMatch ? deptNmMatch[1].trim() : ""
-    //         }
-    //       };
-
-    //       const { resultCode, resultMsg, item } = jsonData;
-    //       const userId = item.userID;
-
-    //       // Validate result code
-    //       if (resultCode === "1") {
-    //         console.error("QR validation failed:", resultMsg);
-    //         speak(resultMsg || t("QR code validation failed"));
-    //         return;
-    //       }
-
-    //       if (resultCode !== "0") {
-    //         console.error("Unexpected result code:", resultCode);
-    //         speak(t("Unexpected response from server"));
-    //         return;
-    //       }
-
-    //       if (!userId) {
-    //         console.error("No user ID found in QR response");
-    //         speak(t("Unable to extract user information"));
-    //         return;
-    //       }
-
-    //       // Login with extracted user ID
-    //       window.dispatchEvent(new Event("LOGIN_LOADING_START"));
-    //       await dispatch(login(userId)).unwrap();
-
-    //       speak(t("Login successful"));
-    //       window.dispatchEvent(new Event("LOGIN_LOADING_END"));
-    //       window.dispatchEvent(new Event("QR_LOGIN_SUCCESS"));
-
-    //     } else {
-    //       console.error("Expected XML string response");
-    //       speak(t("Invalid response format"));
-    //     }
-    //   } catch (error) {
-    //     console.error("QR login failed:", error.message);
-    //     speak(t("Login failed. Please try again."));
-    //   }
-    // };
-
     const handleQRLogin = async (qrCode) => {
+      logEvent("info", `QR scan received — initiating login`);
       try {
         const cleanedQrCode = qrCode.trim();
-
         const response = await QRValidate(cleanedQrCode);
         console.log("QR Response:", response);
 
         if (!response) {
+          logEvent("error", "QR validation returned empty response");
           speak(t("Invalid response from server"));
           return;
         }
@@ -725,38 +648,40 @@ export const SerialPortProvider = ({ children }) => {
         const { LOGIN_YN, MESSAGE, USERID } = response;
 
         if (LOGIN_YN !== "Y") {
+          logEvent("error", `QR validation failed — LOGIN_YN=${LOGIN_YN}, MESSAGE=${MESSAGE}`);
           console.error("QR validation failed:", MESSAGE);
           speak(MESSAGE || t("QR validation failed"));
           return;
         }
 
         if (!USERID) {
+          logEvent("error", "QR validation succeeded but USERID is missing");
           console.error("USERID missing");
           speak(t("User information not found"));
           return;
         }
 
+        logEvent("info", `QR login validated — USERID=${USERID}, dispatching login`);
         window.dispatchEvent(new Event("LOGIN_LOADING_START"));
 
         const result = await dispatch(login(USERID)).unwrap();
-
-        console.log("QR login result:", result); // ← check what's returned
+        console.log("QR login result:", result);
 
         window.dispatchEvent(new Event("LOGIN_LOADING_END"));
         speak(t("Login successful"));
 
-        // Save to localStorage BEFORE dispatching the event
         localStorage.setItem("bookingInfo", JSON.stringify(result));
 
         if (result?.ASSIGN_NO && result.ASSIGN_NO !== "0") {
-          // Has existing booking → open UserInfoModal
+          logEvent("info", `QR login success with existing booking — ASSIGN_NO=${result.ASSIGN_NO}, dispatching QR_LOGIN_SUCCESS_WITH_BOOKING`);
           window.dispatchEvent(new Event("QR_LOGIN_SUCCESS_WITH_BOOKING"));
         } else {
-          // No booking → open floor selection modal
+          logEvent("info", `QR login success — no active booking, dispatching QR_LOGIN_SUCCESS`);
           window.dispatchEvent(new Event("QR_LOGIN_SUCCESS"));
         }
 
       } catch (error) {
+        logEvent("error", `QR login exception: ${error.message ?? error}`);
         console.error("QR login failed:", error);
         window.dispatchEvent(new Event("LOGIN_LOADING_END"));
         speak(t("Login failed. Please try again."));
@@ -780,14 +705,15 @@ export const SerialPortProvider = ({ children }) => {
           if (!isMounted) return;
 
           const { device_name, data } = event.payload;
-
           dispatch(setSerialData({ deviceName: device_name, data }));
 
           if (device_name === "QR" && data && data.trim()) {
+            logEvent("info", `QR data received on port — forwarding to QR login handler`);
             await handleQRLogin(data.trim());
           }
 
           if (device_name === "RFID" && data && data.trim()) {
+            logEvent("info", `RFID data received: ${data.trim()}`);
             // Add RFID login logic here if needed
           }
 
@@ -801,8 +727,10 @@ export const SerialPortProvider = ({ children }) => {
 
         if (isMounted) {
           serialListenerRef.current = unlisten;
+          logEvent("info", `Serial data listener registered for path: ${location.pathname}`);
         }
       } catch (error) {
+        logEvent("error", `Failed to set up serial data listener: ${error.message ?? error}`);
         console.error("Error setting up serial listener:", error);
       }
     };
@@ -838,6 +766,7 @@ export const SerialPortProvider = ({ children }) => {
   useEffect(() => {
     let isMounted = true;
     let unlisten;
+    let lastDetectedState = null;
 
     const setupHumanSensorListener = async () => {
       try {
@@ -846,8 +775,16 @@ export const SerialPortProvider = ({ children }) => {
 
           const { detected } = event.payload;
           setHumanDetected(detected);
+
+          // Only log on state change to avoid flooding
+          if (detected !== lastDetectedState) {
+            logEvent("info", `Human sensor state changed: ${detected ? "DETECTED" : "NOT DETECTED"}`);
+            lastDetectedState = detected;
+          }
         });
+        logEvent("info", "Human sensor listener registered");
       } catch (error) {
+        logEvent("error", `Failed to set up human sensor listener: ${error.message ?? error}`);
         console.error("Error setting up human sensor listener:", error);
       }
     };
@@ -869,7 +806,7 @@ export const SerialPortProvider = ({ children }) => {
     const uptime = now - systemHealthRef.current.startTime;
 
     return {
-      uptime: uptime,
+      uptime,
       uptimeDays: Math.floor(uptime / (24 * 60 * 60 * 1000)),
       uptimeHours: Math.floor((uptime % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)),
       totalConnections: systemHealthRef.current.connectionCount,
@@ -885,6 +822,7 @@ export const SerialPortProvider = ({ children }) => {
   /* ========================================================================== */
 
   const retryKioskLogin = async () => {
+    logEvent("info", "Network retry — invoking request_kiosk_login");
     try {
       await invoke("request_kiosk_login");
       blockSpeakRef.current = true;
@@ -892,6 +830,7 @@ export const SerialPortProvider = ({ children }) => {
       setNetworkError(false);
       setIsModalOpen(false);
       modalShownRef.current = false;
+      logEvent("info", "Network retry succeeded — modal dismissed");
     } catch (error) {
       if (navigator.onLine) {
         blockSpeakRef.current = true;
@@ -899,13 +838,14 @@ export const SerialPortProvider = ({ children }) => {
         setNetworkError(false);
         setIsModalOpen(false);
         modalShownRef.current = false;
+        logEvent("info", "Network retry: device online despite invoke error — modal dismissed");
       } else {
         blockSpeakRef.current = false;
+        logEvent("error", `Network retry failed — device still offline: ${error.message ?? error}`);
         speak(t("translations.Network Error"));
       }
     }
   };
-
 
   return (
     <SerialPortContext.Provider

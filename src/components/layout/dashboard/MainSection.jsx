@@ -8,6 +8,7 @@ import { fetchFloorList } from "../../../redux/slice/floorSlice";
 import { useVoice } from "../../../context/voiceContext";
 import { useTranslation } from "react-i18next";
 import { formatFloorForSpeech } from "../../../utils/speechFormatter";
+import { logEvent } from "../../../logger";
 
 const MainSection = ({
   openKeyboard,
@@ -30,12 +31,14 @@ const MainSection = ({
   const TOTAL_ITEMS = floors.length + 2;
 
   useEffect(() => {
+    logEvent("info", `Fetching floor list for lang: ${lang}`);
     dispatch(fetchFloorList(1));
   }, [dispatch, lang]);
 
   const handleCardClick = async (fl) => {
 
     if (!isAuthenticated) {
+      logEvent("info", `Unauthenticated user attempted to select floor: ${fl.title} — opening keyboard`);
       openKeyboard(fl.title);
       stop();
       speak(t("speech.Virtual Keyboard"));
@@ -43,17 +46,19 @@ const MainSection = ({
     }
 
     try {
-
+      logEvent("info", `Fetching sector list for floor: ${fl.title} (floor=${fl.floor}, floorno=${fl.floorno})`);
       const sectorList = await getSectorList({
         floor: fl.floor,
         floorno: fl.floorno,
       });
 
+      logEvent("info", `Navigating to floor: ${fl.title} with ${sectorList.length} sectors`);
       navigate(`/floor/${fl.title}`, {
         state: { sectorList, floorInfo: fl },
       });
 
     } catch (error) {
+      logEvent("error", `Sector API failed for floor: ${fl.title} — ${error.message}`);
       console.error("Sector API failed", error);
     }
   };
@@ -116,8 +121,9 @@ const MainSection = ({
         e.preventDefault();
 
         setCursor((c) => {
-          if (c === null) return 0;
-          return (c + 1) % TOTAL_ITEMS;
+          const next = c === null ? 0 : (c + 1) % TOTAL_ITEMS;
+          logEvent("info", `Keyboard ArrowRight in MainSection — cursor: ${c} → ${next}`);
+          return next;
         });
 
       }
@@ -127,8 +133,9 @@ const MainSection = ({
         e.preventDefault();
 
         setCursor((c) => {
-          if (c === null) return TOTAL_ITEMS - 1;
-          return (c - 1 + TOTAL_ITEMS) % TOTAL_ITEMS;
+          const next = c === null ? TOTAL_ITEMS - 1 : (c - 1 + TOTAL_ITEMS) % TOTAL_ITEMS;
+          logEvent("info", `Keyboard ArrowLeft in MainSection — cursor: ${c} → ${next}`);
+          return next;
         });
 
       }
@@ -136,15 +143,22 @@ const MainSection = ({
       if (e.key === "Enter") {
 
         if (cursor === 0) {
+          logEvent("info", "Keyboard Enter on logo — no action");
           console.log("Logo selected");
           return;
         }
 
-        if (cursor === 1) return;
+        if (cursor === 1) {
+          logEvent("info", "Keyboard Enter on heading — no action");
+          return;
+        }
 
         const floor = floors[cursor - 2];
 
-        if (floor) handleCardClick(floor);
+        if (floor) {
+          logEvent("info", `Keyboard Enter selected floor: ${floor.title}`);
+          handleCardClick(floor);
+        }
 
       }
 
@@ -184,6 +198,8 @@ const MainSection = ({
   */
 
   if (error) {
+
+    logEvent("error", `Floor list error state rendered: ${error}`);
 
     return (
       <div
@@ -225,24 +241,24 @@ const MainSection = ({
           {/* DECORATIVE GRADIENT */}
 
           <div className="absolute top-0 right-0 w-[180px] h-[180px] bg-[radial-gradient(circle_at_top_right,rgba(255,202,8,0.12),transparent_70%)] pointer-events-none" />
-<div
-              className={`transition-all duration-300 rounded-2xl w-full flex items-center justify-center mb-10`}
-            >
-              <span className={` rounded-2xl ${isMainFocused && cursor === 0
-                  ? "outline outline-[5px] outline-[#dc2f02] shadow-[0_0_0_5px_rgba(255,202,8,0.25)] drop-shadow-[0_0_20px_rgba(255,202,8,0.5)]"
-                  : "outline outline-[5px] outline-transparent"
-                }`}>
-              <img
-                src={logo}
-                alt="logo"
-                className="logo-image w-[450px]"
-              />
-              </span>
-            </div>
+          <div
+            className={`transition-all duration-300 rounded-2xl w-full flex items-center justify-center mb-10`}
+          >
+            <span className={` rounded-2xl ${isMainFocused && cursor === 0
+                ? "outline outline-[5px] outline-[#dc2f02] shadow-[0_0_0_5px_rgba(255,202,8,0.25)] drop-shadow-[0_0_20px_rgba(255,202,8,0.5)]"
+                : "outline outline-[5px] outline-transparent"
+              }`}>
+            <img
+              src={logo}
+              alt="logo"
+              className="logo-image w-[450px]"
+            />
+            </span>
+          </div>
           <div className="flex justify-between items-center mb-5 ">
 
             {/* HEADING */}
-   
+
             <div
               className={`heading text-[32px] font-bold text-[#3b2a00] tracking-wide px-4 py-2 rounded-[10px] inline-block transition-all capitalize uppercase 
 
@@ -257,7 +273,6 @@ const MainSection = ({
 
             {/* LOGO */}
 
-         
           </div>
 
           {/* FLOOR CARDS */}
