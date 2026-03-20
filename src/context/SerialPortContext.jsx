@@ -193,7 +193,7 @@ export const SerialPortProvider = ({ children }) => {
           machineUid: config.machine_uid || '',
           version: config.version || '1.0.0'
         });
-        logEvent("info", `Kiosk config loaded — machineUid=${config.machine_uid}, version=${config.version}, serialPorts=${config.serialdata?.length ?? 0}`);
+        logEvent("info", `serialPorts=${config.serialdata?.length ?? 0}`);
       }
     } catch (error) {
       logEvent("error", `Failed to read kiosk config: ${error.message ?? error}`);

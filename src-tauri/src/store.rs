@@ -9,12 +9,12 @@ use uuid::Uuid;
 
 // Provide default for `protocol` in case it's missing from JSON
 fn default_primary_server_url() -> String {
-    "http://k-rsv.snu.ac.kr:8011/NEW_SNU_BOOKING/".to_string()
+    "http://daegu.neosco.co.kr:8012".to_string()
 }
 
 // Provide default for secondary server URL
 fn default_secondary_server_url() -> String {
-    "http://k-rsv.snu.ac.kr:8012/SEATAPI/".to_string()
+    "http://daegu.neosco.co.kr:8012".to_string()
 }
 
 // Provide default for QR server URL

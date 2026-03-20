@@ -25,8 +25,7 @@ async fn make_kiosk_login_request(logger: Arc<Logger>) -> Result<ApiResponse, St
     let base_url = config.primary_server_url.trim_end_matches('/');
 
     let endpoint = format!(
-        "api/v1/kiosk/login/{}?version={}",
-        config.machineId, RELEASE_VERSION
+        "/SEATAPI/GetNoticeInfo.asp"
     );
 
     let api_url = format!("{}{}", base_url, endpoint);
@@ -55,13 +54,7 @@ async fn make_kiosk_login_request(logger: Arc<Logger>) -> Result<ApiResponse, St
                 .unwrap_or_else(|_| "Failed to read body".to_string());
 
             logger
-                .log(LogLevel::INFO, &format!("Status: {}", status))
-                .unwrap();
-            logger
                 .log(LogLevel::INFO, &format!("Headers: {:?}", headers))
-                .unwrap();
-            logger
-                .log(LogLevel::INFO, &format!("Raw response body: {}", body_text))
                 .unwrap();
 
             match serde_json::from_str::<ApiResponse>(&body_text) {
