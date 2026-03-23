@@ -45,7 +45,7 @@ const Modal = ({
                         {showCloseButton && (
                             <button
                                 onClick={handleClose}
-                                className={`text-gray-500 hover:text-gray-700 transition-colors ${closeFocused ? "outline-[6px] outline-[#dc2f02]" : ""}`}
+                                className={`bg-[#66b2b2] text-white hover:bg-[#5aa3a3] transition-colors ${closeFocused ? "outline-[6px] outline-[#dc2f02]" : ""}`}
                             >
                                 <X size={30} />
                             </button>

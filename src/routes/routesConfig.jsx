@@ -8,6 +8,7 @@ export const routes = [
   { path: "/floor/:floorId", element: <Floor /> },
   { path: "/floor/:floorId/:sectorNo", element: <Floor /> }, // sector optional case
   { path: "/floor/:floorId/:sectorNo/move", element: <Floor /> },
-  {path:"/configuration",element:<Configuration/>},
+  { path: "/floor/:floorId/seatAssign", element: <Floor /> },
+  { path: "/configuration", element: <Configuration /> },
   { path: "/about", element: <About /> }
 ];

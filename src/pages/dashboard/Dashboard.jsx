@@ -50,6 +50,9 @@ const EMPTY_MODAL_STATES = {
   [MODAL_TYPES.EXTENSION]: false,
   [MODAL_TYPES.RETURN]: false,
   [MODAL_TYPES.ASSIGN_CHECK]: false,
+  [MODAL_TYPES.RESERVATION_CANCEL]: false, // NEW
+  [MODAL_TYPES.BOOKING_CHECK]: false, // NEW
+  [MODAL_TYPES.SEAT_ASSIGN]: false, // NEW
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -63,64 +66,56 @@ const Dashboard = () => {
   const { setCurrentFloor } = useFloorData(null, null);
   const { humanDetected } = useSerialPort();
 
-  // ─── Redux selectors ────────────────────────────────────────────────────
   const lang = useSelector((s) => s.lang.current);
   const volume = useSelector((s) => s.accessibility.volume);
   const { userInfo, isAuthenticated } = useSelector((s) => s.userInfo);
   const { floors, loading } = useSelector((s) => s.floor);
   const { earphoneInjected } = useSelector((s) => s.headphone);
-  const { bookingList, loading: bookingLoading } = useSelector((state) => state.booking)
-  // ─── UI state ───────────────────────────────────────────────────────────
+  const { bookingList } = useSelector((state) => state.booking);
+
   const [focused, setFocused] = useState(null);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const [isUserInfoModalOpen, setIsUserInfoModalOpen] = useState(false);
   const [modalStates, setModalStates] = useState(EMPTY_MODAL_STATES);
   const [selectedFloor, setSelectedFloor] = useState(null);
   const [selectedAssignNo, setSelectedAssignNo] = useState(null);
+  const [selectedBookingNo, setSelectedBookingNo] = useState(null); // NEW: for bookingCheck
   const [seatno, setSeatno] = useState(null);
   const [showGlobalLoading, setShowGlobalLoading] = useState(true);
 
-  // ─── Login error modal ──────────────────────────────────────────────────
   const [loginErrorModal, setLoginErrorModal] = useState({ isOpen: false, title: "", message: "" });
   const [loginErrorButtonFocused, setLoginErrorButtonFocused] = useState(false);
   const [isLoginErrorFocused, setIsLoginErrorFocused] = useState(false);
 
-  // ─── Floor selection modal ──────────────────────────────────────────────
   const [isFloorSelectionModalOpen, setIsFloorSelectionModalOpen] = useState(false);
   const [floorSelectionFocusedIndex, setFloorSelectionFocusedIndex] = useState(0);
   const [isFloorSelectionFocused, setIsFloorSelectionFocused] = useState(false);
 
-  // ─── Refs ───────────────────────────────────────────────────────────────
   const prevVolumeRef = useRef(volume);
   const lastHumanStateRef = useRef(false);
   const hasSpokenLoginErrorRef = useRef(false);
 
-  // ─── Derived ────────────────────────────────────────────────────────────
   const isAnyModalOpen = useMemo(() =>
     isKeyboardOpen ||
     isUserInfoModalOpen ||
-    modalStates[MODAL_TYPES.EXTENSION] ||
-    modalStates[MODAL_TYPES.RETURN] ||
-    modalStates[MODAL_TYPES.ASSIGN_CHECK] ||
+    Object.values(modalStates).some(Boolean) ||
     isFloorSelectionModalOpen ||
     loginErrorModal.isOpen,
     [isKeyboardOpen, isUserInfoModalOpen, modalStates, isFloorSelectionModalOpen, loginErrorModal.isOpen]
   );
 
-  // ─── Helpers ─────────────────────────────────────────────────────────────
   const speakMainScreen = useCallback(() => {
     if (isAnyModalOpen || window.__INFO_MODAL_OPEN__) return;
-    // ✅ Cancel any pending speak before firing
     stop();
-    // Small defer so multiple simultaneous callers collapse into one
     clearTimeout(window.__speakMainTimeout__);
-    window.__speakMainTimeout__ = setTimeout(() => {
-      speak(t("speech.This screen is the main screen."));
-    }, 1000);
+    window.__speakMainTimeout__ = setTimeout(() => speak(t("speech.This screen is the main screen.")), 1000);
   }, [speak, stop, t, isAnyModalOpen]);
 
   const shouldShowModal = useCallback((bookingInfo) => {
-    if (!bookingInfo || bookingInfo.ASSIGN_NO === "0") return false;
+    if (!bookingInfo) return false;
+    if (bookingInfo.ASSIGN_NO === "0") {
+      return bookingInfo.BOOKING_CHECK_YN === "Y" || bookingInfo.CANCEL_YN === "Y" || bookingInfo.ASSIGN_CHECK_YN === "Y";
+    }
     return !(
       bookingInfo.ASSIGN_YN === "Y" &&
       bookingInfo.EXTEND_YN === "N" &&
@@ -136,8 +131,6 @@ const Dashboard = () => {
     setModalStates((prev) => ({ ...prev, [modalType]: isOpen }));
   }, []);
 
-  // ─── Login error modal ───────────────────────────────────────────────────
-
   const openLoginErrorModal = useCallback((title, message) => {
     setLoginErrorModal({ isOpen: true, title, message });
   }, []);
@@ -145,8 +138,6 @@ const Dashboard = () => {
   const closeLoginErrorModal = useCallback(() => {
     setLoginErrorModal({ isOpen: false, title: "", message: "" });
   }, []);
-
-  // ─── Floor selection modal ───────────────────────────────────────────────
 
   const closeFloorSelectionModal = useCallback(() => {
     setIsFloorSelectionModalOpen(false);
@@ -195,9 +186,7 @@ const Dashboard = () => {
   const openKeyboard = useCallback((floor = null, shouldAutoFocus = false) => {
     setSelectedFloor(floor);
     setIsKeyboardOpen(true);
-    if (shouldAutoFocus) {
-      setTimeout(() => setFocused(FocusRegionforKeyboardModal.KEYBOARD), 100);
-    }
+    if (shouldAutoFocus) setTimeout(() => setFocused(FocusRegionforKeyboardModal.KEYBOARD), 100);
   }, []);
 
   const handleBackToUserInfo = useCallback(() => setIsUserInfoModalOpen(true), []);
@@ -212,66 +201,92 @@ const Dashboard = () => {
     toggleModal(MODAL_TYPES.ASSIGN_CHECK, false);
   }, [toggleModal]);
 
-  // ─── Move action ─────────────────────────────────────────────────────────
-
   const handleMoveAction = useCallback(async (assignNo) => {
     if (userInfo?.MOVE_YN !== "Y") return;
-
     try {
       let bookingData = null;
       setApiLang(lang);
 
-      // 1️⃣ Check Redux booking list first
       if (bookingList?.length) {
-        bookingData = bookingList.find(
-          (item) => item.STATUS === 3 && item.MOVE_YN === "Y"
-        );
+        bookingData = bookingList.find((item) => item.STATUS === 3 && item.MOVE_YN === "Y");
       }
 
-      // 2️⃣ If not found → call API
       if (!bookingData) {
         const today = formatDateNum();
         const result = await dispatch(
           fetchBookingList({ schoolno: userInfo.SCHOOLNO, sDate: today, eDate: today })
         ).unwrap();
-
         const list = Array.isArray(result) ? result : result?.body ?? [];
-        bookingData = list.find(
-          (item) => item.STATUS === 3 && item.MOVE_YN === "Y"
-        );
+        bookingData = list.find((item) => item.STATUS === 3 && item.MOVE_YN === "Y");
       }
 
       if (!bookingData) return;
 
       const { FLOOR_NAME, SECTORNO } = bookingData;
-
-      // ✅ Extract the number from Korean "6층" or English "6F" → "6"
       const floorNumber = FLOOR_NAME?.replace(/[^\d]/g, "");
-
-      // ✅ Find the matching floor from Redux (already translated for current lang)
       const matchedFloor = floors.find((f) => f.floor === floorNumber || f.id === floorNumber);
+      if (!matchedFloor) { console.error("Matched floor not found for:", FLOOR_NAME); return; }
 
-      if (!matchedFloor) {
-        console.error("Matched floor not found for:", FLOOR_NAME);
-        return;
-      }
-
-      console.log("matchedFloor", matchedFloor);
       setCurrentFloor(matchedFloor);
-
-      // ✅ Use matchedFloor.title so the route is always in the current language
       navigate(`/floor/${matchedFloor.title}/${SECTORNO}/move`, {
-        state: {
-          mode: "move",
-          floorInfo: matchedFloor,
-          selectedSectorNo: SECTORNO,
-        },
+        state: { mode: "move", floorInfo: matchedFloor, selectedSectorNo: SECTORNO },
       });
-
     } catch (error) {
       await logEvent("error", `Error fetching booking info for move: ${error.message}`);
     }
   }, [userInfo, bookingList, floors, dispatch, navigate, setCurrentFloor, lang]);
+  const handleSeatAssignAction = useCallback(async (bookingNo) => {
+    try {
+      let bookingData = null;
+      setApiLang(lang);
+
+      if (bookingList?.length) {
+        bookingData = bookingList.find(
+          (item) => String(item.BOOKING_NO) === String(bookingNo) && item.ASSIGN_YN === "Y"
+        );
+      }
+
+      if (!bookingData) {
+        const today = formatDateNum();
+        const result = await dispatch(
+          fetchBookingList({ schoolno: userInfo.SCHOOLNO, sDate: today, eDate: today })
+        ).unwrap();
+        const list = Array.isArray(result) ? result : result?.body ?? [];
+        bookingData = list.find(
+          (item) => String(item.BOOKING_NO) === String(bookingNo) && item.ASSIGN_YN === "Y"
+        );
+      }
+
+      // No specific sector found — let user pick floor freely
+      if (!bookingData) {
+        openFloorSelectionModal();
+        return;
+      }
+
+      const { FLOOR_NAME, SECTORNO } = bookingData;
+      const floorNumber = FLOOR_NAME?.replace(/[^\d]/g, "");
+      const matchedFloor = floors.find(
+        (f) => f.floor === floorNumber || f.id === floorNumber
+      );
+
+      if (!matchedFloor) {
+        console.error("Matched floor not found for:", FLOOR_NAME);
+        openFloorSelectionModal();
+        return;
+      }
+
+      setCurrentFloor(matchedFloor);
+      navigate(`/floor/${matchedFloor.title}/seatAssign`, {
+        state: {
+          mode: "seatAssign",
+          floorInfo: matchedFloor,
+          bookingNo,           // forwarded into Floor → SeatActionModal
+        },
+      });
+    } catch (error) {
+      await logEvent("error", `Error navigating to seat assign: ${error.message}`);
+    }
+  }, [userInfo, bookingList, floors, dispatch, navigate, setCurrentFloor, lang, openFloorSelectionModal]);
   // ─── User action from UserInfoModal ──────────────────────────────────────
 
   const handleUserAction = useCallback(async (actionType, assignNo) => {
@@ -280,27 +295,43 @@ const Dashboard = () => {
     setIsUserInfoModalOpen(false);
     setSelectedAssignNo(assignNo);
 
-    const actionHandlers = {
-      extend: () => toggleModal(MODAL_TYPES.EXTENSION, true),
-      move: () => handleMoveAction(assignNo),
-      return: () => toggleModal(MODAL_TYPES.RETURN, true),
-      check: () => navigate("/booking/check"),
-      cancel: () => navigate("/booking/cancel"),
-      assign: () =>
-        selectedFloor
-          ? navigateToFloor(selectedFloor)
-          : navigate("/floor/select"),
-      assignCheck: () => toggleModal(MODAL_TYPES.ASSIGN_CHECK, true),
-    };
+    switch (actionType) {
+      // ── Unchanged ──────────────────────────────────────────────────────
+      case "extend":
+        toggleModal(MODAL_TYPES.EXTENSION, true);
+        break;
+      case "move":
+        handleMoveAction(assignNo);
+        break;
+      case "return":
+        toggleModal(MODAL_TYPES.RETURN, true);
+        break;
+      case "assignCheck":
+        toggleModal(MODAL_TYPES.ASSIGN_CHECK, true);
+        break;
 
-    if (actionHandlers[actionType]) {
-      await actionHandlers[actionType]();
-    } else {
-      console.warn("Unknown action:", actionType);
+      // ── NEW: each gets its own SeatActionModal with confirmation ────────
+      case "bookingCheck":
+        // assignNo here is BOOKING_NO passed from UserInfoModal
+        setSelectedBookingNo(assignNo);
+        toggleModal(MODAL_TYPES.BOOKING_CHECK, true);
+        break;
+      case "reservationCancel":
+        toggleModal(MODAL_TYPES.RESERVATION_CANCEL, true);
+        break;
+      case "seatAssign":
+        handleSeatAssignAction(assignNo);
+        break;
+
+      case "logout":
+        handleLogout();
+        break;
+      default:
+        console.warn("Unknown action:", actionType);
     }
 
     setSelectedFloor(null);
-  }, [selectedFloor, toggleModal, handleMoveAction, navigate, navigateToFloor]);
+  }, [toggleModal, handleMoveAction, handleLogout]);
 
   // ─── Keyboard submit (login) ─────────────────────────────────────────────
 
@@ -315,28 +346,20 @@ const Dashboard = () => {
       await logEvent("info", "Keyboard login attempt started");
       setShowGlobalLoading(true);
       const result = await dispatch(login(value)).unwrap();
-      if (!result || !result.SCHOOLNO) {
-        throw new Error("User not found");
-      }
+      if (!result || !result.SCHOOLNO) throw new Error("User not found");
 
       await logEvent("info", `Login successful, ASSIGN_NO=${result?.SCHOOLNO}`);
-
       const showModal = shouldShowModal(result);
 
       if (result.ASSIGN_NO === "0" && !selectedFloor) {
-        await logEvent("info", "No booking found, opening floor selection modal");
-        openFloorSelectionModal();
+        if (shouldShowModal(result)) { setIsUserInfoModalOpen(true); }
+        else { openFloorSelectionModal(); }
         return;
       }
 
       if (selectedFloor) {
-        if (showModal) {
-          await logEvent("info", "Booking found, opening user info modal");
-          setIsUserInfoModalOpen(true);
-        } else {
-          await logEvent("info", `Navigating to floor: ${selectedFloor}`);
-          await navigateToFloor(selectedFloor);
-        }
+        if (showModal) { await logEvent("info", "Booking found, opening user info modal"); setIsUserInfoModalOpen(true); }
+        else { await logEvent("info", `Navigating to floor: ${selectedFloor}`); await navigateToFloor(selectedFloor); }
       } else if (showModal) {
         setIsUserInfoModalOpen(true);
       }
@@ -354,29 +377,18 @@ const Dashboard = () => {
 
   const fetchBookingInfo = async (bseqno) => {
     if (!bseqno) return;
-
     try {
       const res = await getBookingBseqno({ bseqno });
-      if (res?.body?.SEATNO) {
-        setSeatno(res.body.SEATNO);
-      }
+      if (res?.body?.SEATNO) setSeatno(res.body.SEATNO);
     } catch (error) {
       console.error("Error fetching booking info:", error);
     }
   };
-  useEffect(() => {
-    if (!selectedAssignNo) return;
-    fetchBookingInfo(selectedAssignNo);
-  }, [selectedAssignNo]);
-  // ─── Effects ──────────────────────────────────────────────────────────────
 
-  // Sync API language
+  useEffect(() => { if (!selectedAssignNo) return; fetchBookingInfo(selectedAssignNo); }, [selectedAssignNo]);
   useEffect(() => { setApiLang(lang); }, [lang]);
-
-  // Fetch floors on lang change
   useEffect(() => { dispatch(fetchFloorList(1)); }, [dispatch, lang]);
 
-  // One-time app init (contrast + accessibility reset)
   useEffect(() => {
     if (!sessionStorage.getItem("appInitialized")) {
       dispatch(resetAccessibility());
@@ -386,39 +398,29 @@ const Dashboard = () => {
     }
   }, [dispatch]);
 
-
-
-  // Global loading tied to floors fetch
   useEffect(() => {
-    if (loading || !floors?.length) {
-      setShowGlobalLoading(true);
-      return;
-    }
+    if (loading || !floors?.length) { setShowGlobalLoading(true); return; }
     const id = setTimeout(() => setShowGlobalLoading(false), 300);
     return () => clearTimeout(id);
   }, [loading, floors]);
 
-  // Speak main screen on initial load (once floors are ready)
   useEffect(() => {
     if (location.pathname !== "/" || focused !== null || showGlobalLoading) return;
     const id = setTimeout(() => speakMainScreen(), 800);
     return () => clearTimeout(id);
   }, [location.pathname, focused, showGlobalLoading]); // eslint-disable-line
 
-  // Speak main screen when keyboard closes
   const prevKeyboardOpenRef = useRef(false);
   useEffect(() => {
     if (prevKeyboardOpenRef.current && !isKeyboardOpen) speakMainScreen();
     prevKeyboardOpenRef.current = isKeyboardOpen;
   }, [isKeyboardOpen, speakMainScreen]);
 
-  // Global modal close hook
   useEffect(() => {
     window.__ON_MODAL_CLOSE__ = () => setTimeout(() => speakMainScreen(), 200);
     return () => { window.__ON_MODAL_CLOSE__ = null; };
   }, [speakMainScreen]);
 
-  // Keyboard autofocus + speech on open
   useEffect(() => {
     if (!isKeyboardOpen) return;
     const focusId = setTimeout(() => setFocused(FocusRegionforKeyboardModal.KEYBOARD), 100);
@@ -426,7 +428,6 @@ const Dashboard = () => {
     return () => { clearTimeout(focusId); clearTimeout(speechId); };
   }, [isKeyboardOpen, stop, speak, t]);
 
-  // '#' key → speak main screen
   useEffect(() => {
     const onKeyDown = (e) => {
       if (e.repeat) return;
@@ -437,28 +438,21 @@ const Dashboard = () => {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [speakMainScreen]);
 
-  // '*' key → cycle focus regions
   useEffect(() => {
     const onKeyDown = (e) => {
       const isAsterisk = e.key === "*" || e.code === "NumpadMultiply" || e.keyCode === 106;
       if (!isAsterisk) return;
-
       if (isKeyboardOpen && focused !== FocusRegionforKeyboardModal.KEYBOARD) {
-        e.preventDefault();
-        e.stopPropagation();
+        e.preventDefault(); e.stopPropagation();
         setFocused(FocusRegionforKeyboardModal.KEYBOARD);
         return;
       }
-
       if (
         focused === FocusRegionforKeyboardModal.KEYBOARD ||
         isUserInfoModalOpen ||
-        modalStates[MODAL_TYPES.EXTENSION] ||
-        modalStates[MODAL_TYPES.RETURN] ||
-        modalStates[MODAL_TYPES.ASSIGN_CHECK] ||
+        Object.values(modalStates).some(Boolean) ||
         isFloorSelectionModalOpen
       ) return;
-
       setFocused((prev) => {
         const currentIdx = FOCUS_CYCLE.indexOf(prev);
         return FOCUS_CYCLE[(currentIdx + 1) % FOCUS_CYCLE.length];
@@ -468,7 +462,6 @@ const Dashboard = () => {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [isKeyboardOpen, isUserInfoModalOpen, modalStates, isFloorSelectionModalOpen, focused]);
 
-  // Human sensor
   useEffect(() => {
     if (!HUMAN_SENSOR_DETECTION || typeof humanDetected !== "boolean") return;
     if (humanDetected && !lastHumanStateRef.current) speakMainScreen();
@@ -478,18 +471,12 @@ const Dashboard = () => {
     return () => clearInterval(id);
   }, [humanDetected, speakMainScreen]);
 
-  // Earphone injection → logout
   useEffect(() => {
     if (!earphoneInjected) return;
-    dispatch(logout());
-    setFocused(null);
-    setIsKeyboardOpen(false);
-    speakMainScreen();
-    dispatch(clearHeadphoneFocus());
+    dispatch(logout()); setFocused(null); setIsKeyboardOpen(false);
+    speakMainScreen(); dispatch(clearHeadphoneFocus());
   }, [earphoneInjected, dispatch, speakMainScreen]);
 
-  // QR login success
-  // QR login success (no booking) → open floor selection
   useEffect(() => {
     const handler = () => {
       const bookingInfo = JSON.parse(localStorage.getItem("bookingInfo") || "null");
@@ -499,35 +486,25 @@ const Dashboard = () => {
     return () => window.removeEventListener("QR_LOGIN_SUCCESS", handler);
   }, [openFloorSelectionModal]);
 
-  // ✅ ADD THIS — QR login success WITH booking → open UserInfoModal
   useEffect(() => {
     const handler = () => {
       const bookingInfo = JSON.parse(localStorage.getItem("bookingInfo") || "null");
       if (!bookingInfo) return;
-      if (shouldShowModal(bookingInfo)) {
-        setIsUserInfoModalOpen(true);
-      } else {
-        // Booking exists but all flags are settled — open floor selection
-        openFloorSelectionModal();
-      }
+      if (shouldShowModal(bookingInfo)) setIsUserInfoModalOpen(true);
+      else openFloorSelectionModal();
     };
     window.addEventListener("QR_LOGIN_SUCCESS_WITH_BOOKING", handler);
     return () => window.removeEventListener("QR_LOGIN_SUCCESS_WITH_BOOKING", handler);
   }, [shouldShowModal, openFloorSelectionModal]);
 
-  // QR loading events
   useEffect(() => {
     const start = () => setShowGlobalLoading(true);
     const end = () => setShowGlobalLoading(false);
     window.addEventListener("LOGIN_LOADING_START", start);
     window.addEventListener("LOGIN_LOADING_END", end);
-    return () => {
-      window.removeEventListener("LOGIN_LOADING_START", start);
-      window.removeEventListener("LOGIN_LOADING_END", end);
-    };
+    return () => { window.removeEventListener("LOGIN_LOADING_START", start); window.removeEventListener("LOGIN_LOADING_END", end); };
   }, []);
 
-  // Speech on focused region change
   useEffect(() => {
     if (!focused || isAnyModalOpen) return;
     stop();
@@ -540,7 +517,6 @@ const Dashboard = () => {
     if (text) speak(text);
   }, [focused, stop, speak, t, isAnyModalOpen]);
 
-  // Volume speech
   useEffect(() => {
     if (focused !== FocusRegion.FOOTER) { prevVolumeRef.current = volume; return; }
     if (prevVolumeRef.current === volume) return;
@@ -550,39 +526,27 @@ const Dashboard = () => {
     prevVolumeRef.current = volume;
   }, [volume, focused, speak, stop]);
 
-  // Login error modal: focus + speech
   useEffect(() => {
     if (loginErrorModal.isOpen) {
-      setIsLoginErrorFocused(true);
-      setLoginErrorButtonFocused(false);
-      hasSpokenLoginErrorRef.current = false;
-      stop();
+      setIsLoginErrorFocused(true); setLoginErrorButtonFocused(false);
+      hasSpokenLoginErrorRef.current = false; stop();
       speak(`${loginErrorModal.title} ${loginErrorModal.message.replace(/<[^>]*>/g, "")}`);
     } else {
-      setIsLoginErrorFocused(false);
-      setLoginErrorButtonFocused(false);
-      hasSpokenLoginErrorRef.current = false;
-      stop();
+      setIsLoginErrorFocused(false); setLoginErrorButtonFocused(false);
+      hasSpokenLoginErrorRef.current = false; stop();
     }
   }, [loginErrorModal.isOpen, loginErrorModal.title, loginErrorModal.message, stop, speak]);
 
-  // Login error modal: keyboard
   useEffect(() => {
     if (!loginErrorModal.isOpen || !isLoginErrorFocused) return;
     const onKeyDown = (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        if (loginErrorButtonFocused) closeLoginErrorModal();
-      }
+      if (e.key === "Enter") { e.preventDefault(); if (loginErrorButtonFocused) closeLoginErrorModal(); }
       if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
         e.preventDefault();
         setLoginErrorButtonFocused((prev) => {
           const next = !prev;
-          if (next) {
-            speak(t("translations.OK"));
-          } else {
-            speak(`${loginErrorModal.title} ${loginErrorModal.message.replace(/<[^>]*>/g, "")}`);
-          }
+          if (next) speak(t("translations.OK"));
+          else speak(`${loginErrorModal.title} ${loginErrorModal.message.replace(/<[^>]*>/g, "")}`);
           return next;
         });
       }
@@ -591,50 +555,33 @@ const Dashboard = () => {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [loginErrorModal.isOpen, isLoginErrorFocused, loginErrorButtonFocused, closeLoginErrorModal, speak, t, loginErrorModal.title, loginErrorModal.message]);
 
-  // Floor selection modal: keyboard
   useEffect(() => {
     if (!isFloorSelectionModalOpen || !isFloorSelectionFocused) return;
-
     const onKeyDown = (e) => {
       if (e.key === "Enter") {
         e.preventDefault();
         if (floorSelectionFocusedIndex === -1) return;
-        if (floorSelectionFocusedIndex < floors.length) {
-          handleFloorSelect(floors[floorSelectionFocusedIndex].title);
-        } else if (floorSelectionFocusedIndex === floors.length) {
-          handleFloorSelectionLogout();
-        } else {
-          handleFloorSelectionClose();
-        }
+        if (floorSelectionFocusedIndex < floors.length) handleFloorSelect(floors[floorSelectionFocusedIndex].title);
+        else if (floorSelectionFocusedIndex === floors.length) handleFloorSelectionLogout();
+        else handleFloorSelectionClose();
         return;
       }
-
       if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
       e.preventDefault();
-
       setFloorSelectionFocusedIndex((prev) => {
         const max = floors.length + 1;
-        const next = e.key === "ArrowRight"
-          ? (prev + 1 > max ? -1 : prev + 1)
-          : (prev - 1 < -1 ? max : prev - 1);
-
+        const next = e.key === "ArrowRight" ? (prev + 1 > max ? -1 : prev + 1) : (prev - 1 < -1 ? max : prev - 1);
         stop();
         if (next === -1) speak(t("speech.Please select a desired floor"));
         else if (next < floors.length) speak(t("speech.Floor", { floor: formatFloorForSpeech(floors[next].title, lang) }));
         else if (next === floors.length) speak(t("speech.Logout"));
         else speak(t("speech.Close"));
-
         return next;
       });
     };
-
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [
-    isFloorSelectionModalOpen, isFloorSelectionFocused, floorSelectionFocusedIndex,
-    floors, handleFloorSelect, handleFloorSelectionLogout, handleFloorSelectionClose,
-    stop, speak, t, lang,
-  ]);
+  }, [isFloorSelectionModalOpen, isFloorSelectionFocused, floorSelectionFocusedIndex, floors, handleFloorSelect, handleFloorSelectionLogout, handleFloorSelectionClose, stop, speak, t, lang]);
 
   // ─── Render ───────────────────────────────────────────────────────────────
 
@@ -648,23 +595,11 @@ const Dashboard = () => {
 
       <img src={BgMainImage} alt="Background" className="absolute inset-0 h-full w-full object-cover" />
       <div className="contrast-overlay absolute inset-0 pointer-events-none"></div>
-      <MainSection
-        openKeyboard={openKeyboard}
-        userInfo={userInfo}
-        isAuthenticated={isAuthenticated}
-        focusedRegion={focused}
-        FocusRegion={FocusRegion}
-      />
-
+      <MainSection openKeyboard={openKeyboard} userInfo={userInfo} isAuthenticated={isAuthenticated} focusedRegion={focused} FocusRegion={FocusRegion} />
       <NoticeBanner isFocused={focused === FocusRegion.NOTICE_BANNER} FocusRegion={FocusRegion} lang={lang} />
 
       <div className={focused === FocusRegion.FOOTER ? "border-[6px] border-[#dc2f02]" : "border-[6px] border-transparent"}>
-        <FooterControls
-          userInfo={userInfo}
-          openKeyboard={(shouldAutoFocus) => openKeyboard(null, shouldAutoFocus)}
-          logout={handleLogout}
-          isFocused={focused === FocusRegion.FOOTER}
-        />
+        <FooterControls userInfo={userInfo} openKeyboard={(shouldAutoFocus) => openKeyboard(null, shouldAutoFocus)} logout={handleLogout} isFocused={focused === FocusRegion.FOOTER} />
       </div>
 
       <KeyboardModal
@@ -676,125 +611,98 @@ const Dashboard = () => {
         setFocused={setFocused}
       />
 
-      {/* Login Error Modal */}
-      <Modal
-        isOpen={loginErrorModal.isOpen}
-        onClose={closeLoginErrorModal}
-        title={loginErrorModal.title}
-        size="large"
-        className={"seat-action-modal" + (isLoginErrorFocused ? " outline-[6px] outline-[#dc2f02]" : "")}
-        showCloseButton={false}
-      >
+      {/* ── Login Error Modal ── */}
+      <Modal isOpen={loginErrorModal.isOpen} onClose={closeLoginErrorModal} title={loginErrorModal.title} size="large" className={"seat-action-modal" + (isLoginErrorFocused ? " outline-[6px] outline-[#dc2f02]" : "")} showCloseButton={false}>
         <div className="flex flex-col items-center text-center gap-4">
           <div className="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center">
             <AlertTriangle className="w-12 h-12 text-red-600" strokeWidth={2.5} />
           </div>
-          <div
-            className="text-gray-700 text-[30px] leading-relaxed font-medium"
-            dangerouslySetInnerHTML={{ __html: loginErrorModal.message }}
-          />
-          <button
-            onClick={closeLoginErrorModal}
-            className={`mt-4 px-10 py-3 rounded-full bg-red-600 text-white text-[30px] font-semibold
-              hover:bg-red-700 focus:outline-none transition-all
-              ${loginErrorButtonFocused ? "ring-[6px] ring-red-300 scale-105" : "ring-0"}`}
-          >
+          <div className="text-gray-700 text-[30px] leading-relaxed font-medium" dangerouslySetInnerHTML={{ __html: loginErrorModal.message }} />
+          <button onClick={closeLoginErrorModal} className={`mt-4 px-10 py-3 rounded-full bg-red-600 text-white text-[30px] font-semibold hover:bg-red-700 focus:outline-none transition-all ${loginErrorButtonFocused ? "ring-[6px] ring-red-300 scale-105" : "ring-0"}`}>
             {t("translations.OK")}
           </button>
         </div>
       </Modal>
 
-      {/* Floor Selection Modal */}
-      <Modal
-        isOpen={isFloorSelectionModalOpen}
-        onClose={handleFloorSelectionClose}
-        title={t("translations.Select Floor")}
-        size="large"
-        className={isFloorSelectionFocused ? "outline-[6px] outline-[#dc2f02]" : ""}
-        closeFocused={floorSelectionFocusedIndex === floors.length + 1}
-      >
+      {/* ── Floor Selection Modal ── */}
+      <Modal isOpen={isFloorSelectionModalOpen} onClose={handleFloorSelectionClose} title={t("translations.Select Floor")} size="large" className={isFloorSelectionFocused ? "outline-[6px] outline-[#dc2f02]" : ""} closeFocused={floorSelectionFocusedIndex === floors.length + 1}>
         <div className="flex flex-col gap-6 p-6">
-          <h2 className={`text-[32px] font-semibold text-gray-800 text-center capitalize
-            ${floorSelectionFocusedIndex === -1 ? "outline-[6px] outline-[#dc2f02]" : ""}`}>
+          <h2 className={`text-[32px] font-semibold text-gray-800 text-center capitalize ${floorSelectionFocusedIndex === -1 ? "outline-[6px] outline-[#dc2f02]" : ""}`}>
             {t("translations.Please select a desired floor")}
           </h2>
-
           <div className="flex justify-center gap-4 flex-wrap">
             {floors.map((floor, index) => (
-              <button
-                key={floor.id}
-                onClick={() => handleFloorSelect(floor.title)}
-                className={`flex flex-col bg-[#FFCA08] hover:bg-[#D7D8D2] transition rounded-2xl h-[220px] w-[250px] p-6
-                  ${floorSelectionFocusedIndex === index ? "outline outline-[6px] outline-[#dc2f02]" : ""}`}
-              >
-                <div className="text-[50px] font-bold text-[#9A7D4C] leading-tight">
-                  {floor.name || floor.title}
-                </div>
+              <button key={floor.id} onClick={() => handleFloorSelect(floor.title)} className={`flex flex-col bg-[#FFCA08] hover:bg-[#D7D8D2] transition rounded-2xl h-[220px] w-[250px] p-6 ${floorSelectionFocusedIndex === index ? "outline outline-[6px] outline-[#dc2f02]" : ""}`}>
+                <div className="text-[50px] font-bold text-[#9A7D4C] leading-tight">{floor.name || floor.title}</div>
                 <div className="mt-20 relative">
                   <div className="w-full h-4 bg-gray-300 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-[#9A7D4C] transition-all duration-300"
-                      style={{ width: `${floor.total > 0 ? (floor.occupied / floor.total) * 100 : 0}%` }}
-                    />
+                    <div className="h-full bg-[#9A7D4C] transition-all duration-300" style={{ width: `${floor.total > 0 ? (floor.occupied / floor.total) * 100 : 0}%` }} />
                   </div>
-                  <div
-                    className="absolute -top-11 -translate-x-1/2 bg-[#9A7D4C] text-white px-2 rounded-md text-[30px] font-bold shadow-md"
-                    style={{ left: `${floor.total > 0 ? (floor.occupied / floor.total) * 100 : 0}%` }}
-                  >
-                    {floor.occupied || 0}
-                  </div>
-                  <div className="absolute right-2 top-7 -translate-y-1/2 text-gray-600 text-[30px] font-medium">
-                    {floor.total || 0}
-                  </div>
+                  <div className="absolute -top-11 -translate-x-1/2 bg-[#9A7D4C] text-white px-2 rounded-md text-[30px] font-bold shadow-md" style={{ left: `${floor.total > 0 ? (floor.occupied / floor.total) * 100 : 0}%` }}>{floor.occupied || 0}</div>
+                  <div className="absolute right-2 top-7 -translate-y-1/2 text-gray-600 text-[30px] font-medium">{floor.total || 0}</div>
                 </div>
               </button>
             ))}
           </div>
-
-          <button
-            onClick={handleFloorSelectionLogout}
-            className={`mt-4 w-full p-4 rounded-2xl font-semibold text-lg transition-all
-              ${floorSelectionFocusedIndex === floors.length
-                ? "bg-red-600 text-white ring-4 ring-red-200 scale-105"
-                : "bg-gray-200 text-gray-800 hover:bg-gray-300"}`}
-          >
+          <button onClick={handleFloorSelectionLogout} className={`mt-4 w-full p-4 rounded-2xl font-semibold text-lg transition-all ${floorSelectionFocusedIndex === floors.length ? "bg-red-600 text-white ring-4 ring-red-200 scale-105" : "bg-gray-200 text-gray-800 hover:bg-gray-300"}`}>
             {t("translations.Logout")}
           </button>
         </div>
       </Modal>
 
-      <UserInfoModal
-        isOpen={isUserInfoModalOpen}
-        onClose={handleUserInfoModalClose}
-        userInfo={userInfo}
-        onAction={handleUserAction}
-      />
+      <UserInfoModal isOpen={isUserInfoModalOpen} onClose={handleUserInfoModalClose} userInfo={userInfo} onAction={handleUserAction} />
 
-      <SeatActionModal
-        mode="extension"
-        assignNo={seatno}
-        isOpen={modalStates[MODAL_TYPES.EXTENSION]}
-        onClose={() => toggleModal(MODAL_TYPES.EXTENSION, false)}
-        onBackToUserInfo={handleBackToUserInfo}
-        logoutOnSuccess={true}
-      />
+      {/* ── Seat Extension ── */}
+      <SeatActionModal mode="extension" 
+      assignNo={seatno} 
+      isOpen={modalStates[MODAL_TYPES.EXTENSION]} 
+      onClose={() => toggleModal(MODAL_TYPES.EXTENSION, false)} 
+      onBackToUserInfo={handleBackToUserInfo} 
+      logoutOnSuccess={true} />
 
-      <SeatActionModal
-        mode="return"
-        assignNo={selectedAssignNo}
-        isOpen={modalStates[MODAL_TYPES.RETURN]}
-        onClose={() => toggleModal(MODAL_TYPES.RETURN, false)}
-        onBackToUserInfo={handleBackToUserInfo}
-        logoutOnSuccess={true}
-      />
+      {/* ── Seat Return ── */}
+      <SeatActionModal 
+      mode="return" 
+      assignNo={selectedAssignNo} 
+      isOpen={modalStates[MODAL_TYPES.RETURN]} 
+      onClose={() => toggleModal(MODAL_TYPES.RETURN, false)} 
+      onBackToUserInfo={handleBackToUserInfo} 
+      logoutOnSuccess={true} />
 
-      <SeatActionModal
-        mode="assignCheck"
-        assignNo={selectedAssignNo}
-        isOpen={modalStates[MODAL_TYPES.ASSIGN_CHECK]}
-        onClose={handleAssignCheckClose}
-        onBackToUserInfo={handleBackToUserInfo}
-      />
+      {/* ── Assignment Check ── */}
+      <SeatActionModal 
+      mode="assignCheck" 
+      assignNo={selectedAssignNo} 
+      isOpen={modalStates[MODAL_TYPES.ASSIGN_CHECK]} 
+      onClose={handleAssignCheckClose} 
+      onBackToUserInfo={handleBackToUserInfo} />
+
+      {/* ── Reservation Cancel → own modal, uses setReturnSeat internally ── */}
+      <SeatActionModal 
+      mode="reservationCancel" 
+      assignNo={selectedAssignNo} 
+      isOpen={modalStates[MODAL_TYPES.RESERVATION_CANCEL]} 
+      onClose={() => toggleModal(MODAL_TYPES.RESERVATION_CANCEL, false)} 
+      onBackToUserInfo={handleBackToUserInfo} 
+      logoutOnSuccess={true} />
+
+      {/* ── Reservation Check → own modal, uses runBookingCheck internally ── */}
+      <SeatActionModal 
+      mode="bookingCheck" 
+      assignNo={selectedBookingNo ?? selectedAssignNo} 
+      isOpen={modalStates[MODAL_TYPES.BOOKING_CHECK]} 
+      onClose={() => toggleModal(MODAL_TYPES.BOOKING_CHECK, false)} 
+      onBackToUserInfo={handleBackToUserInfo} 
+      logoutOnSuccess={true} />
+
+      {/* ── Seat Assignment → own modal, uses setMove internally ── */}
+      <SeatActionModal 
+      mode="seatAssign" 
+      assignNo={selectedAssignNo} 
+      isOpen={modalStates[MODAL_TYPES.SEAT_ASSIGN]} 
+      onClose={() => toggleModal(MODAL_TYPES.SEAT_ASSIGN, false)} 
+      onBackToUserInfo={handleBackToUserInfo} 
+      logoutOnSuccess={true} />
     </div>
   );
 };

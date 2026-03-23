@@ -283,27 +283,42 @@ export const getFloorImageUrl = () => PRIMARY_SERVER_URL;
 export const getFloorList = async (libno) => {
   await ensureInitialized();
   await logEvent("info", `Fetching floor list for libno: ${libno}`);
-  const res = await ApiClientPrimary.get("/SEATAPI/GetFloorUsingCount.asp", {
-    params: { libno },
-  });
-  return res.data;
+  try {
+    const res = await ApiClientPrimary.get("/SEATAPI/GetFloorUsingCount.asp", {
+      params: { libno },
+    });
+    return res.data;
+  } catch (error) {
+    await logEvent("error", `Failed to fetch floor list for libno ${libno}: ${error.message}`);
+    throw error;
+  }
 };
 
 export const getNoticeInfo = async () => {
   await ensureInitialized();
   await logEvent("info", "Fetching notice info");
-  const res = await ApiClientPrimary.get("/SEATAPI/GetNoticeInfo.asp");
-  return res.data;
+  try {
+    const res = await ApiClientPrimary.get("/SEATAPI/GetNoticeInfo.asp");
+    return res.data;
+  } catch (error) {
+    await logEvent("error", `Failed to fetch notice info: ${error.message}`);
+    throw error;
+  }
 };
 
 export const getSectorList = async ({ floor, floorno }) => {
   await ensureInitialized();
   await logEvent("info", `Fetching sector list for floor: ${floor}, floorno: ${floorno}`);
-  const res = await ApiClientPrimary.post("/SEATAPI/GetSector.asp", {
-    floor,
-    floorno,
-  });
-  return res?.data?.body?.SectorList || [];
+  try {
+    const res = await ApiClientPrimary.post("/SEATAPI/GetSector.asp", {
+      floor,
+      floorno,
+    });
+    return res?.data?.body?.SectorList || [];
+  } catch (error) {
+    await logEvent("error", `Failed to fetch sector list for floor ${floor}, floorno ${floorno}: ${error.message}`);
+    throw error;
+  }
 };
 
 /* ===============================
@@ -312,37 +327,69 @@ export const getSectorList = async ({ floor, floorno }) => {
 
 export const loginBySchoolNo = async (schoolno) => {
   await ensureInitialized();
-
   await logEvent("info", `Login attempt for school number: ${schoolno}`);
-
-  const res = await ApiClientPrimary.get(
-    "/SEATAPI/GetBookingInfoSchoolno.asp",
-    {
-      params: { schoolno },
-    },
-  );
-
-  await logEvent("info", `Login response received for: ${schoolno}`);
-  return res?.data;
+  try {
+    const res = await ApiClientPrimary.get(
+      "/SEATAPI/GetBookingInfoSchoolno.asp",
+      { params: { schoolno } },
+    );
+    await logEvent("info", `Login response received for: ${schoolno}`);
+    return res?.data;
+  } catch (error) {
+    await logEvent("error", `Login failed for schoolno ${schoolno}: ${error.message}`);
+    throw error;
+  }
 };
 
 export const getUserInfo = async ({ schoolno }) => {
   await ensureInitialized();
   await logEvent("info", `Fetching user info for schoolno: ${schoolno}`);
-  const res = await ApiClientPrimary.get("/SEATAPI/GetUserInfo.asp", {
-    params: { schoolno },
-  });
-  console.log("use info ", res?.data)
-  return res.data;
+  try {
+    const res = await ApiClientPrimary.get("/SEATAPI/GetUserInfo.asp", {
+      params: { schoolno },
+    });
+    console.log("use info ", res?.data);
+    return res.data;
+  } catch (error) {
+    await logEvent("error", `Failed to fetch user info for schoolno ${schoolno}: ${error.message}`);
+    throw error;
+  }
 };
+export const getBookingOnlySchoolNo = async ({ schoolno }) => {
+  await ensureInitialized();
+  await logEvent("info", `Fetching booking (only) for confirmation seat: ${schoolno}`);
 
+  try {
+    const res = await ApiClientPrimary.get(
+      "/SEATAPI/GetBookingOnlySchoolno.asp",
+      {
+        params: { schoolno },
+      }
+    );
+
+    console.log("getBookingOnlySchoolNo response:", res?.data);
+    return res?.data;
+  } catch (error) {
+    await logEvent(
+      "error",
+      `Failed to fetch booking only for schoolno ${schoolno}: ${error.message}`
+    );
+    throw error;
+  }
+};
 export const QRValidate = async (qrCode) => {
   await ensureInitialized();
   await logEvent("info", `QR validation attempt`);
-  const encodedQrCode = encodeURIComponent(qrCode);
-  const res = await ApiClientPrimary.get("/SEATAPI/GetUserLogin_NEW.asp", { params: { qrCd: qrCode } });
-  console.log("qr data", res?.data?.body)
-  return res?.data?.body;
+  try {
+    const res = await ApiClientPrimary.get("/SEATAPI/GetUserLogin_NEW.asp", {
+      params: { qrCd: qrCode },
+    });
+    console.log("qr data", res?.data?.body);
+    return res?.data?.body;
+  } catch (error) {
+    await logEvent("error", `QR validation failed: ${error.message}`);
+    throw error;
+  }
 };
 
 /* ===============================
@@ -352,47 +399,58 @@ export const QRValidate = async (qrCode) => {
 export const getSeatList = async ({ sectorno }) => {
   await ensureInitialized();
   await logEvent("info", `Fetching seat list for sectorno: ${sectorno}`);
-  const res = await ApiClientPrimary.post("/SEATAPI/GetBookingSeat.asp", {
-    sectorno,
-  });
-  return res?.data?.body?.SeatList || [];
+  try {
+    const res = await ApiClientPrimary.post("/SEATAPI/GetBookingSeat.asp", {
+      sectorno,
+    });
+    return res?.data?.body?.SeatList || [];
+  } catch (error) {
+    await logEvent("error", `Failed to fetch seat list for sectorno ${sectorno}: ${error.message}`);
+    throw error;
+  }
 };
 
 export const getBookingBseqno = async ({ bseqno }) => {
   await ensureInitialized();
   await logEvent("info", `Fetching booking for bseqno: ${bseqno}`);
-  const res = await ApiClientPrimary.get(
-    "/SEATAPI/GetBookingBseqno.asp",
-    {
+  try {
+    const res = await ApiClientPrimary.get("/SEATAPI/GetBookingBseqno.asp", {
       params: { bseqno },
-    }
-  );
-  return res?.data;
+    });
+    return res?.data;
+  } catch (error) {
+    await logEvent("error", `Failed to fetch booking for bseqno ${bseqno}: ${error.message}`);
+    throw error;
+  }
 };
 
 export const getBookingTimeSeat = async ({ seatno, assignno }) => {
   await ensureInitialized();
   await logEvent("info", `Fetching booking time for seatno: ${seatno}`);
-  const res = await ApiClientPrimary.post("/SEATAPI/GetBookingTimeSeat.asp", {
-    ...(seatno && { seatno }),
-  });
-  return res?.data?.body || [];
+  try {
+    const res = await ApiClientPrimary.post("/SEATAPI/GetBookingTimeSeat.asp", {
+      ...(seatno && { seatno }),
+    });
+    return res?.data?.body || [];
+  } catch (error) {
+    await logEvent("error", `Failed to fetch booking time for seatno ${seatno}: ${error.message}`);
+    throw error;
+  }
 };
 
 export const getBookingList = async ({ schoolno, sDate, eDate }) => {
   await ensureInitialized();
   await logEvent("info", `Fetching booking list for schoolno: ${schoolno}, sDate: ${sDate}, eDate: ${eDate}`);
-  const res = await ApiClientPrimary.get(
-    "/SEATAPI/GetBookingListSchoolno.asp",
-    {
-      params: {
-        schoolno,
-        sDate,
-        eDate,
-      },
-    }
-  );
-  return res?.data?.body?.BookingList || [];
+  try {
+    const res = await ApiClientPrimary.get(
+      "/SEATAPI/GetBookingListSchoolno.asp",
+      { params: { schoolno, sDate, eDate } },
+    );
+    return res?.data?.body?.BookingList || [];
+  } catch (error) {
+    await logEvent("error", `Failed to fetch booking list for schoolno ${schoolno}: ${error.message}`);
+    throw error;
+  }
 };
 
 /* ===============================
@@ -402,75 +460,97 @@ export const getBookingList = async ({ schoolno, sDate, eDate }) => {
 export const setSeatAssign = async (payload) => {
   await ensureInitialized();
   await logEvent("info", `Assigning seat: ${JSON.stringify(payload)}`);
-  const res = await ApiClientPrimary.post("/SEATAPI/RunSeatAssign.asp", payload);
-  console.log("response", res?.data)
-  return res?.data;
+  try {
+    const res = await ApiClientPrimary.post("/SEATAPI/RunSeatAssign.asp", payload);
+    console.log("response", res?.data);
+    return res?.data;
+  } catch (error) {
+    await logEvent("error", `Failed to assign seat: ${error.message}`);
+    throw error;
+  }
 };
 
 export const setExtend = async ({ bseqno, min, endTime }) => {
   await ensureInitialized();
-
-  await logEvent(
-    "info",
-    `Extending seat: bseqno=${bseqno}, min=${min}, endTime=${endTime}`
-  );
-
-  const res = await ApiClientPrimary.get("/SEATAPI/RunExtendTime.asp", {
-    params: {
-      bseqno,
-      min,
-      endTime,
-    },
-  });
-  console.log("--------------", res?.data)
-  return res?.data;
+  await logEvent("info", `Extending seat: bseqno=${bseqno}, min=${min}, endTime=${endTime}`);
+  try {
+    const res = await ApiClientPrimary.get("/SEATAPI/RunExtendTime.asp", {
+      params: { bseqno, min, endTime },
+    });
+    console.log("--------------", res?.data);
+    return res?.data;
+  } catch (error) {
+    await logEvent("error", `Failed to extend seat for bseqno ${bseqno}: ${error.message}`);
+    throw error;
+  }
 };
 
 export const setMove = async ({ bseqno, newSeatno }) => {
   await ensureInitialized();
-
-  await logEvent(
-    "info",
-    `Moving seat: bseqno=${bseqno}, newSeatno=${newSeatno}`
-  );
-
-  const res = await ApiClientPrimary.get("/SEATAPI/RunMoveSeat.asp", {
-    params: {
-      bseqno,
-      newSeatno,
-    },
-  });
-  return res?.data;
+  await logEvent("info", `Moving seat: bseqno=${bseqno}, newSeatno=${newSeatno}`);
+  try {
+    const res = await ApiClientPrimary.get("/SEATAPI/RunMoveSeat.asp", {
+      params: { bseqno, newSeatno },
+    });
+    return res?.data;
+  } catch (error) {
+    await logEvent("error", `Failed to move seat from bseqno ${bseqno} to ${newSeatno}: ${error.message}`);
+    throw error;
+  }
 };
 
 export const setReturnSeat = async (payload) => {
   await ensureInitialized();
   await logEvent("info", `Returning seat: ${JSON.stringify(payload)}`);
+  try {
+    const res = await ApiClientPrimary.post("/SEATAPI/RunReturnSeat.asp", payload);
+    return res?.data;
+  } catch (error) {
+    await logEvent("error", `Failed to return seat: ${error.message}`);
+    throw error;
+  }
+};
 
-  const res = await ApiClientPrimary.post("/SEATAPI/RunReturnSeat.asp", payload);
-  return res?.data;
+export const runBookingCheck = async ({ bseqno }) => {
+  await ensureInitialized();
+  await logEvent("info", `Running booking check for bseqno: ${bseqno}`);
+  try {
+    const res = await ApiClientPrimary.get("/SEATAPI/RunBookingCheck.asp", {
+      params: { bseqno },
+    });
+    console.log("RunBookingCheck response:", res?.data);
+    return res?.data;
+  } catch (error) {
+    await logEvent("error", `Booking check failed for bseqno ${bseqno}: ${error.message}`);
+    throw error;
+  }
 };
 
 export const setAssignSeatInfo = async ({ schoolno, date, seatno, useTime }) => {
   await ensureInitialized();
   await logEvent("info", `Booking seat: schoolno=${schoolno}, date=${date}, seatno=${seatno}, useTime=${useTime}`);
-  const res = await ApiClientPrimary.get("/SEATAPI/RunSeatBooking.asp", {
-    params: {
-      schoolno,
-      date,
-      seatno,
-      useTime,
-    },
-  });
-  return res?.data;
+  try {
+    const res = await ApiClientPrimary.get("/SEATAPI/RunSeatBooking.asp", {
+      params: { schoolno, date, seatno, useTime },
+    });
+    return res?.data;
+  } catch (error) {
+    await logEvent("error", `Failed to book seat ${seatno} for schoolno ${schoolno}: ${error.message}`);
+    throw error;
+  }
 };
 
 export const managerCall = async (message) => {
   await ensureInitialized();
   await logEvent("info", `Manager call with message: ${message}`);
-  const response = await fetch(
-    `${managerIpUrl}/callMan.api?msg=${encodeURIComponent(message)}`,
-    { method: "GET", mode: "no-cors" },
-  );
-  return await response.json();
+  try {
+    const response = await fetch(
+      `${managerIpUrl}/callMan.api?msg=${encodeURIComponent(message)}`,
+      { method: "GET", mode: "no-cors" },
+    );
+    return await response.json();
+  } catch (error) {
+    await logEvent("error", `Manager call failed with message "${message}": ${error.message}`);
+    throw error;
+  }
 };

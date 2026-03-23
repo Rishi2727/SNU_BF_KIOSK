@@ -388,7 +388,6 @@ html[data-contrast="high"] .session-reminder-modal .outline-\[6px\] {
 html[data-contrast="high"] .user-info-modal {
   background: #000 !important;
   color: #fff !important;
-  border: 3px solid #FFD640;
 }
 
 /* information banner */
@@ -439,25 +438,8 @@ html[data-contrast="high"] .user-info-modal .user-action-btn {
   border: 2px solid transparent;
 }
 
-/* keep original colors but darker */
-html[data-contrast="high"] .user-info-modal .from-teal-500 {
-  background: #0f766e !important;
-}
-
-html[data-contrast="high"] .user-info-modal .bg-yellow-500\/90 {
-  background: #b45309 !important;
-}
-
-html[data-contrast="high"] .user-info-modal .bg-\[\#9A7D4C\] {
-  background: #6b5e3c !important;
-}
-
 html[data-contrast="high"] .user-info-modal .from-cyan-500 {
   background: #0e7490 !important;
-}
-
-html[data-contrast="high"] .user-info-modal .from-red-500 {
-  background: #b91c1c !important;
 }
 
 /* hover */
@@ -467,7 +449,13 @@ html[data-contrast="high"] .user-info-modal .user-action-btn:hover {
 
 /* disabled */
 html[data-contrast="high"] .user-info-modal .user-action-btn:disabled {
-  background: #222 !important;
+  background: #f1efef !important;
+  color: #666 !important;
+  border: 2px solid #444;
+}
+
+html[data-contrast="high"] .user-info{
+  background: #5f5f5f !important;
   color: #666 !important;
   border: 2px solid #444;
 }
@@ -479,7 +467,6 @@ html[data-contrast="high"] .user-info-modal .user-action-btn:disabled {
 html[data-contrast="high"] .info-modal {
   background: #000 !important;
   color: #fff !important;
-  border: 3px solid #FFD640 !important;
 }
 
 /* HEADER */

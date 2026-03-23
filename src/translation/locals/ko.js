@@ -31,7 +31,7 @@ const koTranslations = {
     SEAT_MODAL_FAILURE: "좌석 처리에 실패했습니다",
     Confirm: "확인",
     Cancel: "취소",
-    Back: "뒤쪽에",
+    Back: "이전",
     "Central Library": "중앙도서관",
     Seat: "좌석",
     Request: "요구",
@@ -229,7 +229,7 @@ const koTranslations = {
     "Start hours": "시작 시간",
     Booked: "예약됨",
     Disabled: "비활성화됨",
-    "Central Library, Gwanjeong Building": "중앙도서관, 관정빌딩",
+    "Central Library, Gwanjeong Building": "중앙도서관, 관정관",
     Available: "이용 가능한 좌석",
     "Please select a desired floor": "원하시는 층을 선택해 주세요",
     "Loading floors": "층 정보를 불러오는 중",
@@ -276,7 +276,7 @@ const koTranslations = {
     "You are now logged in. Please select the features you wish to use.":
       "로그인이 완료되었습니다. 사용하실 기능을 선택해 주세요.",
     Next: "다음",
-    Previous: "이전의",
+    Previous: "이전",
     Extension: "좌석 연장",
     Return: "좌석 반납",
     Move: "좌석 이동",
@@ -389,7 +389,13 @@ const koTranslations = {
     "Operation failed" : "작업이 실패했습니다",
     "사용중 정보가 존재하지 않습니다." : "사용중 정보가 존재하지 않습니다.",
     "사용시간이 유효하지 않습니다." : "사용시간이 유효하지 않습니다.",
-    "해당 좌석에 제한된 신분입니다. - [023]" : "해당 좌석에 제한된 신분입니다. - [023]"
+    "해당 좌석에 제한된 신분입니다. - [023]" : "해당 좌석에 제한된 신분입니다. - [023]",
+    "Do you want to check reservation?" : "예약 확인하시겠습니까?",
+    "Check Confirmation" : "확인 확인",
+    "Reservation Check Successful" : "예약 확인 완료",
+    "Do you want to cancel this seat?": "이 좌석을 취소하시겠습니까?",
+    "Cancel Confirmation" : "취소 확인"
+
   },
 };
 export default koTranslations;

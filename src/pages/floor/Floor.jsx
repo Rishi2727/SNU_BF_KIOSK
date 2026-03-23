@@ -57,6 +57,8 @@ const Floor = () => {
   // ─── Route state ────────────────────────────────────────────────────────
   const isMoveMode = move === "move" || location.state?.mode === "move";
   const { floorInfo: initialFloorInfo } = location.state || {};
+  const isSeatAssignMode = move === "seatAssign" || location.state?.mode === "seatAssign";
+  const bookingNo = location.state?.bookingNo ?? null;
 
   // ─── UI state ────────────────────────────────────────────────────────────
   const [isAnyModalOpen, setIsAnyModalOpen] = useState(false);
@@ -149,8 +151,9 @@ const Floor = () => {
     let path = `/floor/${floorTitle}`;
     if (sNo) path += `/${sNo}`;
     if (isMoveMode) path += "/move";
+    if (isSeatAssignMode) path += "/seatAssign";
     return path;
-  }, [isMoveMode]);
+  }, [isMoveMode, isSeatAssignMode]);
 
   const getSectorLabel = useCallback((sector, index = 0) => {
     if (!sector?.MAPLABEL) return "";
@@ -750,10 +753,12 @@ const Floor = () => {
 
       {/* ═══ SEAT BOOKING MODAL ═══ */}
       <SeatActionModal
-        mode={isMoveMode ? "move" : "booking"}
+        mode={isMoveMode ? "move" : isSeatAssignMode ? "seatAssign" : "booking"}
         seat={selectedSeat}
         isOpen={showSeatModal}
         onClose={handleCloseModal}
+        bookingNo={bookingNo}     
+        logoutOnSuccess={isSeatAssignMode} 
         disableFocusAndSpeech={showSessionReminder}
         persistedSelection={persistedSeatSelection}
         onSelectionChange={setPersistedSeatSelection}
@@ -776,7 +781,7 @@ const Floor = () => {
           <div className="flex gap-4 w-full justify-center">
             <button
               onClick={() => handleSessionEnter(0)}
-              className={`px-8 py-3 rounded-full bg-[#FFCA08] text-white font-bold text-[30px] min-w-[120px]
+              className={`px-8 py-3 rounded-full bg-[#66b2b2] text-white font-bold text-[30px] min-w-[120px]
                 ${sessionCursor === 0 ? "outline-[6px] outline-[#dc2f02]" : ""}`}
             >
               {t("translations.Yes")}

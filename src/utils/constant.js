@@ -233,6 +233,10 @@ export const MODAL_TYPES = {
   EXTENSION: "extension",
   RETURN: "return",
   ASSIGN_CHECK: "assignCheck",
+  // ── NEW ──
+  RESERVATION_CANCEL: "reservationCancel",
+  BOOKING_CHECK: "bookingCheck",
+  SEAT_ASSIGN: "seatAssign",
 };
 
 export const MODES = {
@@ -241,6 +245,10 @@ export const MODES = {
   RETURN: "return",
   MOVE: "move",
   ASSIGN_CHECK: "assignCheck",
+  // ── NEW ──
+  RESERVATION_CANCEL: "reservationCancel",
+  BOOKING_CHECK: "bookingCheck",
+  SEAT_ASSIGN: "seatAssign",
 };
 
 export const MODE_LABELS = {
@@ -249,5 +257,8 @@ export const MODE_LABELS = {
   [MODES.RETURN]: "Seat Return",
   [MODES.MOVE]: "Seat Move",
   [MODES.ASSIGN_CHECK]: "Seat Check",
+  // ── NEW ──
+  [MODES.RESERVATION_CANCEL]: "Reservation Cancel",
+  [MODES.BOOKING_CHECK]: "Reservation Check",
+  [MODES.SEAT_ASSIGN]: "Seat Assignment",
 };
-

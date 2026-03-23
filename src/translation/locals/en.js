@@ -354,7 +354,12 @@ const enTranslations = {
     "Operation failed" : "Operation failed",
     "사용중 정보가 존재하지 않습니다." : "No active usage information found.",
     "사용시간이 유효하지 않습니다." : "The usage time is invalid.",
-    "해당 좌석에 제한된 신분입니다. - [023]" : "You are not authorized to use this seat. - [023]"
+    "해당 좌석에 제한된 신분입니다. - [023]" : "You are not authorized to use this seat. - [023]",
+    "Do you want to check reservation?" : "Do you want to check reservation?",
+    "Check Confirmation" : "Check Confirmation",
+    "Reservation Check Successful" : "Reservation Check Successful",
+    "Do you want to cancel this seat?": "Do you want to cancel this seat?",
+    "Cancel Confirmation" : "Cancel Confirmation"
   },
 };
 export default enTranslations;
